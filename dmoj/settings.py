@@ -493,6 +493,8 @@ INSTALLED_APPS += (
     'django.contrib.admin',
     'judge',
     'urlshortener',
+    'billing',
+    'mentor',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.flatpages',
