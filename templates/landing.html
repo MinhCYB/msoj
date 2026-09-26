@@ -1,0 +1,129 @@
+{% extends 'base.html' %} {% block title %}MSOJ — Học và luyện tập lập trình thi đấu{% endblock %}
+{% block media %}{{ super() }}<link rel="stylesheet" href="{{ static('landing.css') }}?v=2" />{%
+endblock %} {% block title_row %}{% endblock %} {% block title_ruler %}{% endblock %} {% block body
+%}
+<div class="msoj-landing">
+  <section class="msoj-landing-hero" aria-labelledby="landing-title">
+    <div class="msoj-landing-intro">
+      <p class="msoj-landing-eyebrow">
+        <span class="msoj-landing-mark" aria-hidden="true"></span> KHÔNG GIAN LUYỆN TẬP · MSOJ
+      </p>
+      <h1 id="landing-title">Học và luyện tập lập trình thi đấu</h1>
+      <p class="msoj-landing-lead">
+        Một không gian rõ ràng để đọc đề, thử sức với bài tập và theo dõi hành trình giải thuật của
+        bạn.
+      </p>
+      <div class="msoj-landing-actions">
+        <a class="msoj-landing-primary" href="{{ url('problem_list') }}"
+          >Khám phá bài tập <span aria-hidden="true">↗</span></a
+        >
+        <a class="msoj-landing-secondary" href="{{ url('contest_list') }}"
+          >Xem cuộc thi <span aria-hidden="true">→</span></a
+        >
+      </div>
+      <p class="msoj-landing-intro-note">
+        ĐỌC ĐỀ <span>·</span> VIẾT LỜI GIẢI <span>·</span> XEM KẾT QUẢ
+      </p>
+    </div>
+    <aside class="msoj-landing-explore" aria-labelledby="landing-explore-title">
+      <div class="msoj-landing-aside-header">
+        <span class="msoj-landing-aside-index">01 / ĐIỂM KHỞI ĐẦU</span
+        ><span aria-hidden="true">✳</span>
+      </div>
+      <h2 id="landing-explore-title">Bắt đầu từ đâu?</h2>
+      <p>Chọn nơi bạn muốn khám phá hôm nay.</p>
+      <div class="msoj-landing-explore-links">
+        <a href="{{ url('problem_list') }}"
+          ><span class="msoj-landing-link-number">01</span> Bài tập
+          <span aria-hidden="true">↗</span></a
+        >
+        <a href="{{ url('all_submissions') }}"
+          ><span class="msoj-landing-link-number">02</span> Các bài nộp
+          <span aria-hidden="true">↗</span></a
+        >
+        <a href="{{ url('contest_list') }}"
+          ><span class="msoj-landing-link-number">03</span> Cuộc thi
+          <span aria-hidden="true">↗</span></a
+        >
+        <a href="{{ url('user_list') }}"
+          ><span class="msoj-landing-link-number">04</span> Thành viên
+          <span aria-hidden="true">↗</span></a
+        >
+      </div>
+      <div class="msoj-landing-aside-footer">HỌC TỪ TỪNG BÀI GIẢI. TIẾN BỘ QUA TỪNG LẦN THỬ.</div>
+    </aside>
+  </section>
+
+  <section class="msoj-landing-section" aria-labelledby="landing-features">
+    <div class="msoj-landing-section-kicker">KHÁM PHÁ NỀN TẢNG <span>— 01</span></div>
+    <h2 id="landing-features">Bạn có thể làm gì?</h2>
+    <p class="msoj-landing-section-lead">
+      Từ bài tập đầu tiên đến những cuộc thi tiếp theo — mọi bước học đều có chỗ đứng.
+    </p>
+    <div class="msoj-landing-grid">
+      <article>
+        <span class="msoj-landing-card-index">01 <span aria-hidden="true">/</span> LUYỆN TẬP</span>
+        <span class="msoj-landing-card-symbol" aria-hidden="true">{ }</span>
+        <h3>Luyện tập</h3>
+        <p>Tìm bài tập và giải theo tốc độ của bạn.</p>
+        <a href="{{ url('problem_list') }}">Xem bài tập <span aria-hidden="true">↗</span></a>
+      </article>
+      <article>
+        <span class="msoj-landing-card-index">02 <span aria-hidden="true">/</span> THEO DÕI</span>
+        <span class="msoj-landing-card-symbol" aria-hidden="true">↗</span>
+        <h3>Theo dõi bài nộp</h3>
+        <p>Xem kết quả sau mỗi lần nộp lời giải.</p>
+        <a href="{{ url('all_submissions') }}">Xem các bài nộp <span aria-hidden="true">↗</span></a>
+      </article>
+      <article>
+        <span class="msoj-landing-card-index">03 <span aria-hidden="true">/</span> THỬ SỨC</span>
+        <span class="msoj-landing-card-symbol" aria-hidden="true">✳</span>
+        <h3>Tham gia cuộc thi</h3>
+        <p>Tìm hiểu cuộc thi và thể lệ trước khi tham gia.</p>
+        <a href="{{ url('contest_list') }}">Xem cuộc thi <span aria-hidden="true">↗</span></a>
+      </article>
+    </div>
+  </section>
+
+  <section class="msoj-landing-section" aria-labelledby="landing-pricing">
+    <div class="msoj-landing-section-kicker">THÔNG TIN THAM KHẢO <span>— 02</span></div>
+    <h2 id="landing-pricing">Giá tham khảo</h2>
+    <p class="msoj-landing-disclaimer">Giá minh họa, chưa phải báo giá chính thức.</p>
+    {% if example_plans %}
+    <div class="msoj-landing-grid msoj-landing-plans">
+      {% for plan in example_plans %}
+      <article>
+        <span class="msoj-landing-plan-label">GÓI MINH HỌA / 0{{ loop.index }}</span>
+        <h3>{{ plan.name }}</h3>
+        <p class="msoj-landing-price">
+          {{ '{:,.0f}'.format(plan.amount).replace(',', '.') }} VNĐ
+          <span
+            >{% if plan.pricing_type == 'per_day' %}/ ngày{% else %}/ {{ plan.duration_days }}
+            ngày{% endif %}</span
+          >
+        </p>
+        <ul>
+          {% for feature in plan.features %}
+          <li>{{ _(feature) }}</li>
+          {% endfor %}
+        </ul>
+      </article>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p>Chưa có giá minh họa để hiển thị.</p>
+    {% endif %}
+  </section>
+
+  <section class="msoj-landing-section" aria-labelledby="landing-contact">
+    <div class="msoj-landing-section-kicker">KẾT NỐI <span>— 03</span></div>
+    <h2 id="landing-contact">Liên hệ</h2>
+    {% if SITE_ADMIN_EMAIL and SITE_ADMIN_EMAIL != 'admin@example.com' %}
+    <a href="mailto:{{ SITE_ADMIN_EMAIL }}">{{ SITE_ADMIN_EMAIL }}</a>
+    {% else %}
+    <p>Thông tin liên hệ sẽ được cập nhật.</p>
+    {% endif %}
+    <p><a href="{{ url('blog_modern_list') }}">Đọc bài viết</a></p>
+  </section>
+</div>
+{% endblock %}

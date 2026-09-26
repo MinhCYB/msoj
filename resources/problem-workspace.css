@@ -1,0 +1,1801 @@
+/* Academic Ink workspace: preserve the existing routes, form and permissions. */
+body:has(.ms-workspace) {
+  --ws-page: #f8f9fb;
+  --ws-bg: #fff;
+  --ws-ink: #18212d;
+  --ws-muted: #566474;
+  --ws-border: #dce2e9;
+  --ws-accent: #2457a7;
+  --ws-accent-hover: #194584;
+  background: var(--ws-page);
+  color: var(--ws-ink);
+  font-family: "Segoe UI", "Source Sans Pro", Arial, sans-serif;
+}
+body[data-theme="dark"]:has(.ms-workspace) {
+  --ws-page: #11151b;
+  --ws-bg: #1b222b;
+  --ws-ink: #e9edf2;
+  --ws-muted: #a9b5c2;
+  --ws-border: #35414e;
+  --ws-accent: #80acf2;
+  --ws-accent-hover: #a1c3fa;
+}
+@media (prefers-color-scheme: dark) {
+  body[data-theme="auto"]:has(.ms-workspace) {
+    --ws-page: #11151b;
+    --ws-bg: #1b222b;
+    --ws-ink: #e9edf2;
+    --ws-muted: #a9b5c2;
+    --ws-border: #35414e;
+    --ws-accent: #80acf2;
+    --ws-accent-hover: #a1c3fa;
+  }
+}
+body:has(.ms-workspace) #navigation {
+  height: 68px;
+  background: var(--ws-bg);
+  border-bottom: 1px solid var(--ws-border);
+  box-shadow: none;
+}
+body:has(.ms-workspace) #nav-container {
+  height: 100%;
+  max-width: none;
+  position: relative;
+  background: var(--ws-bg);
+}
+body:has(.ms-workspace) #nav-shadow {
+  display: none;
+}
+body:has(.ms-workspace) #nav-list {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 100%;
+  margin: 0;
+  padding: 0 28px;
+}
+body:has(.ms-workspace) #nav-list > li {
+  text-transform: none;
+}
+body:has(.ms-workspace) #nav-list > li > a:not(.nav-home) {
+  height: auto;
+  padding: 11px 13px;
+  color: var(--ws-muted);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  border: 0;
+  border-radius: 6px;
+}
+body:has(.ms-workspace) #nav-list > li > a:not(.nav-home):hover,
+body:has(.ms-workspace) #nav-list > li > a.active {
+  background: color-mix(in srgb, var(--ws-accent) 10%, var(--ws-bg));
+  color: var(--ws-accent);
+}
+body:has(.ms-workspace) #nav-list .home-nav-element:first-child {
+  margin-right: 20px;
+}
+body:has(.ms-workspace) #nav-list .home-nav-element:first-child a {
+  height: auto;
+}
+body:has(.ms-workspace) #nav-list .home-nav-element:nth-child(2) {
+  display: none;
+}
+body:has(.ms-workspace) .msoj-wordmark {
+  height: auto;
+  padding: 0;
+  color: var(--ws-ink);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.06em;
+}
+body:has(.ms-workspace) #navigation .home-nav-element a:hover .msoj-wordmark {
+  color: var(--ws-accent);
+}
+body:has(.ms-workspace) #user-links {
+  padding-right: 28px;
+  color: var(--ws-muted);
+}
+body:has(.ms-workspace) #user-links > ul > li > a > span,
+body:has(.ms-workspace) #user-links a,
+body:has(.ms-workspace) #user-links a:link {
+  color: var(--ws-ink);
+}
+body:has(.ms-workspace) #user-links > ul > li > a > span > span {
+  color: var(--ws-ink);
+}
+body:has(.ms-workspace) #user-links .anon a:last-child {
+  display: inline-block;
+  padding: 9px 15px;
+  border: 1px solid var(--ws-border);
+  border-radius: 6px;
+}
+body:has(.ms-workspace) #navigation ul li ul {
+  background: var(--ws-bg);
+  color: var(--ws-ink);
+  border: 1px solid var(--ws-border);
+  border-radius: 6px;
+  box-shadow: 0 12px 32px #18212d20;
+}
+body:has(.ms-workspace) #navigation ul li ul a,
+body:has(.ms-workspace) #navigation ul li ul button {
+  color: var(--ws-ink);
+  border-left-color: var(--ws-accent);
+}
+body:has(.ms-workspace) #navigation ul li ul a:hover,
+body:has(.ms-workspace) #navigation ul li ul button:hover {
+  color: var(--ws-accent);
+  background: var(--ws-page);
+}
+body:has(.ms-workspace) #page-container {
+  max-width: none;
+  border: 0;
+  background: var(--ws-page);
+}
+body:has(.ms-workspace) #content {
+  width: auto;
+  max-width: none;
+  height: auto;
+  min-height: 0;
+  margin: 68px 0 0;
+  padding: 26px clamp(20px, 2.4vw, 48px) 80px;
+}
+body:has(.ms-workspace) #content-body {
+  min-width: 0;
+  padding-bottom: 0;
+}
+body:has(.ms-workspace) footer {
+  box-sizing: border-box;
+  height: auto;
+  padding: 20px;
+  background: var(--ws-bg);
+  border-top: 1px solid var(--ws-border);
+  color: var(--ws-muted);
+}
+body:has(.ms-workspace) .problem-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--ws-border);
+}
+body:has(.ms-workspace) .problem-title h2 {
+  color: var(--ws-ink);
+  font-size: clamp(22px, 2vw, 32px);
+  font-weight: 750;
+  letter-spacing: -0.035em;
+}
+body:has(.ms-workspace) .problem-title .title-state {
+  float: none;
+  width: auto;
+  margin: 0;
+  font-size: 22px;
+}
+body:has(.ms-workspace) .problem-title .view-pdf {
+  margin-left: auto;
+  padding: 8px 13px;
+  border: 1px solid var(--ws-border);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--ws-accent);
+}
+body:has(.ms-workspace) .problem-title .view-pdf:hover {
+  background: var(--ws-bg);
+}
+.ms-workspace {
+  color: var(--ws-ink);
+}
+.ms-workspace *,
+.ms-mentor * {
+  box-sizing: border-box;
+}
+.ms-workspace-jump {
+  position: static;
+  display: flex;
+  gap: 8px;
+  padding: 15px 0 20px;
+  font-size: 13px;
+}
+.ms-workspace-jump a {
+  display: inline-flex;
+  padding: 8px 13px;
+  border: 1px solid var(--ws-border);
+  border-radius: 6px;
+  color: var(--ws-muted);
+  font-weight: 650;
+  background: var(--ws-bg);
+}
+.ms-workspace-jump a:hover {
+  color: var(--ws-accent);
+  border-color: var(--ws-accent);
+}
+.ms-workspace-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(16px, 2vw, 32px);
+  align-items: start;
+}
+.ms-workspace-statement,
+.ms-workspace-code {
+  min-width: 0;
+  border: 1px solid var(--ws-border);
+  background: var(--ws-bg);
+  border-radius: 8px;
+  padding: clamp(20px, 2vw, 34px);
+}
+.ms-workspace-statement {
+  min-height: min(740px, calc(100vh - 180px));
+}
+.ms-workspace-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--ws-border);
+  padding-bottom: 16px;
+  margin-bottom: 22px;
+}
+.ms-workspace-kicker {
+  color: var(--ws-accent);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+}
+.ms-workspace-heading h3 {
+  color: var(--ws-ink);
+  font-size: 22px;
+  font-weight: 700;
+  margin: 5px 0 0;
+}
+.ms-annotate-launch,
+.ms-annotation-tools button,
+.ms-mentor button {
+  cursor: pointer;
+}
+.ms-annotate-launch {
+  white-space: nowrap;
+  border: 1px solid var(--ws-border);
+  background: var(--ws-bg);
+  color: var(--ws-accent);
+  border-radius: 6px;
+  padding: 9px 12px;
+}
+.ms-statement-wrap {
+  position: relative;
+  min-width: 0;
+}
+.ms-statement-wrap .content-description {
+  overflow-wrap: anywhere;
+}
+#ms-annotation-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+#ms-annotation-layer.is-drawing {
+  pointer-events: auto;
+  cursor: crosshair;
+  touch-action: none;
+}
+#ms-annotation-layer svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.ms-annotation-toolbar {
+  position: sticky;
+  bottom: 10px;
+  z-index: 20;
+  padding: 12px;
+  background: var(--ws-bg);
+  border: 1px solid var(--ws-border);
+  border-radius: 8px;
+  box-shadow: 0 8px 25px #18212d22;
+}
+.ms-annotation-toolbar[hidden],
+.ms-mentor-panel[hidden] {
+  display: none;
+}
+.ms-annotation-toolbar p {
+  font-size: 12px;
+  color: var(--ws-muted);
+  margin: 0 0 8px;
+}
+.ms-annotation-tools {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.ms-annotation-tools button {
+  border: 1px solid var(--ws-border);
+  background: var(--ws-bg);
+  color: var(--ws-ink);
+  border-radius: 4px;
+  padding: 7px 9px;
+}
+.ms-annotation-tools button[aria-pressed="true"] {
+  background: var(--ws-accent);
+  color: #fff;
+}
+.ms-annotation-tools label {
+  font-size: 12px;
+}
+.ms-workspace-form #problem_submit {
+  display: block;
+  width: 100%;
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+.ms-workspace button:not(.ms-annotate-launch),
+.ms-workspace input[type="submit"],
+.ms-workspace a.button,
+.ms-mentor button {
+  font-family: inherit;
+}
+.ms-workspace .button,
+.ms-workspace button.button,
+.ms-workspace input[type="submit"],
+.ms-workspace .ms-workspace-login {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  width: auto;
+  padding: 8px 17px;
+  border: 1px solid #2457a7;
+  border-radius: 6px;
+  background: #2457a7;
+  background-image: none;
+  box-shadow: none;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.3;
+  text-shadow: none;
+  text-decoration: none;
+  cursor: pointer;
+}
+.ms-workspace .button:hover,
+.ms-workspace input[type="submit"]:hover,
+.ms-workspace .ms-workspace-login:hover {
+  background: #194584;
+  background-image: none;
+  color: #fff;
+  border-color: #194584;
+}
+.ms-workspace input[type="submit"]:disabled,
+.ms-workspace .button.disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+.ms-workspace-form #problem_submit #submit-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ms-workspace-form #problem_submit #editor {
+  order: 2;
+}
+.ms-workspace-form #problem_submit #language {
+  order: 1;
+}
+.ms-workspace-form #problem_submit #submit-wrapper > hr {
+  display: none;
+}
+.ms-workspace-form #problem_submit label {
+  display: inline-block;
+  color: var(--ws-muted);
+  font-size: 13px;
+  margin-bottom: 9px;
+}
+.ms-workspace-form #problem_submit #id_language {
+  min-height: 40px;
+  border: 1px solid var(--ws-border);
+  border-radius: 6px;
+  color: var(--ws-ink);
+  background: var(--ws-bg);
+}
+.ms-workspace-form #problem_submit #ace_source {
+  width: 100% !important;
+  border: 1px solid var(--ws-border);
+  border-radius: 6px;
+}
+.ms-workspace-form #problem_submit .select2-container {
+  max-width: 100%;
+}
+.ms-workspace-form #problem_submit .submit-bar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px solid var(--ws-border);
+}
+.ms-workspace-info > hr {
+  border: 0;
+  border-top: 1px solid var(--ws-border);
+  margin: 18px 0;
+}
+.ms-workspace-info > div:not(.problem-info-entry):not(.problem-lang-limits) {
+  margin: 8px 0;
+}
+.ms-workspace-info a:not(.button),
+.ms-workspace-comments a {
+  color: var(--ws-accent);
+}
+.ms-workspace-info a:not(.button):hover,
+.ms-workspace-comments a:hover {
+  text-decoration: underline;
+}
+.ms-workspace-info .problem-info-entry {
+  color: var(--ws-muted);
+  line-height: 1.6;
+}
+.ms-workspace-info .pi-value {
+  color: var(--ws-ink);
+}
+.ms-workspace .content-description {
+  color: var(--ws-ink);
+  font-size: 15px;
+  line-height: 1.7;
+}
+.ms-workspace .content-description h2,
+.ms-workspace .content-description h3 {
+  color: var(--ws-ink);
+  font-weight: 700;
+}
+.ms-workspace-comments .problem-tabs {
+  margin-top: 0;
+}
+.ms-workspace-comments .problem-tabs a {
+  color: var(--ws-accent);
+  background: var(--ws-bg);
+  border-color: var(--ws-border);
+  border-radius: 6px 6px 0 0;
+}
+.ms-workspace-comments .tab-content {
+  background: var(--ws-bg);
+  border: 1px solid var(--ws-border);
+  border-radius: 0 6px 6px 6px;
+  padding: 24px;
+}
+.ms-workspace a:focus-visible,
+.ms-workspace button:focus-visible,
+.ms-workspace input:focus-visible,
+body:has(.ms-workspace) #navigation a:focus-visible {
+  outline: 3px solid var(--ws-accent);
+  outline-offset: 2px;
+}
+.ms-workspace-form #ace_source {
+  min-height: 330px;
+}
+.ms-workspace-form #file_select {
+  max-width: 100%;
+}
+.ms-workspace-form .submit-bar {
+  float: none !important;
+  text-align: right;
+}
+.ms-workspace-info {
+  border-top: 1px solid var(--ws-border);
+  margin-top: 25px;
+  padding-top: 18px;
+}
+.ms-workspace-info > a.button.full {
+  width: auto;
+  display: inline-block;
+}
+.ms-workspace-info .problem-info-entry {
+  display: inline-block;
+  margin-right: 18px;
+}
+.ms-workspace-comments {
+  padding: 30px 0;
+}
+.ms-workspace-login {
+  display: inline-block;
+  padding: 11px 16px;
+  border: 1px solid var(--ws-border);
+  border-radius: 6px;
+}
+.ms-mentor {
+  position: fixed;
+  z-index: 300;
+  right: 20px;
+  bottom: 20px;
+}
+.ms-mentor-launch {
+  background: #2457a7;
+  border: 0;
+  border-radius: 28px;
+  padding: 13px 21px;
+  color: white;
+  font-weight: 700;
+  box-shadow: 0 5px 20px #18212d33;
+}
+.ms-mentor-launch[hidden] {
+  display: none;
+}
+.ms-mentor-panel {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: min(380px, calc(100vw - 30px));
+  height: min(360px, calc(100dvh - 85px));
+  min-width: 280px;
+  min-height: 180px;
+  max-width: calc(100vw - 30px);
+  max-height: calc(100dvh - 85px);
+  background: var(--ms-surface, white);
+  color: var(--ms-text, #18212d);
+  border: 1px solid var(--ms-border, #dce2e9);
+  border-radius: 10px;
+  box-shadow: 0 12px 38px #18212d33;
+  overflow: auto;
+  resize: both;
+}
+.ms-mentor-panel header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--ms-border, #dce2e9);
+}
+.ms-mentor-panel header button {
+  border: 0;
+  background: transparent;
+  font-size: 22px;
+  color: inherit;
+  padding: 0 8px;
+}
+.ms-mentor-body {
+  padding: 25px 20px;
+}
+.ms-mentor-body span {
+  color: var(--ms-accent, #2457a7);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+.ms-mentor-body h3 {
+  margin: 14px 0;
+}
+.ms-mentor-resize {
+  position: absolute;
+  bottom: 3px;
+  right: 3px;
+  width: 12px;
+  height: 12px;
+  border-right: 2px solid #8492a1;
+  border-bottom: 2px solid #8492a1;
+  pointer-events: none;
+}
+@media (max-width: 850px) {
+  body:has(.ms-workspace) #navigation {
+    height: 56px;
+  }
+  body:has(.ms-workspace) #navicon {
+    color: var(--ws-ink);
+    margin: 9px 8px;
+    font-size: 24px;
+  }
+  body:has(.ms-workspace) #nav-list {
+    display: none;
+    position: fixed;
+    top: 56px;
+    bottom: 0;
+    left: 0;
+    width: min(290px, 85vw);
+    height: auto;
+    padding: 18px;
+    background: var(--ws-bg);
+    border-right: 1px solid var(--ws-border);
+    overflow: auto;
+  }
+  body:has(.ms-workspace) #nav-list.show-list {
+    display: block;
+  }
+  body:has(.ms-workspace) #nav-list > li {
+    display: block;
+  }
+  body:has(.ms-workspace) #nav-list > li > a:not(.nav-home) {
+    display: block;
+    padding: 12px;
+  }
+  body:has(.ms-workspace) #nav-list .home-nav-element:first-child {
+    display: block;
+    margin: 0 0 12px;
+  }
+  body:has(.ms-workspace) #user-links {
+    padding-right: 10px;
+  }
+  body:has(.ms-workspace) #content {
+    margin-top: 56px;
+    padding: 18px 16px 75px;
+  }
+  .ms-workspace-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ms-workspace-form #ace_source {
+    min-height: 280px;
+  }
+  .ms-workspace-heading {
+    flex-wrap: wrap;
+  }
+  .ms-workspace-statement {
+    min-height: 0;
+  }
+  .ms-workspace-comments .tab-content {
+    padding: 14px;
+  }
+  .ms-mentor {
+    right: 12px;
+    bottom: 12px;
+  }
+}
+
+.ms-workspace-admin {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 14px 18px;
+  margin-bottom: 4px;
+  border: 1px solid var(--ws-border);
+  border-radius: 7px;
+  background: var(--ws-bg);
+}
+.ms-workspace-admin-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ms-workspace-admin-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 7px 12px;
+  border: 1px solid var(--ws-border);
+  border-radius: 5px;
+  color: var(--ws-accent);
+  background: var(--ws-bg);
+  font-size: 12px;
+  font-weight: 650;
+}
+.ms-workspace-admin-links a:hover {
+  border-color: var(--ws-accent);
+  background: var(--ws-page);
+}
+.ms-workspace-admin-links a.ms-workspace-destructive {
+  color: #a32c38;
+  border-color: #edcbd0;
+}
+.ms-workspace-admin-links a.ms-workspace-destructive:hover {
+  border-color: #a32c38;
+  background: #fff3f4;
+}
+.ms-workspace-details {
+  margin-top: 18px;
+  padding: 19px 24px;
+  border: 1px solid var(--ws-border);
+  border-radius: 8px;
+  background: var(--ws-bg);
+}
+.ms-workspace-details .ms-workspace-metadata {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 26px;
+}
+.ms-workspace-details .ms-workspace-metadata .problem-info-entry {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+  padding: 0;
+  color: var(--ws-muted);
+}
+.ms-workspace-details .pi-value {
+  color: var(--ws-ink);
+}
+.ms-workspace-details .ms-workspace-extra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 12px 26px;
+  border-top: 1px solid var(--ws-border);
+  margin-top: 15px;
+  padding-top: 15px;
+  color: var(--ws-muted);
+}
+.ms-workspace-details .ms-workspace-extra .problem-info-entry,
+.ms-workspace-details #problem-types,
+.ms-workspace-details #allowed-langs,
+.ms-workspace-details #available-judges {
+  padding-top: 0;
+}
+.ms-workspace-details .authors-value,
+.ms-workspace-details .judges-value {
+  display: inline;
+  padding-left: 4px;
+}
+.ms-workspace-details .lang-limit {
+  margin-left: 0;
+}
+.ms-workspace-related {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin-top: 12px;
+}
+.ms-workspace-related a {
+  font-size: 13px;
+  font-weight: 650;
+}
+.ms-workspace-info .submissions-left {
+  margin: 0 0 12px;
+  text-align: left;
+  color: var(--ws-muted);
+}
+.ms-workspace-form #problem_submit #file_select {
+  font-size: 12px;
+  color: var(--ws-muted);
+}
+.ms-workspace-form #problem_submit #file_select::file-selector-button {
+  padding: 7px 11px;
+  margin-right: 10px;
+  border: 1px solid var(--ws-border);
+  border-radius: 5px;
+  background: var(--ws-bg);
+  color: var(--ws-accent);
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+}
+.ms-workspace-form #problem_submit #editor #ace_source {
+  border-radius: 0 0 6px 6px;
+}
+
+/* Compact, persistent problem context and editor controls. */
+body:has(.ms-workspace) #content {
+  padding-top: 0;
+}
+body:has(.ms-workspace) .problem-title {
+  position: sticky;
+  top: 68px;
+  z-index: 210;
+  min-height: 66px;
+  margin: 0 calc(-1 * clamp(20px, 2.4vw, 48px));
+  padding: 10px clamp(20px, 2.4vw, 48px);
+  background: var(--ws-bg);
+  border-bottom: 1px solid var(--ws-border);
+  box-shadow: 0 4px 12px #18212d0a;
+}
+body:has(.ms-workspace) .problem-title h2 {
+  margin: 0;
+  font-size: clamp(20px, 1.55vw, 27px);
+  white-space: nowrap;
+}
+body:has(.ms-workspace) .problem-title .spacer {
+  flex: 1 1 auto;
+}
+body:has(.ms-workspace) .problem-title .view-pdf {
+  margin-left: 0;
+  white-space: nowrap;
+}
+.ms-title-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 16px;
+  min-width: 0;
+  color: var(--ws-muted);
+  font-size: 12px;
+}
+.ms-title-metrics span {
+  white-space: nowrap;
+}
+.ms-title-metrics i {
+  margin-right: 3px;
+  color: var(--ws-accent);
+}
+.ms-title-metrics strong {
+  color: var(--ws-ink);
+  font-weight: 650;
+}
+.ms-workspace-admin {
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+.ms-workspace-admin-links {
+  justify-content: flex-end;
+  margin-left: auto;
+}
+.ms-workspace-details .ms-workspace-extra {
+  margin: 0;
+  padding: 0;
+  border-top: 0;
+}
+.ms-workspace-language-limits {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  width: 100%;
+  font-size: 12px;
+}
+.ms-workspace-statement,
+.ms-workspace-code,
+.ms-workspace-comments {
+  scroll-margin-top: 95px;
+}
+
+.ms-workspace-code .ms-workspace-heading {
+  margin-bottom: 0;
+  border-bottom: 0;
+}
+.ms-workspace-code .ms-workspace-form {
+  border: 1px solid var(--ws-border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--ws-bg);
+}
+.ms-workspace-code .ms-workspace-form #problem_submit {
+  margin: 0;
+}
+.ms-workspace-form #problem_submit #submit-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0;
+}
+.ms-workspace-form #problem_submit #language {
+  order: 0;
+  margin: 0;
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--ws-border);
+  background: var(--ws-page);
+}
+.ms-workspace-form #problem_submit #language-select {
+  display: flex;
+  align-items: center;
+}
+.ms-workspace-form #problem_submit #language-select::before {
+  content: "Ngôn ngữ";
+  flex: 1;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ws-muted);
+}
+.ms-workspace-form #problem_submit #language-select .select2-container,
+.ms-workspace-form #problem_submit #language-select select {
+  width: min(290px, 66%) !important;
+  max-width: 100%;
+}
+.ms-workspace-form #problem_submit #language-select .select2-selection {
+  min-height: 39px;
+  display: flex;
+  align-items: center;
+  background: var(--ws-bg);
+  border: 1px solid var(--ws-border);
+  border-radius: 6px;
+  color: var(--ws-ink);
+}
+.ms-workspace-form #problem_submit #editor {
+  order: 1;
+  margin: 0;
+}
+.ms-workspace-form #problem_submit #editor #ace_source {
+  border: 0;
+  border-radius: 0;
+}
+.ms-workspace-form #problem_submit #file-submit {
+  order: 1;
+  margin: 0;
+  padding: 16px;
+}
+.ms-workspace-form #problem_submit > hr {
+  display: none;
+}
+.ms-workspace-form #problem_submit .ms-editor-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  min-height: 66px;
+  padding: 11px 16px;
+  border-top: 1px solid var(--ws-border);
+  background: var(--ws-bg);
+}
+.ms-workspace-form #problem_submit .ms-editor-file-control {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px;
+  min-width: 0;
+}
+.ms-workspace-form #problem_submit:has(#file-submit:not(.hidden)) .ms-editor-file-control {
+  display: none;
+}
+.ms-workspace-form #problem_submit #file_drag {
+  border-color: var(--ws-border);
+  background: var(--ws-page);
+  color: var(--ws-ink);
+}
+.ms-workspace-form #problem_submit .ms-editor-file-control label {
+  margin: 0;
+  color: var(--ws-muted);
+  font-size: 12px;
+  font-weight: 650;
+}
+.ms-workspace-form #problem_submit #file_select {
+  max-width: min(280px, 100%);
+}
+.ms-workspace-form #problem_submit .submit-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.ms-workspace-form #problem_submit .submit-bar input[type="submit"] {
+  min-height: 40px;
+  padding: 9px 20px;
+}
+.ms-workspace-code #ace_source .ace_print-margin {
+  display: none;
+}
+
+@media (max-width: 850px) {
+  body:has(.ms-workspace) .problem-title {
+    top: 56px;
+    margin: 0 -16px;
+    padding: 10px 16px;
+  }
+  .ms-title-metrics {
+    width: 100%;
+    order: 3;
+    gap: 5px 12px;
+  }
+  body:has(.ms-workspace) .problem-title .view-pdf {
+    margin-left: auto;
+  }
+  .ms-workspace-admin {
+    align-items: flex-start;
+  }
+  .ms-workspace-admin-links {
+    justify-content: flex-start;
+    margin-left: 0;
+  }
+  .ms-workspace-form #problem_submit .ms-editor-footer {
+    align-items: stretch;
+  }
+  .ms-workspace-form #problem_submit .submit-bar {
+    margin-left: auto;
+  }
+}
+
+/* Supporting information belongs with the statement; results follow both work areas. */
+.ms-workspace-admin {
+  padding: 9px 13px;
+  margin: 10px 0 14px;
+  background: transparent;
+}
+.ms-workspace-admin .ms-workspace-kicker {
+  white-space: nowrap;
+  color: var(--ws-muted);
+}
+.ms-workspace-admin-links a {
+  min-height: 30px;
+  padding: 5px 9px;
+}
+.ms-statement-details {
+  margin-top: 20px;
+  padding: 16px 0 2px;
+  border-top: 1px solid var(--ws-border);
+  color: var(--ws-muted);
+  font-size: 13px;
+}
+.ms-statement-details .ms-workspace-extra {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 22px;
+  align-items: baseline;
+}
+.ms-statement-details .problem-info-entry {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 3px;
+  padding: 0;
+}
+.ms-statement-details .pi-value {
+  color: var(--ws-ink);
+}
+.ms-statement-details .authors-value,
+.ms-statement-details .judges-value {
+  padding-left: 4px;
+}
+.ms-statement-details #problem-types,
+.ms-statement-details #allowed-langs,
+.ms-statement-details #available-judges {
+  padding-top: 0;
+}
+.ms-statement-details .ms-workspace-language-limits {
+  margin: 0;
+}
+.ms-workspace-results {
+  position: static;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 26px;
+  margin-top: 18px;
+  padding: 13px 18px;
+  border: 1px solid var(--ws-border);
+  border-radius: 7px;
+  background: var(--ws-bg);
+}
+.ms-workspace-results .ms-workspace-kicker {
+  flex: 0 0 auto;
+}
+.ms-workspace-results .ms-workspace-related {
+  margin: 0;
+  gap: 8px 18px;
+}
+.ms-workspace-results .ms-workspace-related a {
+  color: var(--ws-accent);
+}
+.ms-submit-remaining {
+  margin-top: 12px;
+  color: var(--ws-muted);
+  font-size: 13px;
+}
+.ms-workspace-comments {
+  margin-top: 26px;
+  padding-top: 0;
+}
+.ms-workspace-comments .problem-tabs {
+  border-bottom: 1px solid var(--ws-border);
+}
+.ms-workspace-comments .problem-tabs a {
+  font-weight: 700;
+}
+.ms-workspace-comments .comment-area > h2 {
+  margin: 0 0 12px;
+  font-size: 23px;
+}
+.ms-workspace-comments .comment-area > hr {
+  margin: 10px 0;
+}
+.ms-workspace-comments .comment-area > br {
+  display: none;
+}
+.ms-workspace-comments .form-area.comment-submit {
+  padding: 14px 16px;
+  background: var(--ws-page);
+  border-color: var(--ws-border);
+}
+.ms-workspace-comments .comment-submit h3 {
+  margin: 0 0 8px;
+  font-size: 17px;
+}
+.ms-workspace-comments .comment-submit .comment-post-wrapper .martor-field,
+.ms-workspace-comments .comment-submit .comment-post-wrapper .ace_editor {
+  height: 180px !important;
+  min-height: 150px;
+}
+.ms-workspace-comments .comment-submit .comment-post-wrapper textarea {
+  min-height: 145px;
+}
+@media (max-width: 850px) {
+  .ms-workspace-results {
+    align-items: flex-start;
+  }
+  .ms-workspace-results .ms-workspace-kicker {
+    width: 100%;
+  }
+  .ms-workspace-comments .comment-submit .comment-post-wrapper .martor-field,
+  .ms-workspace-comments .comment-submit .comment-post-wrapper .ace_editor {
+    height: 160px !important;
+  }
+}
+
+/* Problem navigation: a narrow icon rail leaves the statement and editor as the only content panes. */
+.ms-workspace-layout {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.ms-workspace-main {
+  min-width: 0;
+}
+.ms-workspace-rail {
+  position: sticky;
+  top: 150px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 56px;
+  padding: 8px 4px;
+  border: 1px solid var(--ws-border);
+  border-radius: 8px;
+  background: var(--ws-bg);
+}
+.ms-workspace-rail a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  min-height: 44px;
+  border-radius: 6px;
+  color: var(--ws-muted);
+  font-size: 19px;
+  text-decoration: none;
+}
+.ms-workspace-rail a:hover,
+.ms-workspace-rail a:focus-visible {
+  color: var(--ws-accent);
+  background: var(--ws-page);
+}
+.ms-workspace-rail a[aria-current="page"] {
+  color: #2457a7;
+  background: #e9f0fa;
+  box-shadow: inset 3px 0 #2457a7;
+}
+.ms-workspace-rail a span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.ms-workspace .ms-workspace-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.ms-workspace .ms-workspace-results {
+  display: none;
+}
+.ms-problem-more {
+  position: relative;
+  flex: 0 0 auto;
+}
+.ms-problem-more summary {
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 7px 12px;
+  border: 1px solid var(--ws-border);
+  border-radius: 6px;
+  background: var(--ws-bg);
+  color: var(--ws-accent);
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+}
+.ms-problem-more summary::-webkit-details-marker {
+  display: none;
+}
+.ms-problem-more summary::after {
+  content: none;
+}
+.ms-problem-more[open] summary::after {
+  content: none;
+}
+.ms-problem-more summary:hover {
+  background: var(--ws-page);
+}
+.ms-problem-more-content {
+  position: absolute;
+  top: calc(100% + 7px);
+  right: 0;
+  z-index: 240;
+  width: min(440px, calc(100vw - 32px));
+  max-height: min(440px, calc(100dvh - 165px));
+  overflow: auto;
+  padding: 18px;
+  border: 1px solid var(--ws-border);
+  border-radius: 8px;
+  background: var(--ws-bg);
+  box-shadow: 0 12px 32px #18212d24;
+  color: var(--ws-ink);
+  font-size: 13px;
+}
+.ms-problem-more-content .ms-workspace-extra {
+  display: grid;
+  gap: 13px;
+}
+.ms-problem-more-content .ms-workspace-language-limits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.ms-problem-more-content .ms-workspace-language-limits span {
+  padding: 3px 7px;
+  border-radius: 4px;
+  background: var(--ws-page);
+}
+.ms-problem-more-content .problem-info-entry {
+  display: block;
+  padding: 0;
+}
+.ms-problem-more-content .pi-value,
+.ms-problem-more-content .authors-value,
+.ms-problem-more-content .judges-value {
+  display: inline;
+  padding-left: 4px;
+}
+.ms-problem-more-content #problem-types,
+.ms-problem-more-content #allowed-langs,
+.ms-problem-more-content #available-judges {
+  padding-top: 0;
+}
+.ms-problem-more-content .toggle {
+  cursor: pointer;
+}
+.ms-workspace .ms-annotate-launch {
+  color: #2457a7 !important;
+  background: var(--ws-bg);
+  border: 1px solid var(--ws-border);
+  text-shadow: none;
+  background-image: none;
+}
+.ms-workspace .ms-annotate-launch:hover {
+  color: #194584 !important;
+  background: var(--ws-page);
+}
+.ms-workspace .ms-annotation-tools button {
+  color: var(--ws-ink) !important;
+  background: var(--ws-bg);
+  border: 1px solid var(--ws-border);
+  text-shadow: none;
+  background-image: none;
+}
+.ms-workspace .ms-annotation-tools button[aria-pressed="true"] {
+  color: #fff !important;
+  background: #2457a7;
+  border-color: #2457a7;
+}
+.ms-workspace .ms-annotation-tools button:hover:not([aria-pressed="true"]) {
+  color: var(--ws-accent) !important;
+  background: var(--ws-page);
+}
+@media (max-width: 850px) {
+  .ms-workspace-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .ms-workspace-rail {
+    position: relative;
+    top: auto;
+    z-index: 100;
+    flex-direction: row;
+    align-items: stretch;
+    width: 100%;
+    gap: 4px;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    padding: 5px;
+  }
+  .ms-workspace-rail a {
+    flex: 0 0 auto;
+    gap: 6px;
+    width: auto;
+    min-height: 40px;
+    padding: 7px 10px;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+  .ms-workspace-rail a span {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: 0;
+    margin: 0;
+    overflow: visible;
+    clip: auto;
+  }
+  .ms-workspace-rail a[aria-current="page"] {
+    box-shadow: inset 0 -3px #2457a7;
+  }
+  .ms-workspace-main {
+    width: 100%;
+  }
+  .ms-workspace .ms-workspace-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ms-problem-more-content {
+    right: 0;
+  }
+}
+
+.ms-workspace-grid[hidden],
+.ms-workspace-comments[hidden] {
+  display: none !important;
+}
+
+/* The desktop problem workspace uses the visible viewport, with pane-local scrolling. */
+@media (min-width: 851px) {
+  body:has(.ms-workspace) {
+    overflow: hidden;
+  }
+  body:has(.ms-workspace) #content {
+    padding: 0 0 0;
+  }
+  body:has(.ms-workspace) footer {
+    display: none;
+  }
+  body:has(.ms-workspace) .problem-title {
+    margin: 0;
+    padding-inline: clamp(16px, 2vw, 32px);
+  }
+  .ms-workspace {
+    height: var(--ws-available-height, calc(100dvh - 134px));
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .ms-workspace-admin {
+    flex: 0 0 auto;
+    margin: 0;
+  }
+  .ms-workspace-layout {
+    flex: 1 1 auto;
+    min-height: 0;
+    gap: 0;
+    align-items: stretch;
+  }
+  .ms-workspace-rail {
+    position: static;
+    height: 100%;
+    width: 56px;
+    border-radius: 0;
+    border-block: 0;
+    border-left: 0;
+    padding: 8px 4px;
+  }
+  .ms-workspace-main {
+    min-height: 0;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+  }
+  .ms-workspace .ms-workspace-grid {
+    flex: 1 1 auto;
+    min-height: 0;
+    gap: 12px;
+    align-items: stretch;
+  }
+  .ms-workspace-grid[hidden],
+  .ms-workspace-comments[hidden] {
+    display: none;
+  }
+  .ms-workspace-statement,
+  .ms-workspace-code {
+    min-height: 0;
+    height: 100%;
+    padding: 16px;
+  }
+  .ms-workspace-statement {
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+  }
+  .ms-workspace-heading {
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+  }
+  .ms-workspace-code {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .ms-workspace-code .ms-workspace-form,
+  .ms-workspace-form #problem_submit,
+  .ms-workspace-form #problem_submit #submit-wrapper,
+  .ms-workspace-form #problem_submit #editor {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  .ms-workspace-form #problem_submit #editor.hidden,
+  .ms-workspace-form #problem_submit #file-submit.hidden {
+    display: none;
+  }
+  .ms-workspace-form #problem_submit #editor #ace_source {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100% !important;
+  }
+  .ms-workspace-form #problem_submit #editor > div {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  .ms-workspace-form #problem_submit #language,
+  .ms-workspace-form #problem_submit .ms-editor-footer {
+    flex: 0 0 auto;
+  }
+  .ms-workspace-comments {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    margin: 0;
+    padding: 0 12px 12px;
+  }
+}
+
+/* Compact context bar and edge-to-edge working surfaces. */
+body:has(.ms-workspace) #navigation {
+  height: 54px;
+}
+body:has(.ms-workspace) #content {
+  margin-top: 54px;
+}
+body:has(.ms-workspace) .problem-title {
+  top: 54px;
+  min-height: 48px;
+  padding: 4px clamp(12px, 1.5vw, 24px);
+  gap: 6px 10px;
+}
+.ms-problem-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-left: auto;
+}
+body:has(.ms-workspace) .ms-problem-more {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  margin: 0;
+  background: none;
+  box-shadow: none;
+}
+body:has(.ms-workspace) .ms-problem-more summary,
+body:has(.ms-workspace) .problem-title .view-pdf,
+body:has(.ms-workspace) .problem-title .ms-problem-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  height: 34px;
+  min-height: 32px;
+  margin: 0;
+  padding: 5px 10px;
+  border: 1px solid var(--ws-border);
+  border-radius: 5px;
+  background: var(--ws-bg);
+  color: var(--ws-accent);
+  font-size: 12px;
+  font-weight: 650;
+  text-decoration: none;
+  white-space: nowrap;
+}
+body:has(.ms-workspace) .ms-problem-more summary:hover,
+body:has(.ms-workspace) .problem-title .view-pdf:hover,
+body:has(.ms-workspace) .problem-title .ms-problem-action:hover {
+  background: var(--ws-page);
+}
+body:has(.ms-workspace) #page-container > br {
+  display: none;
+}
+body:has(.ms-workspace) #content {
+  padding-top: 0;
+}
+body:has(.ms-workspace) .problem-title h2 {
+  font-size: clamp(18px, 1.3vw, 23px);
+}
+body:has(.ms-workspace) .problem-title .title-state {
+  font-size: 19px;
+}
+.ms-workspace-rail .ms-annotate-launch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ws-muted) !important;
+  font-size: 19px;
+}
+.ms-workspace-rail .ms-annotate-launch[aria-expanded="true"] {
+  background: #e9f0fa;
+  color: #2457a7 !important;
+}
+.ms-annotation-toolbar {
+  position: sticky;
+  top: 0;
+  bottom: auto;
+  z-index: 20;
+  padding: 6px;
+  border-width: 0 0 1px;
+  border-radius: 0;
+  box-shadow: none;
+}
+.ms-annotation-tools {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 3px;
+}
+.ms-workspace .ms-annotation-tools button {
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  font-size: 16px;
+}
+.ms-annotation-tools input[type="color"] {
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  padding: 2px;
+  cursor: pointer;
+}
+.ms-annotation-separator {
+  flex: 0 0 1px;
+  height: 24px;
+  background: var(--ws-border);
+  margin: 0 4px;
+}
+.ms-annotation-status.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+@media (min-width: 851px) {
+  .ms-workspace-main {
+    padding: 0;
+  }
+  .ms-workspace .ms-workspace-grid {
+    grid-template-columns:
+      minmax(0, calc((100% - 10px) * var(--ws-statement-ratio, 0.5)))
+      10px minmax(0, 1fr);
+    gap: 0;
+  }
+  .ms-workspace .ms-workspace-grid.ms-editor-collapsed {
+    grid-template-columns: minmax(0, 1fr) 10px;
+  }
+  .ms-workspace-statement,
+  .ms-workspace-code {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+  }
+  .ms-workspace-statement {
+    padding: 0 20px;
+  }
+  .ms-workspace-code {
+    border-left: 1px solid var(--ws-border);
+  }
+  .ms-workspace-code .ms-workspace-form {
+    border: 0;
+    border-radius: 0;
+  }
+  .ms-workspace-code .ms-workspace-form #problem_submit {
+    overflow: hidden;
+  }
+  .ms-workspace-form #problem_submit #editor #ace_source {
+    height: 100% !important;
+  }
+  .ms-workspace-divider {
+    position: relative;
+    cursor: col-resize;
+    touch-action: none;
+    background: var(--ws-page);
+    border-inline: 1px solid var(--ws-border);
+  }
+  .ms-workspace-divider:focus-visible {
+    outline: 2px solid var(--ws-accent);
+    outline-offset: -2px;
+  }
+  .ms-editor-toggle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 26px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid var(--ws-border);
+    border-radius: 5px;
+    background: var(--ws-bg);
+    color: var(--ws-accent) !important;
+    cursor: pointer;
+  }
+  .ms-editor-collapsed .ms-editor-toggle i {
+    transform: rotate(180deg);
+  }
+  .ms-workspace-code[hidden] {
+    display: none;
+  }
+  .ms-workspace-comments {
+    padding: 12px 20px;
+  }
+}
+@media (max-width: 850px) {
+  body:has(.ms-workspace) .problem-title {
+    top: 54px;
+  }
+  .ms-workspace-rail .ms-annotate-launch {
+    flex: 0 0 40px;
+    min-height: 40px;
+  }
+  .ms-workspace-divider {
+    display: none;
+  }
+}
+
+/* Mentor opens from the navigation rail, leaving the submission footer unobstructed. */
+.ms-workspace-rail .ms-mentor-launch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--ws-muted) !important;
+  font-size: 19px;
+  cursor: pointer;
+}
+.ms-workspace-rail .ms-mentor-launch:hover,
+.ms-workspace-rail .ms-mentor-launch[aria-expanded="true"] {
+  background: #e9f0fa;
+  color: #2457a7 !important;
+}
+.ms-mentor {
+  position: static;
+}
+.ms-mentor-panel {
+  position: fixed;
+  left: 68px;
+  right: auto;
+  bottom: 16px;
+}
+@media (max-width: 850px) {
+  .ms-workspace-rail .ms-mentor-launch {
+    flex: 0 0 40px;
+    min-height: 40px;
+  }
+  .ms-mentor-panel {
+    left: 12px;
+    bottom: 12px;
+  }
+}
+
+/* Integrate Ace with the restrained Academic Ink workspace. */
+body:has(.ms-workspace) .problem-title {
+  min-height: 42px;
+  padding-block: 3px;
+  gap: 4px 9px;
+}
+body:has(.ms-workspace) .problem-title h2 {
+  font-size: clamp(17px, 1.25vw, 21px);
+}
+body:has(.ms-workspace) .problem-title .title-state {
+  font-size: 18px;
+}
+body:has(.ms-workspace) .ms-problem-more summary,
+body:has(.ms-workspace) .problem-title .view-pdf,
+body:has(.ms-workspace) .problem-title .ms-problem-action {
+  height: 30px;
+  min-height: 30px;
+  padding: 4px 9px;
+}
+.ms-workspace-form #problem_submit #language {
+  padding: 5px 12px;
+  background: var(--ws-bg);
+}
+.ms-workspace-form #problem_submit #language-select {
+  justify-content: flex-end;
+}
+.ms-workspace-form #problem_submit #language-select::before {
+  content: none;
+}
+.ms-workspace-form #problem_submit #language-select .select2-container,
+.ms-workspace-form #problem_submit #language-select select {
+  width: min(260px, 100%) !important;
+}
+.ms-workspace-form #problem_submit #language-select .select2-selection {
+  min-height: 32px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+.ms-workspace-form #problem_submit #language-select .select2-selection__rendered {
+  line-height: 30px;
+}
+.ms-workspace-form #problem_submit #language-select .select2-selection__arrow {
+  height: 30px;
+}
+.ms-workspace-form #problem_submit #editor #ace_source {
+  background: var(--ws-bg);
+  color: var(--ws-ink);
+  font-size: 14px;
+}
+.ms-workspace-form #problem_submit #editor #ace_source .ace_gutter {
+  background: var(--ws-page);
+  color: var(--ws-muted);
+  border-right: 1px solid var(--ws-border);
+}
+.ms-workspace-form #problem_submit #editor #ace_source .ace_gutter-active-line,
+.ms-workspace-form #problem_submit #editor #ace_source .ace_active-line {
+  background: color-mix(in srgb, var(--ws-accent) 6%, var(--ws-bg));
+}
+.ms-workspace-form #problem_submit #editor #ace_source.ace_focus {
+  outline: 1px solid var(--ws-accent);
+  outline-offset: -1px;
+}
+.ms-workspace-form #problem_submit .ms-editor-footer {
+  min-height: 48px;
+  padding: 6px 12px;
+  gap: 8px;
+  background: var(--ws-bg);
+}
+.ms-workspace-form #problem_submit .ms-editor-file-control {
+  gap: 6px;
+}
+.ms-workspace-form #problem_submit .ms-editor-file-control label {
+  font-weight: 500;
+}
+.ms-workspace-form #problem_submit #file_select {
+  max-width: min(210px, 100%);
+  font-size: 12px;
+}
+.ms-workspace-form #problem_submit #file_select::file-selector-button {
+  margin-right: 7px;
+  padding: 6px 9px;
+  border-radius: 4px;
+}
+.ms-workspace-form #problem_submit .submit-bar input[type="submit"] {
+  min-height: 34px;
+  padding: 7px 16px;
+}
+@media (max-width: 850px) {
+  .ms-workspace-form #problem_submit .ms-editor-footer {
+    min-height: 48px;
+  }
+}
+
+/* Ace's widget supplies its own toolbar and minimum height; the workspace owns both boundaries. */
+.ms-workspace-form #problem_submit #editor .django-ace-toolbar {
+  display: none;
+}
+@media (min-width: 851px) {
+  .ms-workspace-form #problem_submit #editor .django-ace-widget,
+  .ms-workspace-form #problem_submit #editor #ace_source {
+    min-height: 0;
+    height: 100% !important;
+  }
+  .ms-workspace-form #problem_submit #editor {
+    min-height: 0;
+    overflow: hidden;
+  }
+  .ms-workspace-form #problem_submit .ms-editor-footer {
+    flex-shrink: 0;
+    border-top: 1px solid var(--ws-border);
+  }
+}

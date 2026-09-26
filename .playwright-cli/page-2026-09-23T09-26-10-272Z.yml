@@ -1,0 +1,149 @@
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]:
+      - text: 
+      - list [ref=e4]:
+        - listitem [ref=e5]:
+          - link "MSOJ" [ref=e6] [cursor=pointer]:
+            - /url: /
+        - listitem [ref=e8]:
+          - link "PRoblems" [ref=e9] [cursor=pointer]:
+            - /url: /problems/
+        - listitem [ref=e10]:
+          - link "Submissions" [ref=e11] [cursor=pointer]:
+            - /url: /submissions/
+        - listitem [ref=e12]:
+          - link "Users" [ref=e13] [cursor=pointer]:
+            - /url: /users/
+        - listitem [ref=e14]:
+          - link "Contests" [ref=e15] [cursor=pointer]:
+            - /url: /contests/
+        - listitem [ref=e16]:
+          - link "About" [ref=e17] [cursor=pointer]:
+            - /url: /about/
+      - generic [ref=e18]:
+        - list [ref=e19]:
+          - listitem [ref=e20]:
+            - link "" [ref=e21] [cursor=pointer]:
+              - /url: javascript:void(0)
+              - generic "Settings" [ref=e22]: 
+            - text:  
+        - generic [ref=e24]:
+          - link "Log in" [ref=e25] [cursor=pointer]:
+            - /url: /accounts/login/?next=/
+          - text: or
+          - link "Sign up" [ref=e26] [cursor=pointer]:
+            - /url: /accounts/register/
+  - generic [ref=e27]:
+    - main [ref=e28]:
+      - generic [ref=e30]:
+        - region [ref=e31]:
+          - generic [ref=e32]:
+            - paragraph [ref=e33]: KHÔNG GIAN LUYỆN TẬP · MSOJ
+            - heading "Học và luyện tập lập trình thi đấu" [level=1] [ref=e35]
+            - paragraph [ref=e36]: Một không gian rõ ràng để đọc đề, thử sức với bài tập và theo dõi hành trình giải thuật của bạn.
+            - generic [ref=e37]:
+              - link "Khám phá bài tập" [ref=e38] [cursor=pointer]:
+                - /url: /problems/
+                - text: Khám phá bài tập
+                - generic [ref=e39]: ↗
+              - link "Xem cuộc thi" [ref=e40] [cursor=pointer]:
+                - /url: /contests/
+                - text: Xem cuộc thi
+                - generic [ref=e41]: →
+            - paragraph [ref=e42]: ĐỌC ĐỀ · VIẾT LỜI GIẢI · XEM KẾT QUẢ
+          - complementary [ref=e43]:
+            - generic [ref=e44]:
+              - generic [ref=e45]: 01 / ĐIỂM KHỞI ĐẦU
+              - generic [ref=e46]: ✳
+            - heading "Bắt đầu từ đâu?" [level=2] [ref=e47]
+            - paragraph [ref=e48]: Chọn nơi bạn muốn khám phá hôm nay.
+            - generic [ref=e49]:
+              - link "01 Bài tập" [ref=e50] [cursor=pointer]:
+                - /url: /problems/
+                - generic [ref=e51]: "01"
+                - text: Bài tập
+                - generic [ref=e52]: ↗
+              - link "02 Các bài nộp" [ref=e53] [cursor=pointer]:
+                - /url: /submissions/
+                - generic [ref=e54]: "02"
+                - text: Các bài nộp
+                - generic [ref=e55]: ↗
+              - link "03 Cuộc thi" [ref=e56] [cursor=pointer]:
+                - /url: /contests/
+                - generic [ref=e57]: "03"
+                - text: Cuộc thi
+                - generic [ref=e58]: ↗
+              - link "04 Thành viên" [ref=e59] [cursor=pointer]:
+                - /url: /users/
+                - generic [ref=e60]: "04"
+                - text: Thành viên
+                - generic [ref=e61]: ↗
+            - generic [ref=e62]: HỌC TỪ TỪNG BÀI GIẢI. TIẾN BỘ QUA TỪNG LẦN THỬ.
+        - region [ref=e63]:
+          - generic [ref=e64]: KHÁM PHÁ NỀN TẢNG — 01
+          - heading "Bạn có thể làm gì?" [level=2] [ref=e65]
+          - paragraph [ref=e66]: Từ bài tập đầu tiên đến những cuộc thi tiếp theo — mọi bước học đều có chỗ đứng.
+          - generic [ref=e67]:
+            - article [ref=e68]:
+              - generic [ref=e69]: 01 / LUYỆN TẬP
+              - generic [ref=e70]: "{ }"
+              - heading "Luyện tập" [level=3] [ref=e71]
+              - paragraph [ref=e72]: Tìm bài tập và giải theo tốc độ của bạn.
+              - link "Xem bài tập" [ref=e73] [cursor=pointer]:
+                - /url: /problems/
+                - text: Xem bài tập
+                - generic [ref=e74]: ↗
+            - article [ref=e75]:
+              - generic [ref=e76]: 02 / THEO DÕI
+              - generic [ref=e77]: ↗
+              - heading "Theo dõi bài nộp" [level=3] [ref=e78]
+              - paragraph [ref=e79]: Xem kết quả sau mỗi lần nộp lời giải.
+              - link "Xem các bài nộp" [ref=e80] [cursor=pointer]:
+                - /url: /submissions/
+                - text: Xem các bài nộp
+                - generic [ref=e81]: ↗
+            - article [ref=e82]:
+              - generic [ref=e83]: 03 / THỬ SỨC
+              - generic [ref=e84]: ✳
+              - heading "Tham gia cuộc thi" [level=3] [ref=e85]
+              - paragraph [ref=e86]: Tìm hiểu cuộc thi và thể lệ trước khi tham gia.
+              - link "Xem cuộc thi" [ref=e87] [cursor=pointer]:
+                - /url: /contests/
+                - text: Xem cuộc thi
+                - generic [ref=e88]: ↗
+        - region [ref=e89]:
+          - generic [ref=e90]: THÔNG TIN THAM KHẢO — 02
+          - heading "Giá tham khảo" [level=2] [ref=e91]
+          - paragraph [ref=e92]: Giá minh họa, chưa phải báo giá chính thức.
+          - generic [ref=e93]:
+            - article [ref=e94]:
+              - generic [ref=e95]: GÓI MINH HỌA / 01
+              - heading "Gói theo ngày (minh họa)" [level=3] [ref=e96]
+              - paragraph [ref=e97]: 10.000 VNĐ / ngày
+              - list [ref=e98]:
+                - listitem [ref=e99]: Luyện tập trên hệ thống bài tập
+            - article [ref=e100]:
+              - generic [ref=e101]: GÓI MINH HỌA / 02
+              - heading "Gói thời hạn (minh họa)" [level=3] [ref=e102]
+              - paragraph [ref=e103]: 100.000 VNĐ / 30 ngày
+              - list [ref=e104]:
+                - listitem [ref=e105]: Luyện tập trên hệ thống bài tập
+        - region [ref=e106]:
+          - generic [ref=e107]: KẾT NỐI — 03
+          - heading "Liên hệ" [level=2] [ref=e108]
+          - paragraph [ref=e109]: Thông tin liên hệ sẽ được cập nhật.
+          - paragraph [ref=e110]:
+            - link "Đọc bài viết" [ref=e111] [cursor=pointer]:
+              - /url: /blogs/
+    - contentinfo [ref=e112]:
+      - generic [ref=e113]:
+        - text: proudly powered by
+        - link "DMOJ" [ref=e114] [cursor=pointer]:
+          - /url: https://dmoj.ca
+        - text: "| follow us on"
+        - link "Github" [ref=e115] [cursor=pointer]:
+          - /url: https://github.com/VNOI-Admin/OJ
+        - text: and
+        - link "Facebook" [ref=e116] [cursor=pointer]:
+          - /url: https://www.facebook.com/vnoi.wiki

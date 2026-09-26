@@ -44,10 +44,6 @@
     {{ form.non_field_errors() }}
     <div id="submit-wrapper">
         <div id="editor" class="hidden">
-            <div>
-                <label for="file_select"><i>{{ _('Paste your source code here or load it from a file:') }}</i></label>
-                <input id="file_select" type="file" onchange="handleFileSelect()">
-            </div>
             {{ form.source.errors }}
             {{ form.source }}
         </div>
@@ -65,7 +61,7 @@
             <div id="language">
                 {{ form.language.errors }}
                 <div id="language-select">
-                    <select id="id_language" name="language">
+                    <select id="id_language" name="language" aria-label="Ngôn ngữ lập trình">
                         {% for lang in form.fields.language.queryset %}
                             <option value="{{ lang.id }}" data-id="{{ lang.id }}" data-name="{{ lang.name }}"
                                     data-info="{{ lang.info }}" data-ace="{{ lang.ace }}" data-fileonly="{{ lang.file_only }}"
@@ -79,8 +75,11 @@
         {% endif %}
     </div>
 
-    <hr>
-
+    <div class="ms-editor-footer">
+        <div class="ms-editor-file-control" id="ms-editor-file-control">
+            <label for="file_select">Tải mã nguồn từ tệp</label>
+            <input id="file_select" type="file" onchange="handleFileSelect()">
+        </div>
     {% if not has_test_data %}
         <span style="color: red">{{ _('This problem does not have test data.') }}</span>
     {% elif no_judges %}
@@ -92,4 +91,5 @@
                    {% if request.in_contest and submission_limit and not submissions_left %}disabled{% endif %}>
         </div>
     {% endif %}
+    </div>
 </form>

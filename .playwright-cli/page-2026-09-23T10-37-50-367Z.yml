@@ -1,0 +1,211 @@
+- generic [ref=f4e1]:
+  - navigation [ref=f4e2]:
+    - generic [ref=f4e3]:
+      - link "" [ref=f4e191] [cursor=pointer]:
+        - /url: javascript:void(0)
+      - generic [ref=f4e18]:
+        - list [ref=f4e19]:
+          - listitem [ref=f4e20]:
+            - link "" [ref=f4e21] [cursor=pointer]:
+              - /url: javascript:void(0)
+              - generic "Settings" [ref=f4e22]: 
+            - text:  
+        - generic [ref=f4e24]:
+          - link "Log in" [ref=f4e25] [cursor=pointer]:
+            - /url: /accounts/login/?next=/problem/aplusb
+          - text: or
+          - link "Sign up" [ref=f4e26] [cursor=pointer]:
+            - /url: /accounts/register/
+  - generic [ref=f4e27]:
+    - main [ref=f4e28]:
+      - generic [ref=f4e29]:
+        - heading "A Plus B" [level=2] [ref=f4e30]
+        - link " View as PDF" [ref=f4e31] [cursor=pointer]:
+          - /url: "#"
+          - generic [ref=f4e32]: 
+          - text: View as PDF
+      - separator [ref=f4e35]
+      - generic [ref=f4e36]:
+        - generic [ref=f4e37]:
+          - navigation "Khu vực bài tập" [ref=f4e38]:
+            - link "Đề bài" [ref=f4e39] [cursor=pointer]:
+              - /url: "#ms-statement"
+            - link "Viết lời giải" [ref=f4e40] [cursor=pointer]:
+              - /url: "#ms-code"
+            - link "Bình luận" [ref=f4e41] [cursor=pointer]:
+              - /url: "#comments"
+          - generic [ref=f4e42]:
+            - region [ref=f4e43]:
+              - generic [ref=f4e44]:
+                - generic [ref=f4e45]:
+                  - text: NỘI DUNG BÀI TẬP
+                  - heading "Đề bài" [level=3] [ref=f4e46]
+                - button "✎ Ghi chú trên đề" [expanded] [active] [ref=f4e47] [cursor=pointer]
+              - generic [ref=f4e48]:
+                - generic [ref=f4e49]:
+                  - generic [ref=f4e50]:
+                    - paragraph [ref=f4e51]: Tudor is sitting in math class, on his laptop. Clearly, he is not paying attention in this situation. However, he gets called on by his math teacher to do some problems. Since his math teacher did not expect much from Tudor, he only needs to do some simple addition problems. However, simple for you and I may not be simple for Tudor, so please help him!
+                    - heading "Input Specification" [level=4] [ref=f4e52]
+                    - paragraph [ref=f4e53]:
+                      - text: The first line will contain an integer
+                      - generic [ref=f4e54]:
+                        - generic [ref=f4e55]: "N"
+                        - math [ref=f4e59]:
+                          - generic [ref=f4e60]: "N"
+                      - text: (
+                      - generic [ref=f4e61]:
+                        - generic [ref=f4e62]:
+                          - generic [ref=f4e63]: "1"
+                          - generic [ref=f4e65]: ≤
+                          - generic [ref=f4e67]: "N"
+                          - generic [ref=f4e69]: ≤
+                          - generic [ref=f4e71]:
+                            - generic [ref=f4e72]: "1"
+                            - generic [ref=f4e73]: "0"
+                            - generic [ref=f4e74]: "0"
+                          - generic [ref=f4e75]:
+                            - generic [ref=f4e76]: "0"
+                            - generic [ref=f4e77]: "0"
+                            - generic [ref=f4e78]: "0"
+                        - math [ref=f4e80]:
+                          - generic [ref=f4e81]: "1"
+                          - generic [ref=f4e82]: ≤
+                          - generic [ref=f4e83]: "N"
+                          - generic [ref=f4e84]: ≤
+                          - generic [ref=f4e85]: "100"
+                          - generic [ref=f4e86]: "000"
+                      - text: ), the number of addition problems Tudor needs to do. The next
+                      - generic [ref=f4e87]:
+                        - generic [ref=f4e88]: "N"
+                        - math [ref=f4e92]:
+                          - generic [ref=f4e93]: "N"
+                      - text: lines will each contain two space-separated integers whose absolute value is less than
+                      - generic [ref=f4e94]:
+                        - generic [ref=f4e95]:
+                          - generic [ref=f4e96]: "1"
+                          - generic [ref=f4e98]:
+                            - generic [ref=f4e99]: "0"
+                            - generic [ref=f4e100]: "0"
+                            - generic [ref=f4e101]: "0"
+                          - generic [ref=f4e102]:
+                            - generic [ref=f4e103]: "0"
+                            - generic [ref=f4e104]: "0"
+                            - generic [ref=f4e105]: "0"
+                          - generic [ref=f4e106]:
+                            - generic [ref=f4e107]: "0"
+                            - generic [ref=f4e108]: "0"
+                            - generic [ref=f4e109]: "0"
+                        - math [ref=f4e111]:
+                          - generic [ref=f4e112]: "1"
+                          - generic [ref=f4e113]: "000"
+                          - generic [ref=f4e114]: "000"
+                          - generic [ref=f4e115]: "000"
+                      - text: ", the two integers Tudor needs to add."
+                    - heading "Output Specification" [level=4] [ref=f4e116]
+                    - paragraph [ref=f4e117]:
+                      - text: Output
+                      - generic [ref=f4e118]:
+                        - generic [ref=f4e119]: "N"
+                        - math [ref=f4e123]:
+                          - generic [ref=f4e124]: "N"
+                      - text: lines of one integer each, the solutions to the addition problems in order.
+                    - heading "Sample Input" [level=4] [ref=f4e125]
+                    - generic "Click to copy" [ref=f4e126] [cursor=pointer]: Copy
+                    - code [ref=f4e128]: 2 1 1 -1 0
+                    - heading "Sample Output" [level=4] [ref=f4e129]
+                    - generic "Click to copy" [ref=f4e130] [cursor=pointer]: Copy
+                    - code [ref=f4e132]: 2 -1
+                  - separator [ref=f4e133]
+                - generic "Lớp ghi chú trên đề"
+              - generic "Công cụ ghi chú" [ref=f4e202]:
+                - paragraph [ref=f4e203]: Lưu trên thiết bị này. Khi nội dung đề hoặc kích thước màn hình thay đổi, nét vẽ có thể lệch.
+                - group "Công cụ vẽ" [ref=f4e204]:
+                  - button "Chọn" [pressed] [ref=f4e205] [cursor=pointer]
+                  - button "Bút" [ref=f4e206] [cursor=pointer]
+                  - button "Tô sáng" [ref=f4e207] [cursor=pointer]
+                  - button "Chữ" [ref=f4e208] [cursor=pointer]
+                  - button "Đường" [ref=f4e209] [cursor=pointer]
+                  - button "Mũi tên" [ref=f4e210] [cursor=pointer]
+                  - button "Chữ nhật" [ref=f4e211] [cursor=pointer]
+                  - button "Hình tròn" [ref=f4e212] [cursor=pointer]
+                  - button "Tẩy" [ref=f4e213] [cursor=pointer]
+                  - generic [ref=f4e214]:
+                    - text: Màu
+                    - textbox "Màu nét vẽ" [ref=f4e215]: "#2457a7"
+                  - button "Hoàn tác" [ref=f4e216] [cursor=pointer]
+                  - button "Làm lại" [ref=f4e217] [cursor=pointer]
+                  - button "Xóa tất cả" [ref=f4e218] [cursor=pointer]
+                - status
+            - region [ref=f4e134]:
+              - generic [ref=f4e136]:
+                - text: KHÔNG GIAN GIẢI BÀI
+                - heading "Viết lời giải" [level=3] [ref=f4e137]
+              - paragraph [ref=f4e138]: Đăng nhập để viết và nộp lời giải.
+              - link "Đến trang nộp bài" [ref=f4e139] [cursor=pointer]:
+                - /url: /problem/aplusb/submit
+              - generic [ref=f4e140]:
+                - link "Submit solution" [ref=f4e141] [cursor=pointer]:
+                  - /url: /problem/aplusb/submit
+                - separator [ref=f4e142]
+                - link "All submissions" [ref=f4e144] [cursor=pointer]:
+                  - /url: /problem/aplusb/submissions/
+                - link "Best submissions" [ref=f4e146] [cursor=pointer]:
+                  - /url: /problem/aplusb/rank/
+                - separator [ref=f4e147]
+                - generic [ref=f4e148]:
+                  - generic [ref=f4e149]: 
+                  - text: "Points: 5.00 (partial)"
+                - generic [ref=f4e150]:
+                  - generic [ref=f4e151]: 
+                  - text: "Time limit: 2.0s"
+                - generic [ref=f4e152]:
+                  - generic [ref=f4e153]: 
+                  - text: "Memory limit: 64M"
+                - generic [ref=f4e154]:
+                  - generic [ref=f4e155]: 
+                  - text: "Input: stdin"
+                - generic [ref=f4e156]:
+                  - generic [ref=f4e157]: 
+                  - text: "Output: stdout"
+                - separator [ref=f4e158]
+                - generic [ref=f4e159]:
+                  - generic [ref=f4e160]: 
+                  - text: "Author:"
+                  - link "admin" [ref=f4e163] [cursor=pointer]:
+                    - /url: /user/admin
+                - generic [ref=f4e165]:
+                  - generic [ref=f4e166]: 
+                  - text: Problem type
+                - generic [ref=f4e167]:
+                  - generic [ref=f4e168]:
+                    - generic [ref=f4e169]: 
+                    - text: Allowed languages
+                  - generic [ref=f4e170]: C, C++, Java, Pascal, Python
+          - generic [ref=f4e171]:
+            - list [ref=f4e173]:
+              - listitem [ref=f4e174]:
+                - link "Comments" [ref=f4e175] [cursor=pointer]:
+                  - /url: "#comments"
+            - generic [ref=f4e177]:
+              - heading " Comments" [level=2] [ref=f4e178]:
+                - generic [ref=f4e179]: 
+                - text: Comments
+              - generic [ref=f4e180]:
+                - text: Please read the
+                - link "guidelines" [ref=f4e181] [cursor=pointer]:
+                  - /url: /about/comment/
+                - text: before commenting.
+              - separator [ref=f4e182]
+              - paragraph [ref=f4e183]: There are no comments at the moment.
+        - button "Mentor" [ref=f4e185] [cursor=pointer]
+    - contentinfo [ref=f4e186]:
+      - generic [ref=f4e187]:
+        - text: proudly powered by
+        - link "DMOJ" [ref=f4e188] [cursor=pointer]:
+          - /url: https://dmoj.ca
+        - text: "| follow us on"
+        - link "Github" [ref=f4e189] [cursor=pointer]:
+          - /url: https://github.com/VNOI-Admin/OJ
+        - text: and
+        - link "Facebook" [ref=f4e190] [cursor=pointer]:
+          - /url: https://www.facebook.com/vnoi.wiki

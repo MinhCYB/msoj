@@ -1,0 +1,172 @@
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]:
+      - text: 
+      - list [ref=e4]:
+        - listitem [ref=e5]:
+          - link "MSOJ" [ref=e6] [cursor=pointer]:
+            - /url: /
+        - listitem [ref=e8]:
+          - link "PRoblems" [ref=e9] [cursor=pointer]:
+            - /url: /problems/
+        - listitem [ref=e10]:
+          - link "Submissions" [ref=e11] [cursor=pointer]:
+            - /url: /submissions/
+        - listitem [ref=e12]:
+          - link "Users" [ref=e13] [cursor=pointer]:
+            - /url: /users/
+        - listitem [ref=e14]:
+          - link "Contests" [ref=e15] [cursor=pointer]:
+            - /url: /contests/
+        - listitem [ref=e16]:
+          - link "About" [ref=e17] [cursor=pointer]:
+            - /url: /about/
+      - generic [ref=e18]:
+        - list [ref=e19]:
+          - listitem [ref=e20]:
+            - link "" [ref=e21] [cursor=pointer]:
+              - /url: javascript:void(0)
+              - generic "Settings" [ref=e22]: 
+            - text:  
+        - generic [ref=e24]:
+          - link "Log in" [ref=e25] [cursor=pointer]:
+            - /url: /accounts/login/?next=/problem/aplusb
+          - text: or
+          - link "Sign up" [ref=e26] [cursor=pointer]:
+            - /url: /accounts/register/
+  - main [ref=e28]:
+    - generic [ref=e29]:
+      - heading "A Plus B" [level=2] [ref=e30]
+      - generic "Thông số bài tập" [ref=e31]:
+        - generic [ref=e32]:
+          - generic [ref=e33]: 
+          - text: "Points:"
+          - strong [ref=e34]: 5.00 (partial)
+        - generic [ref=e35]:
+          - generic [ref=e36]: 
+          - text: "Time limit:"
+          - strong [ref=e37]: 2.0s
+        - generic [ref=e38]:
+          - generic [ref=e39]: 
+          - text: "Memory limit:"
+          - strong [ref=e40]: 64M
+        - generic [ref=e41]:
+          - generic [ref=e42]: 
+          - text: "Input:"
+          - strong [ref=e43]: stdin
+        - generic [ref=e44]:
+          - generic [ref=e45]: 
+          - text: "Output:"
+          - strong [ref=e46]: stdout
+      - group [ref=e47]:
+        - generic "Thông tin thêm ⌄" [ref=e48] [cursor=pointer]
+        - text:   
+      - link " View as PDF" [ref=e49] [cursor=pointer]:
+        - /url: "#"
+        - generic [ref=e50]: 
+        - text: View as PDF
+    - separator [ref=e53]
+    - generic [ref=e54]:
+      - generic [ref=e56]:
+        - navigation "Điều hướng bài tập" [ref=e57]:
+          - link "Đề bài" [ref=e58] [cursor=pointer]:
+            - /url: "#ms-statement"
+            - generic [ref=e59]: 
+          - button "Nháp" [ref=e61] [cursor=pointer]:
+            - generic [ref=e62]: 
+          - link "Danh sách bài nộp" [ref=e63] [cursor=pointer]:
+            - /url: /problem/aplusb/submissions/
+            - generic [ref=e64]: 
+          - link "Bài nộp tốt nhất" [ref=e66] [cursor=pointer]:
+            - /url: /problem/aplusb/rank/
+            - generic [ref=e67]: 
+          - link "Bình luận" [ref=e69] [cursor=pointer]:
+            - /url: "#comments"
+            - generic [ref=e70]: 
+        - generic [ref=e73]:
+          - region "Đề bài" [ref=e74]:
+            - text:          
+            - generic [ref=e75]:
+              - generic [ref=e76]:
+                - generic [ref=e77]:
+                  - paragraph [ref=e78]: Tudor is sitting in math class, on his laptop. Clearly, he is not paying attention in this situation. However, he gets called on by his math teacher to do some problems. Since his math teacher did not expect much from Tudor, he only needs to do some simple addition problems. However, simple for you and I may not be simple for Tudor, so please help him!
+                  - heading "Input Specification" [level=4] [ref=e79]
+                  - paragraph [ref=e80]:
+                    - text: The first line will contain an integer
+                    - generic [ref=e81]:
+                      - generic [ref=e82]: "N"
+                      - math [ref=e86]:
+                        - generic [ref=e87]: "N"
+                    - text: (
+                    - generic [ref=e88]:
+                      - generic [ref=e89]:
+                        - generic [ref=e90]: "1"
+                        - generic [ref=e92]: ≤
+                        - generic [ref=e94]: "N"
+                        - generic [ref=e96]: ≤
+                        - generic [ref=e98]:
+                          - generic [ref=e99]: "1"
+                          - generic [ref=e100]: "0"
+                          - generic [ref=e101]: "0"
+                        - generic [ref=e102]:
+                          - generic [ref=e103]: "0"
+                          - generic [ref=e104]: "0"
+                          - generic [ref=e105]: "0"
+                      - math [ref=e107]:
+                        - generic [ref=e108]: "1"
+                        - generic [ref=e109]: ≤
+                        - generic [ref=e110]: "N"
+                        - generic [ref=e111]: ≤
+                        - generic [ref=e112]: "100"
+                        - generic [ref=e113]: "000"
+                    - text: ), the number of addition problems Tudor needs to do. The next
+                    - generic [ref=e114]:
+                      - generic [ref=e115]: "N"
+                      - math [ref=e119]:
+                        - generic [ref=e120]: "N"
+                    - text: lines will each contain two space-separated integers whose absolute value is less than
+                    - generic [ref=e121]:
+                      - generic [ref=e122]:
+                        - generic [ref=e123]: "1"
+                        - generic [ref=e125]:
+                          - generic [ref=e126]: "0"
+                          - generic [ref=e127]: "0"
+                          - generic [ref=e128]: "0"
+                        - generic [ref=e129]:
+                          - generic [ref=e130]: "0"
+                          - generic [ref=e131]: "0"
+                          - generic [ref=e132]: "0"
+                        - generic [ref=e133]:
+                          - generic [ref=e134]: "0"
+                          - generic [ref=e135]: "0"
+                          - generic [ref=e136]: "0"
+                      - math [ref=e138]:
+                        - generic [ref=e139]: "1"
+                        - generic [ref=e140]: "000"
+                        - generic [ref=e141]: "000"
+                        - generic [ref=e142]: "000"
+                    - text: ", the two integers Tudor needs to add."
+                  - heading "Output Specification" [level=4] [ref=e143]
+                  - paragraph [ref=e144]:
+                    - text: Output
+                    - generic [ref=e145]:
+                      - generic [ref=e146]: "N"
+                      - math [ref=e150]:
+                        - generic [ref=e151]: "N"
+                    - text: lines of one integer each, the solutions to the addition problems in order.
+                  - heading "Sample Input" [level=4] [ref=e152]
+                  - generic "Click to copy" [ref=e153] [cursor=pointer]: Copy
+                  - code [ref=e155]: 2 1 1 -1 0
+                  - heading "Sample Output" [level=4] [ref=e156]
+                  - generic "Click to copy" [ref=e157] [cursor=pointer]: Copy
+                  - code [ref=e159]: 2 -1
+                - separator [ref=e160]
+              - generic "Lớp ghi chú trên đề"
+          - separator "Đổi độ rộng đề bài và trình soạn thảo" [ref=e161]:
+            - button "Ẩn trình soạn thảo" [expanded] [ref=e162] [cursor=pointer]:
+              - generic [ref=e163]: 
+          - region "Trình soạn thảo lời giải" [ref=e164]:
+            - paragraph [ref=e165]: Đăng nhập để viết và nộp lời giải.
+            - link "Đến trang nộp bài" [ref=e166] [cursor=pointer]:
+              - /url: /problem/aplusb/submit
+      - button "Mentor" [ref=e168] [cursor=pointer]

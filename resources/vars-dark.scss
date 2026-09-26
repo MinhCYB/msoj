@@ -2,23 +2,23 @@
 
 $is_light_theme: false;
 
-$color_primary0: #0f0f0f;
-$color_primary5: #111;      // light background
-$color_primary10: #181818;  // background
-$color_primary25: #3b3b3b;  // border
-$color_primary33: #555;     // widget
+$color_primary0: #1b222b;
+$color_primary5: #11151b; // Academic Ink page
+$color_primary10: #242e39;
+$color_primary25: #35414e;
+$color_primary33: #555; // widget
 $color_primary50: #808080;
-$color_primary66: #aaa;     // tabs
-$color_primary75: #ccc;     // widget
-$color_primary90: #eee;
+$color_primary66: #a9b5c2;
+$color_primary75: #c5d0dc;
+$color_primary90: #e9edf2;
 $color_primary100: #f8f8f8;
 
-$color_link50: #06d;    // default (title)
-$color_link75: #6bf;    // default
-$color_link100: #49e;   // hover
-$color_link200: #d83;   // active
+$color_link50: #80acf2;
+$color_link75: #80acf2;
+$color_link100: #a1c3fa;
+$color_link200: #d83; // active
 
-$color_pageBg: #222;    // #222 because some elements should be darker than pageBg
+$color_pageBg: #11151b;
 
 // custom one-off colours
 $color_contest_ranking_disqualified: #622;
@@ -92,8 +92,8 @@ $color_blog_tag_hover_text: #d0d0d0;
 $color_blog_tag_active_bg: #3b82f6;
 $color_blog_hero_bg: #252525;
 
-$path_to_root: '..';    // relative path from style.css to STATIC_ROOT
+$path_to_root: ".."; // relative path from style.css to STATIC_ROOT
 
 @mixin vars-img {
-    filter: invert(1) hue-rotate(180deg);
+  filter: invert(1) hue-rotate(180deg);
 }
