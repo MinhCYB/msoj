@@ -1,0 +1,65 @@
+<section
+  id="ai-review"
+  class="ai-review"
+  data-url="{{ url('mentor_submission_review', submission.id) }}"
+  data-can-request="{{ 'true' if ai_review_can_request else 'false' }}"
+  aria-labelledby="ai-review-heading"
+>
+  <div class="ai-review-heading">
+    <h2 id="ai-review-heading">{{ _('AI Review') }}</h2>
+    <span class="ai-review-status" role="status" aria-live="polite"></span>
+  </div>
+  <p class="ai-review-message" role="status" aria-live="polite">
+    {{ _('Loading review status...') }}
+  </p>
+  <p class="ai-review-pretest" hidden>
+    {{ _('This review is based on pretests and does not confirm that the solution passes all
+    tests.') }}
+  </p>
+  <div class="ai-review-result" hidden>
+    <h3>{{ _('Feedback') }}</h3>
+    <p class="ai-review-feedback"></p>
+    <h3 class="ai-review-approaches-heading" hidden>{{ _('Approaches') }}</h3>
+    <ol class="ai-review-approaches"></ol>
+  </div>
+  <form
+    class="ai-review-form"
+    method="post"
+    action="{{ url('mentor_submission_review', submission.id) }}"
+    hidden
+  >
+    {% csrf_token %}
+    <button type="submit" class="button ai-review-request" disabled>{{ _('AI Review') }}</button>
+  </form>
+  <button type="button" class="button ai-review-retry-status" hidden>
+    {{ _('Check status again') }}
+  </button>
+  <span class="ai-review-unavailable" hidden data-reason="{{ ai_review_unavailable_reason or '' }}">
+    {% if ai_review_unavailable_reason == 'contest_active' %} {{ _('AI Review is unavailable while
+    the contest is active.') }} {% elif ai_review_unavailable_reason %} {{ _('This submission is not
+    available for AI Review.') }} {% elif not ai_review_can_request %} {{ _('An active AI Review
+    subscription is required to request a review.') }} {% endif %}
+  </span>
+  <span
+    class="ai-review-copy"
+    hidden
+    data-queued="{{ _('Queued') }}"
+    data-running="{{ _('Reviewing...') }}"
+    data-complete="{{ _('Complete') }}"
+    data-failed="{{ _('Review failed') }}"
+    data-stale="{{ _('Out of date') }}"
+    data-unavailable="{{ _('Unavailable') }}"
+    data-request="{{ _('AI Review') }}"
+    data-retry="{{ _('Retry review') }}"
+    data-wait="{{ _('This is taking longer than expected. You can leave this page and check again later.') }}"
+    data-network="{{ _('Could not check review status. Check your connection and try again.') }}"
+    data-temporary="{{ _('AI Review is temporarily unavailable. Please try again later.') }}"
+    data-quota="{{ _('You have reached the review limit. Please try again later.') }}"
+    data-unsupported="{{ _('This submission is not available for AI Review.') }}"
+    data-subscription="{{ _('An active AI Review subscription is required to request a review.') }}"
+    data-contest="{{ _('AI Review is unavailable while the contest is active.') }}"
+    data-error="{{ _('The review could not be completed. You can try again.') }}"
+    data-stale-message="{{ _('This submission has changed or been rejudged. Reload the page before requesting a new review.') }}"
+  ></span>
+  {% if submission.is_pretested %}<span class="ai-review-is-pretest" hidden></span>{% endif %}
+</section>

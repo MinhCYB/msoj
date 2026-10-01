@@ -241,6 +241,22 @@ class SubmissionStatus(SubmissionDetailBase):
         context = super(SubmissionStatus, self).get_context_data(**kwargs)
         submission = self.object
 
+        if (self.request.user == submission.user.user and
+                submission.problem.is_accessible_by(self.request.user)):
+            from billing.constants import FEATURE_AI_REVIEW
+            from billing.services import is_active_for
+            from mentor.models import AIReview
+            from mentor.review_context import review_eligibility
+
+            review_unavailable_reason = review_eligibility(submission)
+            # Owners may still read an existing review after entitlement expires;
+            # GET decides whether its revision is current and safe to display.
+            if review_unavailable_reason is None or AIReview.objects.filter(submission=submission).exists():
+                context['ai_review_panel'] = True
+                context['ai_review_unavailable_reason'] = review_unavailable_reason
+                context['ai_review_can_request'] = (review_unavailable_reason is None and
+                                                    is_active_for(submission.user, FEATURE_AI_REVIEW))
+
         context['batches'], statuses, test_case_count = group_test_cases(submission.test_cases.all())
 
         context['feedback_limit'] = min(3, test_case_count - 1)
