@@ -495,6 +495,7 @@ INSTALLED_APPS += (
     'urlshortener',
     'billing',
     'mentor',
+    'ai_gateway',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.flatpages',

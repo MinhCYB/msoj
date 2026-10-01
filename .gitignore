@@ -50,3 +50,6 @@ resources/theme-toggle.css
 opencode.json
 .serena/
 docs/
+.env
+.env.*
+!.env.example
