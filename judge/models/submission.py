@@ -92,6 +92,7 @@ class Submission(models.Model):
                                   on_delete=models.SET_NULL)
     judged_date = models.DateTimeField(verbose_name=_('submission judge time'), default=None, null=True)
     rejudged_date = models.DateTimeField(verbose_name=_('last rejudge date by admin'), null=True, blank=True)
+    judge_generation = models.PositiveIntegerField(default=0, verbose_name=_('judging generation'))
     is_pretested = models.BooleanField(verbose_name=_('was ran on pretests only'), default=False)
     contest_object = models.ForeignKey('Contest', verbose_name=_('contest'), null=True, blank=True,
                                        on_delete=models.SET_NULL, related_name='+', db_index=False)

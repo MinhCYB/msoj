@@ -5,6 +5,7 @@ import struct
 import zlib
 
 from django.conf import settings
+from django.db.models import F, Q
 from django.utils import timezone
 
 from judge import event_poster as event
@@ -57,7 +58,8 @@ def judge_submission(submission, rejudge=False, batch_rejudge=False, judge_id=No
     from .models import ContestSubmission, Submission, SubmissionTestCase
 
     updates = {'time': None, 'memory': None, 'points': None, 'result': None, 'case_points': 0, 'case_total': 0,
-               'error': None, 'rejudged_date': timezone.now() if rejudge or batch_rejudge else None, 'status': 'QU'}
+               'error': None, 'rejudged_date': timezone.now() if rejudge or batch_rejudge else None, 'status': 'QU',
+               'judge_generation': F('judge_generation') + 1}
     try:
         # This is set proactively; it might get unset in judgecallback's on_grading_begin if the problem doesn't
         # actually have pretests stored on the judge.
@@ -76,7 +78,9 @@ def judge_submission(submission, rejudge=False, batch_rejudge=False, judge_id=No
     # as that would prevent people from knowing a submission is being scheduled for rejudging.
     # It is worth noting that this mechanism does not prevent a new rejudge from being scheduled
     # while already queued, but that does not lead to data corruption.
-    if not Submission.objects.filter(id=submission.id).exclude(status__in=('P', 'G')).update(**updates):
+    # A queued submission may only be dispatched once; rejudge while queued is not a new generation.
+    eligible = Q(status='QU', judge_generation=0) | Q(status__in=('D', 'CE', 'IE', 'AB'))
+    if not Submission.objects.filter(id=submission.id).filter(eligible).update(**updates):
         return False
 
     SubmissionTestCase.objects.filter(submission_id=submission.id).delete()

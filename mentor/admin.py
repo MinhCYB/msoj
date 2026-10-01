@@ -2,6 +2,7 @@ from django.contrib import admin
 
 from .models import (
     AIReview,
+    AIReviewAttempt,
     AIReviewApproach,
     BrainstormMessage,
     BrainstormSession,
@@ -53,11 +54,16 @@ class BrainstormMessageAdmin(admin.ModelAdmin):
 
 @admin.register(AIReview)
 class AIReviewAdmin(admin.ModelAdmin):
-    list_display = ('submission', 'created_at')
+    list_display = ('submission', 'status', 'current_generation', 'created_at')
+
+
+@admin.register(AIReviewAttempt)
+class AIReviewAttemptAdmin(admin.ModelAdmin):
+    list_display = ('review', 'generation', 'status', 'requested_at')
     inlines = (AIReviewApproachInline,)
 
 
 @admin.register(AIReviewApproach)
 class AIReviewApproachAdmin(admin.ModelAdmin):
-    list_display = ('title', 'review', 'complexity', 'practicality', 'order')
+    list_display = ('title', 'attempt', 'complexity', 'practicality', 'order')
     list_filter = ('complexity', 'practicality')

@@ -118,12 +118,55 @@ class BrainstormMessage(models.Model):
 
 
 class AIReview(models.Model):
+    STATUS_PENDING = 'pending'
+    STATUS_RUNNING = 'running'
+    STATUS_SUCCEEDED = 'succeeded'
+    STATUS_FAILED = 'failed'
+    STATUS_STALE = 'stale'
+    STATUS_CHOICES = tuple((status, status.title()) for status in (
+        STATUS_PENDING, STATUS_RUNNING, STATUS_SUCCEEDED, STATUS_FAILED, STATUS_STALE,
+    ))
+
     submission = models.OneToOneField('judge.Submission', on_delete=models.CASCADE, related_name='mentor_ai_review')
-    overall_feedback = models.TextField()
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=STATUS_PENDING, db_index=True)
+    current_revision = models.CharField(max_length=80, blank=True)
+    current_generation = models.PositiveIntegerField(default=0)
+    overall_feedback = models.TextField(blank=True)
+    requested_at = models.DateTimeField(null=True, blank=True)
+    started_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    error_code = models.CharField(max_length=40, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f'AI review for submission #{self.submission_id}'
+
+
+class AIReviewAttempt(models.Model):
+    review = models.ForeignKey(AIReview, on_delete=models.CASCADE, related_name='attempts')
+    generation = models.PositiveIntegerField()
+    review_revision = models.CharField(max_length=80, blank=True)
+    status = models.CharField(max_length=10, choices=AIReview.STATUS_CHOICES, default=AIReview.STATUS_PENDING)
+    provider = models.CharField(max_length=100, blank=True)
+    requested_model = models.CharField(max_length=200, blank=True)
+    returned_model = models.CharField(max_length=200, blank=True)
+    input_tokens = models.PositiveIntegerField(null=True, blank=True)
+    output_tokens = models.PositiveIntegerField(null=True, blank=True)
+    total_tokens = models.PositiveIntegerField(null=True, blank=True)
+    finish_reason = models.CharField(max_length=40, blank=True)
+    error_code = models.CharField(max_length=40, blank=True)
+    overall_feedback = models.TextField(blank=True)
+    requested_at = models.DateTimeField(null=True, blank=True)
+    started_at = models.DateTimeField(null=True, blank=True)
+    provider_call_started_at = models.DateTimeField(null=True, blank=True, db_index=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['review', 'generation'], name='mentor_review_attempt_generation_uniq')]
+        indexes = [models.Index(fields=['status', 'requested_at'], name='mentor_attempt_status_idx')]
+
+    def __str__(self):
+        return f'AI review #{self.review_id}, attempt {self.generation}'
 
 
 class AIReviewApproach(models.Model):
@@ -136,7 +179,7 @@ class AIReviewApproach(models.Model):
         ('high', 'Cao'), ('medium', 'Trung bình'), ('low', 'Thấp'),
     )
 
-    review = models.ForeignKey(AIReview, on_delete=models.CASCADE, related_name='approaches')
+    attempt = models.ForeignKey(AIReviewAttempt, on_delete=models.CASCADE, related_name='approaches')
     title = models.CharField(max_length=200)
     description = models.TextField()
     complexity = models.CharField(max_length=20, choices=COMPLEXITY_CHOICES)
