@@ -121,10 +121,12 @@
   launch.addEventListener("click", function () {
     panel.hidden = false;
     launch.setAttribute("aria-expanded", "true");
+    panel.dispatchEvent(new Event("mentor:open"));
   });
   panel.querySelector('[data-mentor="minimize"]').addEventListener("click", function () {
     panel.hidden = true;
     launch.setAttribute("aria-expanded", "false");
+    panel.dispatchEvent(new Event("mentor:close"));
     launch.focus();
   });
   panel.querySelector('[data-mentor="close"]').addEventListener("click", function () {
@@ -132,6 +134,7 @@
     panel.style.width = "";
     panel.style.height = "";
     launch.setAttribute("aria-expanded", "false");
+    panel.dispatchEvent(new Event("mentor:close"));
     launch.focus();
   });
 

@@ -45,7 +45,7 @@ class BrainstormSendTestCase(TestCase):
         )
         self.url = reverse('mentor_brainstorm_send', args=[self.problem.code])
 
-    def test_free_user_blocked(self):
+    def test_old_post_is_retired_without_publishing(self):
         self.client.force_login(self.free_user)
 
         response = self.client.post(self.url, {
@@ -53,11 +53,11 @@ class BrainstormSendTestCase(TestCase):
             'content': 'I need help with the state.',
         })
 
-        self.assertEqual(response.status_code, 403)
-        self.assertEqual(response.json()['allowed'], False)
+        self.assertEqual(response.status_code, 410)
+        self.assertEqual(response.json()['error_code'], 'legacy_endpoint_retired')
         self.assertEqual(BrainstormMessage.objects.count(), 0)
 
-    def test_paid_user_allowed(self):
+    def test_paid_user_cannot_write_stub(self):
         self.client.force_login(self.paid_user)
 
         response = self.client.post(self.url, {
@@ -65,28 +65,15 @@ class BrainstormSendTestCase(TestCase):
             'content': 'I need help with the state.',
         })
 
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()['allowed'], True)
-        self.assertEqual(response.json()['hint_level_granted'], 1)
-        self.assertEqual(BrainstormMessage.objects.count(), 2)
-        self.assertEqual(
-            list(BrainstormMessage.objects.values_list('role', flat=True)),
-            [BrainstormMessage.ROLE_STUDENT, BrainstormMessage.ROLE_AI],
-        )
+        self.assertEqual(response.status_code, 410)
+        self.assertFalse(BrainstormMessage.objects.exists())
 
-    def test_hint_level_increases_over_time(self):
+    def test_repeated_old_posts_do_not_create_session(self):
         self.client.force_login(self.paid_user)
         data = {
             'described_approach': 'Try dynamic programming.',
             'content': 'I need help with the state.',
         }
-        self.client.post(self.url, data)
-        BrainstormSession.objects.filter(
-            profile=self.paid_profile,
-            problem=self.problem,
-        ).update(total_active_seconds=700)
-
-        response = self.client.post(self.url, data)
-
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()['hint_level_granted'], 2)
+        self.assertEqual(self.client.post(self.url, data).status_code, 410)
+        self.assertEqual(self.client.post(self.url, data).status_code, 410)
+        self.assertFalse(BrainstormSession.objects.exists())

@@ -152,6 +152,7 @@ class LegacyReviewMigrationTests(TransactionTestCase):
 
     def test_legacy_review_is_stale_and_approaches_are_preserved(self):
         executor = MigrationExecutor(connection)
+        original_targets = executor.loader.graph.leaf_nodes()
         executor.migrate(self.migrate_from)
         old = executor.loader.project_state(self.migrate_from).apps
         user = old.get_model('auth', 'User').objects.create(username='legacy-review-user')
@@ -179,3 +180,4 @@ class LegacyReviewMigrationTests(TransactionTestCase):
         self.assertEqual((attempt.status, attempt.generation, attempt.overall_feedback),
                          ('stale', 0, 'legacy feedback'))
         self.assertEqual(approach.title, 'Old approach')
+        MigrationExecutor(connection).migrate(original_targets)

@@ -1,16 +1,49 @@
 <div class="ms-mentor">
-  <section id="ms-mentor-panel" class="ms-mentor-panel" aria-label="Mentor" hidden>
+  <section
+    id="ms-mentor-panel"
+    class="ms-mentor-panel"
+    aria-label="{{ _('AI Mentor') }}"
+    data-session-url="{{ url('mentor_brainstorm_send', problem.code) }}"
+    data-post-url="{{ url('mentor_brainstorm_post_turn', problem.code) }}"
+    data-turn-url="{{ url('mentor_brainstorm_turn', 0) }}"
+    hidden
+  >
     <header>
-      <strong>Mentor</strong>
+      <strong>{{ _('AI Mentor') }}</strong>
       <div>
         <button type="button" data-mentor="minimize" aria-label="Thu nhỏ Mentor">−</button
         ><button type="button" data-mentor="close" aria-label="Đóng Mentor">×</button>
       </div>
     </header>
     <div class="ms-mentor-body">
-      <span>CHƯA KHẢ DỤNG</span>
-      <h3>Mentor đang được chuẩn bị</h3>
-      <p>Công cụ hỗ trợ học tập sẽ có trong phiên bản tiếp theo.</p>
+      <div class="ms-mentor-status" role="status" aria-live="polite"></div>
+      <p class="ms-mentor-alert" role="alert" hidden></p>
+      <button type="button" class="ms-mentor-refresh" hidden>Kiểm tra lại</button>
+      <button type="button" class="ms-mentor-retry" hidden>Gửi lại cùng yêu cầu</button>
+      <p class="ms-mentor-hint" hidden></p>
+      <p class="ms-mentor-truncated" hidden>
+        Một phần hội thoại cũ không được đưa vào ngữ cảnh AI cho lượt hỏi này.
+      </p>
+      <div class="ms-mentor-history" role="log" aria-label="Hội thoại Mentor đã được duyệt"></div>
+      <p class="ms-mentor-empty" hidden>
+        Chưa có hội thoại được duyệt. Hãy hỏi Mentor về hướng giải hoặc mã của bạn.
+      </p>
+      {% if request.user.is_authenticated %}
+      <form class="ms-mentor-composer" hidden>
+        {% csrf_token %}
+        <label for="ms-mentor-question">Câu hỏi</label>
+        <textarea id="ms-mentor-question" name="question" rows="3" required></textarea>
+        <label for="ms-mentor-approach">Hướng giải của bạn (không bắt buộc)</label>
+        <textarea id="ms-mentor-approach" name="approach" rows="2"></textarea>
+        <p class="ms-mentor-disclosure">
+          Khi hỏi Mentor, mã hiện tại trong trình soạn thảo sẽ được gửi tới AI để phân tích. Bạn có
+          thể tiếp tục sửa mã; câu hỏi dùng mã tại thời điểm gửi.
+        </p>
+        <button type="submit" class="ms-mentor-send">Hỏi Mentor</button>
+      </form>
+      {% else %}
+      <p class="ms-mentor-login">Đăng nhập để hỏi Mentor.</p>
+      {% endif %}
     </div>
     <div class="ms-mentor-resize" aria-hidden="true"></div>
   </section>

@@ -6,7 +6,7 @@
     {% if request.user.is_authenticated and form %}
         {{ form.media.css }}
     {% endif %}
-    <link rel="stylesheet" href="{{ static('problem-workspace.css') }}?v=13">
+    <link rel="stylesheet" href="{{ static('problem-workspace.css') }}?v=14">
     <style>
         .title-state {
             font-size: 2em;
@@ -68,7 +68,8 @@
     {% if request.user.is_authenticated and form %}
         {% include "problem/submit-js.html" %}
     {% endif %}
-    <script defer src="{{ static('problem-workspace.js') }}?v=5"></script>
+    <script defer src="{{ static('problem-workspace.js') }}?v=6"></script>
+    <script defer src="{{ static('brainstorm.js') }}?v=1"></script>
     <script type="text/javascript">
         $(function() {
             $('#pdf_button').click(async function(e) {

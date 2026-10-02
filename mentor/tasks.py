@@ -1,4 +1,4 @@
-"""AI Review worker; no automatic Celery retry of potentially billed calls."""
+"""AI Review and Brainstorm workers; no automatic retry of potentially billed calls."""
 
 from celery import shared_task
 from django.db import transaction
@@ -137,3 +137,9 @@ def generate_review(review_id, attempt_id, expected_revision):
     else:
         _finish(review_id, attempt_id, expected_revision, result=result, feedback=feedback,
                 approaches=approaches)
+
+
+@shared_task
+def generate_brainstorm(turn_id):
+    from .brainstorm_pipeline import run_brainstorm
+    run_brainstorm(turn_id)
