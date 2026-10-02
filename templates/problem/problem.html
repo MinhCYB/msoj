@@ -6,7 +6,7 @@
     {% if request.user.is_authenticated and form %}
         {{ form.media.css }}
     {% endif %}
-    <link rel="stylesheet" href="{{ static('problem-workspace.css') }}?v=14">
+    <link rel="stylesheet" href="{{ static('problem-workspace.css') }}?v=17">
     <style>
         .title-state {
             font-size: 2em;
@@ -68,8 +68,8 @@
     {% if request.user.is_authenticated and form %}
         {% include "problem/submit-js.html" %}
     {% endif %}
-    <script defer src="{{ static('problem-workspace.js') }}?v=6"></script>
-    <script defer src="{{ static('brainstorm.js') }}?v=1"></script>
+    <script defer src="{{ static('problem-workspace.js') }}?v=8"></script>
+    <script defer src="{{ static('brainstorm.js') }}?v=3"></script>
     <script type="text/javascript">
         $(function() {
             $('#pdf_button').click(async function(e) {
@@ -282,8 +282,8 @@
 
         <div class="ms-workspace-layout">
         <nav class="ms-workspace-rail" aria-label="Điều hướng bài tập">
+            <div class="ms-workspace-rail-nav">
             <a href="#ms-statement" class="ms-rail-current" aria-current="page" aria-label="Đề bài" title="Đề bài"><i class="fa fa-file-text-o" aria-hidden="true"></i><span>Đề bài</span></a>
-            <button type="button" class="ms-annotate-launch" aria-label="Nháp" title="Nháp" aria-controls="ms-annotation-toolbar" aria-expanded="false"><i class="fa fa-pencil" aria-hidden="true"></i></button>
             {% if request.in_contest and contest_problem %}
                 {% set contest = contest_problem.contest %}
                 <a href="{{ url('contest_user_submissions', contest.key, request.user.username, problem.code) }}" aria-label="Bài nộp của tôi" title="Bài nộp của tôi"><i class="fa fa-history" aria-hidden="true"></i><span>Bài nộp của tôi</span></a>
@@ -297,8 +297,12 @@
                 <a href="{{ url('ranked_submissions', problem.code) }}" aria-label="Bài nộp tốt nhất" title="Bài nộp tốt nhất"><i class="fa fa-trophy" aria-hidden="true"></i><span>Bài nộp tốt nhất</span></a>
             {% endif %}
             <a href="#comments" aria-label="Bình luận" title="Bình luận"><i class="fa fa-comments-o" aria-hidden="true"></i><span>Bình luận</span></a>
-            <button type="button" class="ms-mentor-launch" aria-label="Mở Mentor" title="Mentor" aria-controls="ms-mentor-panel" aria-expanded="false"><i class="fa fa-lightbulb-o" aria-hidden="true"></i></button>
             {% if (editorial and editorial.is_accessible_by(request.user)) and not request.in_contest %}<a href="{{ url('problem_editorial', problem.code) }}" aria-label="Lời giải" title="Lời giải"><i class="fa fa-lightbulb-o" aria-hidden="true"></i><span>Lời giải</span></a>{% endif %}
+            </div>
+            <div class="ms-workspace-tools" role="group" aria-label="Công cụ workspace">
+                <button type="button" class="ms-annotate-launch" aria-label="Nháp" title="Nháp" aria-controls="ms-annotation-toolbar" aria-expanded="false"><i class="fa fa-pencil" aria-hidden="true"></i></button>
+                <button type="button" class="ms-mentor-launch" aria-label="Mở Mentor" title="Mentor" aria-controls="ms-mentor-panel" aria-expanded="false"><i class="fa fa-lightbulb-o" aria-hidden="true"></i></button>
+            </div>
         </nav>
         <div class="ms-workspace-main">
         <div class="ms-workspace-grid">

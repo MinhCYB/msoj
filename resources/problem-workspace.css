@@ -505,8 +505,11 @@ body:has(.ms-workspace) #navigation a:focus-visible {
 .ms-mentor {
   position: fixed;
   z-index: 300;
-  right: 20px;
-  bottom: 20px;
+  inset: 0;
+  pointer-events: none;
+}
+.ms-mentor-panel {
+  pointer-events: auto;
 }
 .ms-mentor-launch {
   background: #2457a7;
@@ -524,19 +527,19 @@ body:has(.ms-workspace) #navigation a:focus-visible {
   position: absolute;
   right: 0;
   bottom: 0;
-  width: min(380px, calc(100vw - 30px));
-  height: min(540px, calc(100dvh - 85px));
-  min-width: 280px;
-  min-height: 180px;
-  max-width: calc(100vw - 30px);
-  max-height: calc(100dvh - 85px);
+  width: min(400px, calc(100vw - 30px));
+  height: min(520px, calc(100dvh - 85px));
+  min-width: min(320px, calc(100vw - 24px));
+  min-height: min(300px, calc(100dvh - 24px));
+  max-width: calc(100vw - 24px);
+  max-height: calc(100dvh - 24px);
+  box-sizing: border-box;
   background: var(--ws-bg);
   color: var(--ws-ink);
   border: 1px solid var(--ws-border);
-  border-radius: 10px;
+  border-radius: 12px;
   box-shadow: 0 12px 38px #18212d33;
-  overflow: hidden;
-  resize: both;
+  overflow: visible;
   display: flex;
   flex-direction: column;
 }
@@ -547,42 +550,68 @@ body:has(.ms-workspace) #navigation a:focus-visible {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
+  padding: 8px 10px 8px 16px;
   border-bottom: 1px solid var(--ws-border);
   flex: 0 0 auto;
+  min-height: 50px;
+  box-sizing: border-box;
+}
+.ms-mentor-title {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+.ms-mentor-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 3px;
 }
 .ms-mentor-panel header button {
-  border: 0;
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid transparent;
+  border-radius: 6px;
   background: transparent;
-  font-size: 22px;
-  color: inherit;
-  padding: 0 8px;
+  font-size: 23px;
+  line-height: 1;
+  color: var(--ws-ink) !important;
+  padding: 0;
   cursor: pointer;
 }
-.ms-mentor-body {
-  padding: 12px 16px 16px;
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  min-height: 0;
-  gap: 8px;
-  overflow: hidden;
+.ms-mentor-panel header button:hover {
+  background: color-mix(in srgb, var(--ws-accent) 15%, var(--ws-bg));
+  color: var(--ws-accent) !important;
 }
-.ms-mentor-body [hidden] {
+.ms-mentor-conversation {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 16px;
+  overflow-x: hidden;
+}
+.ms-mentor-panel [hidden] {
   display: none;
 }
 .ms-mentor-status,
 .ms-mentor-alert,
 .ms-mentor-empty,
 .ms-mentor-login,
-.ms-mentor-hint,
 .ms-mentor-truncated,
 .ms-mentor-disclosure {
   margin: 0;
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.45;
 }
-.ms-mentor-status {
+.ms-mentor-empty {
+  padding: 8px 0;
+}
+.ms-mentor-empty,
+.ms-mentor-status,
+.ms-mentor-truncated {
   color: var(--ws-muted);
 }
 .ms-mentor-alert {
@@ -590,88 +619,163 @@ body:has(.ms-workspace) #navigation a:focus-visible {
   background: color-mix(in srgb, #e6a63a 18%, var(--ws-bg));
   border-left: 3px solid #b57416;
   padding: 8px;
-}
-.ms-mentor-hint {
-  align-self: flex-start;
-  padding: 3px 8px;
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--ws-accent) 14%, var(--ws-bg));
-  color: var(--ws-accent);
-}
-.ms-mentor-truncated {
-  color: var(--ws-muted);
+  border-radius: 4px;
 }
 .ms-mentor-history {
-  flex: 1 1 auto;
-  min-height: 35px;
-  overflow: auto;
-  overscroll-behavior: contain;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
+}
+.ms-mentor-feedback {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 7px;
+  margin-top: 10px;
+}
+.ms-mentor-status:empty {
+  display: none;
+}
+.ms-mentor-panel:has(.ms-mentor-status:not(:empty)) .ms-mentor-status {
+  padding: 5px 0;
 }
 .ms-mentor-message {
-  padding: 9px 11px;
-  border: 1px solid var(--ws-border);
-  border-radius: 8px;
   min-width: 0;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
   font-size: 13px;
+  line-height: 1.55;
 }
 .ms-mentor-message-student {
+  align-self: flex-end;
+  max-width: 88%;
+  padding: 9px 12px;
+  border: 1px solid color-mix(in srgb, var(--ws-accent) 20%, var(--ws-border));
+  border-radius: 12px 12px 3px 12px;
   background: color-mix(in srgb, var(--ws-accent) 10%, var(--ws-bg));
-  margin-left: 15px;
 }
 .ms-mentor-message-ai {
-  margin-right: 15px;
+  align-self: flex-start;
+  max-width: 100%;
+  padding: 2px 0;
 }
 .ms-mentor-message p {
-  margin: 5px 0 0;
-}
-.ms-mentor-message-detail {
-  color: var(--ws-muted);
+  margin: 0;
 }
 .ms-mentor-composer {
-  flex: 0 1 auto;
-  min-height: 0;
-  overflow-y: auto;
+  flex: 0 0 auto;
   border-top: 1px solid var(--ws-border);
-  padding-top: 9px;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  font-size: 13px;
+  padding: 8px 12px 10px;
+  background: var(--ws-bg);
+}
+.ms-mentor-input {
+  position: relative;
 }
 .ms-mentor-composer textarea {
   display: block;
   width: 100%;
-  min-height: 42px;
+  min-height: 40px;
+  max-height: 112px;
   box-sizing: border-box;
   border: 1px solid var(--ws-border);
-  border-radius: 5px;
-  padding: 6px;
+  border-radius: 8px;
+  padding: 9px 52px 9px 10px;
   background: var(--ws-bg);
   color: var(--ws-ink);
-  resize: vertical;
+  resize: none;
+  overflow-y: auto;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.4;
 }
-.ms-mentor-disclosure {
+.ms-mentor-composer textarea::placeholder {
   color: var(--ws-muted);
+  opacity: 1;
+}
+.ms-mentor-composer textarea:disabled {
+  opacity: 0.7;
+  background: var(--ws-page);
+}
+.ms-mentor-info {
+  position: relative;
+  display: flex;
+  flex: 0 0 auto;
+}
+.ms-mentor-panel header .ms-mentor-info-button {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ws-muted) !important;
+  font-size: 16px;
+  line-height: 1;
+  cursor: help;
+}
+.ms-mentor-panel header .ms-mentor-info-button:hover,
+.ms-mentor-panel header .ms-mentor-info-button:focus-visible {
+  color: var(--ws-accent) !important;
+  background: color-mix(in srgb, var(--ws-accent) 12%, var(--ws-bg));
+}
+.ms-mentor-tooltip {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 8px);
+  z-index: 4;
+  width: min(280px, calc(100vw - 100px));
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid var(--ws-border);
+  border-radius: 6px;
+  background: var(--ws-bg);
+  color: var(--ws-ink);
+  box-shadow: 0 4px 14px #18212d33;
+  font-size: 12px;
+  line-height: 1.45;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.ms-mentor-info-button:hover + .ms-mentor-tooltip,
+.ms-mentor-info-button:focus-visible + .ms-mentor-tooltip {
+  opacity: 1;
+  visibility: visible;
 }
 .ms-mentor-send,
 .ms-mentor-refresh,
 .ms-mentor-retry {
-  align-self: flex-start;
-  border: 1px solid var(--ws-accent);
-  border-radius: 5px;
+  border: 1px solid var(--ws-border);
+  border-radius: 6px;
   padding: 7px 12px;
-  background: var(--ws-accent);
-  color: var(--ws-bg);
+  background: var(--ws-bg);
+  color: var(--ws-ink);
   cursor: pointer;
+}
+.ms-mentor-send {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-color: #2457a7;
+  background: #2457a7;
+  color: #fff;
+}
+.ms-mentor-send svg {
+  display: block;
+}
+.ms-mentor-send:not(:disabled):hover {
+  background: #194584;
 }
 .ms-mentor-send:disabled,
 .ms-mentor-retry:disabled {
-  opacity: 0.6;
+  opacity: 0.55;
   cursor: default;
 }
 .ms-mentor-panel :focus-visible {
@@ -681,18 +785,40 @@ body:has(.ms-workspace) #navigation a:focus-visible {
 @media (max-width: 480px) {
   .ms-mentor-panel {
     width: calc(100vw - 24px);
-    max-height: calc(100dvh - 80px);
+    height: min(480px, calc(100dvh - 95px));
   }
 }
-.ms-mentor-resize {
+.ms-mentor-resize-top,
+.ms-mentor-resize-right,
+.ms-mentor-resize-corner {
   position: absolute;
-  bottom: 3px;
-  right: 3px;
-  width: 12px;
-  height: 12px;
-  border-right: 2px solid #8492a1;
-  border-bottom: 2px solid #8492a1;
-  pointer-events: none;
+  touch-action: none;
+  z-index: 3;
+}
+.ms-mentor-resize-top {
+  top: 0;
+  left: 12px;
+  right: 12px;
+  height: 7px;
+  cursor: ns-resize;
+}
+.ms-mentor-resize-right {
+  top: 12px;
+  bottom: 12px;
+  right: 0;
+  width: 7px;
+  cursor: ew-resize;
+}
+.ms-mentor-resize-corner {
+  top: 0;
+  right: 0;
+  width: 14px;
+  height: 14px;
+  cursor: nesw-resize;
+}
+.ms-mentor-panel:has([data-resize]:hover),
+.ms-mentor-panel.is-resizing {
+  border-color: var(--ws-accent);
 }
 @media (max-width: 850px) {
   body:has(.ms-workspace) #navigation {
@@ -1248,6 +1374,18 @@ body:has(.ms-workspace) .problem-title .view-pdf {
   border-radius: 8px;
   background: var(--ws-bg);
 }
+.ms-workspace-rail-nav,
+.ms-workspace-tools {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.ms-workspace-tools {
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid var(--ws-border);
+}
 .ms-workspace-rail a {
   display: inline-flex;
   align-items: center;
@@ -1409,6 +1547,25 @@ body:has(.ms-workspace) .problem-title .view-pdf {
     overscroll-behavior-inline: contain;
     padding: 5px;
   }
+  .ms-workspace-rail-nav,
+  .ms-workspace-tools {
+    flex-direction: row;
+    flex: 0 0 auto;
+    gap: 4px;
+  }
+  .ms-workspace-rail-nav {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-x: auto;
+  }
+  .ms-workspace-tools {
+    margin-top: 0;
+    margin-left: auto;
+    padding-top: 0;
+    padding-left: 8px;
+    border-top: 0;
+    border-left: 1px solid var(--ws-border);
+  }
   .ms-workspace-rail a {
     flex: 0 0 auto;
     gap: 6px;
@@ -1485,6 +1642,8 @@ body:has(.ms-workspace) .problem-title .view-pdf {
     border-block: 0;
     border-left: 0;
     padding: 8px 4px;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
   .ms-workspace-main {
     min-height: 0;
@@ -1788,7 +1947,7 @@ body:has(.ms-workspace) .problem-title .title-state {
   color: #2457a7 !important;
 }
 .ms-mentor {
-  position: static;
+  position: fixed;
 }
 .ms-mentor-panel {
   position: fixed;

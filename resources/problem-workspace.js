@@ -118,25 +118,114 @@
   var mentor = document.querySelector(".ms-mentor");
   var launch = rail.querySelector(".ms-mentor-launch");
   var panel = mentor.querySelector(".ms-mentor-panel");
+  var mentorDrag = null;
+  function mentorLimits() {
+    var rect = panel.getBoundingClientRect();
+    return {
+      minWidth: Math.min(320, window.innerWidth - rect.left - 12),
+      maxWidth: Math.max(0, window.innerWidth - rect.left - 12),
+      minHeight: Math.min(300, rect.bottom - 12),
+      maxHeight: Math.max(0, rect.bottom - Math.max(12, workspace.getBoundingClientRect().top + 8)),
+    };
+  }
+  function bounded(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+  }
+  function clampMentor() {
+    if (panel.hidden) return;
+    var limits = mentorLimits();
+    panel.style.width = Math.min(panel.offsetWidth, limits.maxWidth) + "px";
+    panel.style.height = Math.min(panel.offsetHeight, limits.maxHeight) + "px";
+  }
   launch.addEventListener("click", function () {
     panel.hidden = false;
     launch.setAttribute("aria-expanded", "true");
+    clampMentor();
     panel.dispatchEvent(new Event("mentor:open"));
   });
   panel.querySelector('[data-mentor="minimize"]').addEventListener("click", function () {
     panel.hidden = true;
+    mentorDrag = null;
     launch.setAttribute("aria-expanded", "false");
     panel.dispatchEvent(new Event("mentor:close"));
     launch.focus();
   });
   panel.querySelector('[data-mentor="close"]').addEventListener("click", function () {
     panel.hidden = true;
+    mentorDrag = null;
     panel.style.width = "";
     panel.style.height = "";
+    panel.style.top = "";
+    panel.style.bottom = "";
     launch.setAttribute("aria-expanded", "false");
     panel.dispatchEvent(new Event("mentor:close"));
     launch.focus();
   });
+  panel.querySelectorAll("[data-resize]").forEach(function (handle) {
+    var axis = handle.dataset.resize;
+    handle.addEventListener("pointerdown", function (event) {
+      if (event.button !== 0 || panel.hidden) return;
+      event.preventDefault();
+      event.stopPropagation();
+      var rect = panel.getBoundingClientRect();
+      mentorDrag = {
+        id: event.pointerId,
+        x: event.clientX,
+        y: event.clientY,
+        width: rect.width,
+        height: rect.height,
+      };
+      panel.classList.add("is-resizing");
+      handle.setPointerCapture(event.pointerId);
+    });
+    handle.addEventListener("pointermove", function (event) {
+      if (!mentorDrag || event.pointerId !== mentorDrag.id) return;
+      var limits = mentorLimits();
+      if (axis !== "top")
+        panel.style.width =
+          bounded(
+            mentorDrag.width + event.clientX - mentorDrag.x,
+            limits.minWidth,
+            limits.maxWidth,
+          ) + "px";
+      if (axis !== "right")
+        panel.style.height =
+          bounded(
+            mentorDrag.height + mentorDrag.y - event.clientY,
+            limits.minHeight,
+            limits.maxHeight,
+          ) + "px";
+    });
+    function finishMentorResize() {
+      mentorDrag = null;
+      panel.classList.remove("is-resizing");
+    }
+    handle.addEventListener("pointerup", finishMentorResize);
+    handle.addEventListener("pointercancel", finishMentorResize);
+    handle.addEventListener("lostpointercapture", finishMentorResize);
+    handle.addEventListener("keydown", function (event) {
+      if (!event.altKey || !["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.key))
+        return;
+      event.preventDefault();
+      var rect = panel.getBoundingClientRect();
+      var limits = mentorLimits();
+      if (axis !== "top")
+        panel.style.width =
+          bounded(
+            rect.width + (event.key === "ArrowRight" ? 20 : event.key === "ArrowLeft" ? -20 : 0),
+            limits.minWidth,
+            limits.maxWidth,
+          ) + "px";
+      if (axis !== "right")
+        panel.style.height =
+          bounded(
+            rect.height + (event.key === "ArrowUp" ? 20 : event.key === "ArrowDown" ? -20 : 0),
+            limits.minHeight,
+            limits.maxHeight,
+          ) + "px";
+    });
+  });
+  window.addEventListener("resize", clampMentor);
 
   var layer = document.getElementById("ms-annotation-layer");
   var toolbar = document.getElementById("ms-annotation-toolbar");

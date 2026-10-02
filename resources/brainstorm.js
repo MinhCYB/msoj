@@ -10,13 +10,12 @@
   var alert = panel.querySelector(".ms-mentor-alert");
   var refresh = panel.querySelector(".ms-mentor-refresh");
   var retry = panel.querySelector(".ms-mentor-retry");
-  var hint = panel.querySelector(".ms-mentor-hint");
   var truncated = panel.querySelector(".ms-mentor-truncated");
   var history = panel.querySelector(".ms-mentor-history");
+  var conversation = panel.querySelector(".ms-mentor-conversation");
   var empty = panel.querySelector(".ms-mentor-empty");
   var form = panel.querySelector(".ms-mentor-composer");
   var question = panel.querySelector("#ms-mentor-question");
-  var approach = panel.querySelector("#ms-mentor-approach");
   var send = panel.querySelector(".ms-mentor-send");
   var timer = null;
   var controller = null;
@@ -32,6 +31,12 @@
   var ownPayload = null;
   var pendingPayload = null;
   var failedMessage = "";
+
+  function sizeQuestion() {
+    if (!question) return;
+    question.style.height = "auto";
+    question.style.height = Math.min(question.scrollHeight, 112) + "px";
+  }
 
   var errors = {
     brainstorm_disabled: "Mentor hiện chưa khả dụng. Hãy thử lại sau.",
@@ -76,7 +81,7 @@
 
   function controls() {
     if (!form) return;
-    form.hidden = !available;
+    question.disabled = !available || submitting || !!activeTurn || !!ambiguous;
     send.disabled = !available || submitting || !!activeTurn || !!ambiguous;
     retry.hidden = !ambiguous || !available || !!activeTurn;
     retry.disabled = submitting || inFlight;
@@ -129,38 +134,28 @@
     }
   }
 
-  function addMessage(role, text, details) {
+  function addMessage(role, text) {
     var entry = document.createElement("article");
     entry.className = "ms-mentor-message ms-mentor-message-" + role;
-    var title = document.createElement("strong");
-    title.textContent = role === "student" ? "Bạn" : "AI Mentor";
     var body = document.createElement("p");
     body.textContent = text || "";
-    entry.append(title, body);
-    if (details) {
-      var note = document.createElement("p");
-      note.className = "ms-mentor-message-detail";
-      note.textContent = details;
-      entry.appendChild(note);
-    }
+    entry.appendChild(body);
     history.appendChild(entry);
   }
 
   function renderHistory(rows) {
     history.replaceChildren();
     (Array.isArray(rows) ? rows : []).forEach(function (pair) {
-      addMessage("student", pair.question, pair.approach ? "Hướng giải: " + pair.approach : "");
-      addMessage("ai", pair.answer, pair.hint_level ? "Mức gợi ý " + pair.hint_level : "");
+      addMessage("student", pair.question + (pair.approach ? "\n\n" + pair.approach : ""));
+      addMessage("ai", pair.answer);
     });
     empty.hidden = !!history.children.length;
-    history.scrollTop = history.scrollHeight;
+    conversation.scrollTop = conversation.scrollHeight;
   }
 
   function updateSession(data) {
     renderHistory(data.history);
     available = data.available === true && !!form;
-    hint.hidden = !available || !data.hint_level;
-    hint.textContent = hint.hidden ? "" : "Mức gợi ý " + data.hint_level;
     if (data.active_turn && ["pending", "running"].includes(data.active_turn.status)) {
       activeTurn = data.active_turn.turn_id;
       ambiguous = null;
@@ -168,9 +163,7 @@
       failedMessage = "";
       truncated.hidden = !data.active_turn.history_truncated;
       status.textContent =
-        data.active_turn.status === "running"
-          ? "Mentor đang xem câu hỏi của bạn…"
-          : "Câu hỏi đang chờ xử lý…";
+        data.active_turn.status === "running" ? "Mentor đang suy nghĩ…" : "Mentor đang phân tích…";
       notify("");
       controls();
       polls = 0;
@@ -181,8 +174,8 @@
       status.textContent = failedMessage
         ? "Mentor không thể trả lời lượt hỏi này."
         : available
-          ? "Hãy hỏi Mentor về bài này."
-          : "Hiện không thể đặt câu hỏi mới cho bài này.";
+          ? ""
+          : "AI Mentor hiện chưa khả dụng.";
       controls();
     }
   }
@@ -214,9 +207,7 @@
       truncated.hidden = !data.history_truncated;
       if (data.status === "pending" || data.status === "running") {
         status.textContent =
-          data.status === "running"
-            ? "Mentor đang xem câu hỏi của bạn…"
-            : "Câu hỏi đang chờ xử lý…";
+          data.status === "running" ? "Mentor đang suy nghĩ…" : "Mentor đang phân tích…";
         if (++polls >= 8)
           notify("Mentor đang phân tích mã tại thời điểm bạn gửi. Bạn có thể tiếp tục sửa mã.");
         schedule(token);
@@ -232,8 +223,10 @@
           available &&
           ownPayload
         ) {
-          if (question.value === ownPayload.question) question.value = "";
-          if (approach.value === ownPayload.approach) approach.value = "";
+          if (question.value === ownPayload.question) {
+            question.value = "";
+            sizeQuestion();
+          }
         }
         ownTurn = null;
         ownPayload = null;
@@ -342,13 +335,15 @@
         polls = 0;
         failures = 0;
         truncated.hidden = !data.history_truncated;
-        status.textContent = "Mentor đang xem câu hỏi của bạn…";
+        status.textContent = "Mentor đang suy nghĩ…";
         controls();
         schedule(token);
       } else if (data.status === "succeeded") {
         if (await loadSession(token)) {
-          if (question.value === payload.question) question.value = "";
-          if (approach.value === payload.approach) approach.value = "";
+          if (question.value === payload.question) {
+            question.value = "";
+            sizeQuestion();
+          }
           ownTurn = null;
           ownPayload = null;
         }
@@ -412,7 +407,7 @@
       sendTurn(
         {
           question: question.value,
-          approach: approach.value,
+          approach: "",
           current_code: snapshot.current_code,
           client_request_id: id,
           language_key: snapshot.language_key,
@@ -420,6 +415,17 @@
         generation,
       );
     });
+
+  if (form)
+    question.addEventListener("keydown", function (event) {
+      if (event.key !== "Enter" || !(event.ctrlKey || event.metaKey) || event.shiftKey) return;
+      event.preventDefault();
+      if (!send.disabled) form.requestSubmit();
+    });
+  if (form) {
+    question.addEventListener("input", sizeQuestion);
+    sizeQuestion();
+  }
 
   retry.addEventListener("click", function () {
     if (ambiguous && available && !activeTurn && !submitting && !inFlight)

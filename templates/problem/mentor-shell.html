@@ -2,49 +2,118 @@
   <section
     id="ms-mentor-panel"
     class="ms-mentor-panel"
-    aria-label="{{ _('AI Mentor') }}"
+    aria-label="AI Mentor"
     data-session-url="{{ url('mentor_brainstorm_send', problem.code) }}"
     data-post-url="{{ url('mentor_brainstorm_post_turn', problem.code) }}"
     data-turn-url="{{ url('mentor_brainstorm_turn', 0) }}"
     hidden
   >
-    <header>
-      <strong>{{ _('AI Mentor') }}</strong>
-      <div>
-        <button type="button" data-mentor="minimize" aria-label="Thu nhỏ Mentor">−</button
-        ><button type="button" data-mentor="close" aria-label="Đóng Mentor">×</button>
+    <header class="ms-mentor-header">
+      <div class="ms-mentor-title">
+        <strong>AI Mentor</strong>
+        <div class="ms-mentor-info">
+          <button
+            type="button"
+            class="ms-mentor-info-button"
+            aria-label="Thông tin về mã được gửi"
+            aria-describedby="ms-mentor-code-info"
+          >
+            ⓘ
+          </button>
+          <span id="ms-mentor-code-info" class="ms-mentor-tooltip" role="tooltip"
+            >Mentor sẽ sử dụng mã hiện tại trong trình soạn thảo để hiểu câu hỏi của bạn.</span
+          >
+        </div>
+      </div>
+      <div class="ms-mentor-header-actions">
+        <button
+          type="button"
+          data-mentor="minimize"
+          aria-label="Thu nhỏ Mentor"
+          title="Thu nhỏ Mentor"
+        >
+          −
+        </button>
+        <button type="button" data-mentor="close" aria-label="Đóng Mentor" title="Đóng Mentor">
+          ×
+        </button>
       </div>
     </header>
-    <div class="ms-mentor-body">
-      <div class="ms-mentor-status" role="status" aria-live="polite"></div>
-      <p class="ms-mentor-alert" role="alert" hidden></p>
-      <button type="button" class="ms-mentor-refresh" hidden>Kiểm tra lại</button>
-      <button type="button" class="ms-mentor-retry" hidden>Gửi lại cùng yêu cầu</button>
-      <p class="ms-mentor-hint" hidden></p>
-      <p class="ms-mentor-truncated" hidden>
-        Một phần hội thoại cũ không được đưa vào ngữ cảnh AI cho lượt hỏi này.
+    <div class="ms-mentor-conversation">
+      <p class="ms-mentor-empty" hidden>
+        Hỏi Mentor khi bạn cần gợi ý về ý tưởng, lỗi hoặc độ phức tạp.
       </p>
       <div class="ms-mentor-history" role="log" aria-label="Hội thoại Mentor đã được duyệt"></div>
-      <p class="ms-mentor-empty" hidden>
-        Chưa có hội thoại được duyệt. Hãy hỏi Mentor về hướng giải hoặc mã của bạn.
-      </p>
-      {% if request.user.is_authenticated %}
-      <form class="ms-mentor-composer" hidden>
-        {% csrf_token %}
-        <label for="ms-mentor-question">Câu hỏi</label>
-        <textarea id="ms-mentor-question" name="question" rows="3" required></textarea>
-        <label for="ms-mentor-approach">Hướng giải của bạn (không bắt buộc)</label>
-        <textarea id="ms-mentor-approach" name="approach" rows="2"></textarea>
-        <p class="ms-mentor-disclosure">
-          Khi hỏi Mentor, mã hiện tại trong trình soạn thảo sẽ được gửi tới AI để phân tích. Bạn có
-          thể tiếp tục sửa mã; câu hỏi dùng mã tại thời điểm gửi.
+      <div class="ms-mentor-feedback">
+        <p class="ms-mentor-status" role="status" aria-live="polite"></p>
+        <p class="ms-mentor-alert" role="alert" hidden></p>
+        <p class="ms-mentor-truncated" hidden>
+          Một phần hội thoại cũ không được đưa vào ngữ cảnh AI cho lượt hỏi này.
         </p>
-        <button type="submit" class="ms-mentor-send">Hỏi Mentor</button>
-      </form>
-      {% else %}
-      <p class="ms-mentor-login">Đăng nhập để hỏi Mentor.</p>
-      {% endif %}
+        <button type="button" class="ms-mentor-refresh" hidden>Kiểm tra lại</button>
+        <button type="button" class="ms-mentor-retry" hidden>Gửi lại cùng yêu cầu</button>
+      </div>
     </div>
-    <div class="ms-mentor-resize" aria-hidden="true"></div>
+    {% if request.user.is_authenticated %}
+    <form class="ms-mentor-composer">
+      {% csrf_token %}
+      <div class="ms-mentor-input">
+        <textarea
+          id="ms-mentor-question"
+          name="question"
+          rows="1"
+          aria-label="Hỏi Mentor về bài này"
+          placeholder="Hỏi Mentor về bài này..."
+          required
+        ></textarea>
+        <button
+          type="submit"
+          class="ms-mentor-send"
+          aria-label="Gửi câu hỏi cho Mentor"
+          title="Gửi (Ctrl+Enter)"
+          disabled
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="18"
+            height="18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M5 12h14m-6-6 6 6-6 6" />
+          </svg>
+        </button>
+      </div>
+    </form>
+    {% else %}
+    <p class="ms-mentor-login">Đăng nhập để hỏi Mentor.</p>
+    {% endif %}
+    <div
+      class="ms-mentor-resize-top"
+      data-resize="top"
+      role="separator"
+      aria-label="Thay đổi chiều cao Mentor"
+      aria-orientation="horizontal"
+      tabindex="0"
+    ></div>
+    <div
+      class="ms-mentor-resize-right"
+      data-resize="right"
+      role="separator"
+      aria-label="Thay đổi chiều rộng Mentor"
+      aria-orientation="vertical"
+      tabindex="0"
+    ></div>
+    <div
+      class="ms-mentor-resize-corner"
+      data-resize="corner"
+      role="separator"
+      aria-label="Thay đổi chiều rộng và chiều cao Mentor"
+      tabindex="0"
+    ></div>
   </section>
 </div>
