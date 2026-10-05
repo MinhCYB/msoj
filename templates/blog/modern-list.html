@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% set public_blog_listing = request.resolver_match.url_name == 'blog_modern_list' %}
+
 {% block title_row %}{% endblock %}
 {% block title_ruler %}{% endblock %}
 
@@ -18,14 +20,16 @@
 
 {% block body %}
     {% set view_mode = request.GET.view | default('grid') %}
-    <div class="magazine-layout" id="magazine-layout" data-view="{{ view_mode }}">
+    <div class="magazine-layout{% if public_blog_listing %} public-blog-listing{% endif %}" id="magazine-layout" data-view="{{ view_mode }}">
   <!-- Main -->
   <main class="magazine-main" id="magazine-main">
     <!-- Top bar -->
     <div class="magazine-topbar">
 
       <form class="magazine-search" method="get" action="{{ url('blog_modern_list') }}">
+        {% if public_blog_listing %}<label for="blog-search-input" class="blog-search-label">{{ _('Search articles') }}</label>{% endif %}
         {% if tags %}
+        {% if public_blog_listing %}<label for="search-type-select" class="blog-control-label">{{ _('Search scope') }}</label>{% endif %}
         <select name="tag" class="search-type-select" id="search-type-select" aria-label="{{ _('Search scope') }}">
           <option value="" {% if not request.GET.tag %}selected{% endif %}>{{ _('Tags') }}</option>
           {% for tag in tags %}
@@ -50,7 +54,7 @@
 
       <div class="magazine-controls">
         <div class="select-wrap">
-          <label for="sort-select" class="sr-only">{{ _('Sort by') }}</label>
+          <label for="sort-select" class="{% if public_blog_listing %}blog-control-label{% else %}sr-only{% endif %}">{{ _('Sort by') }}</label>
           <select id="sort-select" class="select">
             <option value="latest" {% if request.GET.sort == 'latest' or not request.GET.sort %}selected{% endif %}>{{ _('Latest') }}</option>
             <option value="top" {% if request.GET.sort == 'top' %}selected{% endif %}>{{ _('Top') }}</option>
@@ -84,9 +88,9 @@
         <article class="magazine-card" id="post-{{ post.id }}" data-post-id="{{ post.id }}">
           <div class="card-header">
             <div class="card-badges">
-              {% if post.sticky %}<span class="badge badge-pinned"><i class="fa fa-thumb-tack"></i></span>{% endif %}
-              {% if not post.visible %}<span class="badge badge-draft"><i class="fa fa-eye-slash"></i></span>{% endif %}
-              {% if post.global_post %}<span class="badge badge-global"><i class="fa fa-globe"></i></span>{% endif %}
+              {% if post.sticky %}<span class="badge badge-pinned"{% if public_blog_listing %} role="img" aria-label="{{ _('Sticky') }}"{% endif %}><i class="fa fa-thumb-tack"{% if public_blog_listing %} aria-hidden="true"{% endif %}></i></span>{% endif %}
+              {% if not post.visible %}<span class="badge badge-draft"{% if public_blog_listing %} role="img" aria-label="{{ _('Draft') }}"{% endif %}><i class="fa fa-eye-slash"{% if public_blog_listing %} aria-hidden="true"{% endif %}></i></span>{% endif %}
+              {% if post.global_post %}<span class="badge badge-global"{% if public_blog_listing %} role="img" aria-label="{{ _('Global post') }}"{% endif %}><i class="fa fa-globe"{% if public_blog_listing %} aria-hidden="true"{% endif %}></i></span>{% endif %}
             </div>
             <div class="card-date"><i class="fa fa-clock-o"></i>{{ relative_time(post.publish_on, abs=_('on {time}'), rel=_('{time}')) }}</div>
           </div>
@@ -162,6 +166,10 @@
         </article>
         {% endif %}
       {% endfor %}
+
+      {% if public_blog_listing and not page_obj.object_list %}
+        <p class="blog-empty" role="status">{{ _('No articles found.') }}</p>
+      {% endif %}
 
       <template id="card-skeleton">
         <article class="magazine-card skeleton">

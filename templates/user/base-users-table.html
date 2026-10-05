@@ -2,11 +2,11 @@
 <table {% if table_id %}id="{{ table_id }}"{% endif %} class="users-table table striped">
     <thead>
         <tr>
-            <th class="header rank" style="width: 5%;">{{ rank_header or _("Rank") }}</th>
+            <th class="header rank" style="width: 5%;"{% if public_users_directory %} scope="col"{% endif %}>{{ rank_header or _("Rank") }}</th>
             {% block after_rank_head %}{% endblock %}
-            <th class="header username">{{ _('Username') }}</th>
+            <th class="header username"{% if public_users_directory %} scope="col"{% endif %}>{{ _('Username') }}</th>
             {% block before_point_head %}{% endblock %}
-            <th class="header points">
+            <th class="header points"{% if public_users_directory %} scope="col"{% if sort_links and sort_order.performance_points %} aria-sort="{{ 'descending' if sort_order.performance_points == ' ▾' else 'ascending' }}"{% endif %}{% endif %}>
                 {%- block point_head %}
                     {% if sort_links %}<a href="{{ sort_links.performance_points }}">{% endif -%}
                     {{ _('Points') }}

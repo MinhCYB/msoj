@@ -62,10 +62,10 @@
     {% endif %}
 
     <div id="common-content">
-        <div id="content-left" class="users">
+        <div id="content-left" class="users{% if public_users_directory %} public-users-directory{% endif %}">
             {% block before_users_table %}{% endblock %}
 
-            <div class="h-scrollable-table">
+            <div class="h-scrollable-table"{% if public_users_directory %} role="region" aria-label="{{ title }}" tabindex="0"{% endif %}>
                 {% block users_table %}{% endblock %}
             </div>
         </div>

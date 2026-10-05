@@ -1,7 +1,9 @@
 jQuery(function ($) {
     $(document).on('martor:preview', function (e, $content) {
         function update_math() {
-            MathJax.typesetPromise([$content[0]]).then(function () {
+            MathJax.startup.promise.then(function () {
+                return MathJax.typesetPromise([$content[0]]);
+            }).then(function () {
                 $content.find('.tex-image').hide();
                 $content.find('.tex-text').show();
             });

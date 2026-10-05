@@ -1,6 +1,19 @@
 @use "vars" as *;
 
 #judge-versions {
+    background-color: var(--ms-surface);
+    color: var(--ms-text);
+
+    th {
+        background-color: var(--ms-surface);
+        color: var(--ms-text);
+    }
+
+    th,
+    td {
+        border-color: var(--ms-border);
+    }
+
     .version {
         font-family: $monospace-fonts;
     }
@@ -16,10 +29,20 @@
 
     .version-outdated {
         background: #f00c;
-        color: white;
+        color: $color_primary100;
     }
 
-    tr:first-child {
+    // MX-01: local containment takes priority over viewport sticking.
+    // Only the fit context retains the existing document-sticky offset.
+    thead tr {
+        position: static;
+    }
+}
+
+#judge-versions-scroll.matrix-fits {
+    overflow: visible;
+
+    #judge-versions thead tr {
         position: sticky;
         top: 43px;
     }

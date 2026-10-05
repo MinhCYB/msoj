@@ -1,10 +1,10 @@
 {% extends "user/base-users-table.html" %}
 
 {% block after_rank_head %}
-    <th class="header rank" style="width: 5%;">
-        {% if sort_links %}<a href="{{ sort_links.rating }}">{% endif -%}
+    <th class="header rank" style="width: 5%;"{% if public_users_directory %} scope="col"{% if sort_links and sort_order.rating %} aria-sort="{{ 'descending' if sort_order.rating == ' ▾' else 'ascending' }}"{% endif %}{% endif %}>
+        {% if sort_links %}<a href="{{ sort_links.rating }}"{% if public_users_directory %} aria-label="{{ _('Rating') }}"{% endif %}>{% endif -%}
         <span class="rate-group">
-            <svg class="rate-box rate-primary0" viewBox="0 0 16 16">
+            <svg class="rate-box rate-primary0" viewBox="0 0 16 16"{% if public_users_directory %} aria-hidden="true"{% endif %}>
                 <circle cx="8" cy="8" r="7"></circle>
                 <path clip-path="url(#rating-clip)" d="M0 16v-4.8h16 0v16z"></path>
             </svg>
@@ -18,7 +18,7 @@
 {% endblock %}
 
 {% block after_point_head %}
-    <th class="problems">
+    <th class="problems"{% if public_users_directory %} scope="col"{% if sort_links and sort_order.problem_count %} aria-sort="{{ 'descending' if sort_order.problem_count == ' ▾' else 'ascending' }}"{% endif %}{% endif %}>
         {% if sort_links %}<a href="{{ sort_links.problem_count }}">{% endif -%}
         {{ _('Problems count') }}
         {%- if sort_links %}{{ sort_order.problem_count }}</a>{% endif %}

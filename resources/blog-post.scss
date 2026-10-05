@@ -586,3 +586,61 @@
     .blog-toc-nested .blog-toc-nested .blog-toc-nested .blog-toc-nested .blog-toc-link { max-width: 76% !important; }
     .blog-toc-nested .blog-toc-nested .blog-toc-nested .blog-toc-nested .blog-toc-nested .blog-toc-link { max-width: 70% !important; }
 }
+
+.public-modern-reader {
+    background-color: var(--ms-surface);
+    color: var(--ms-text);
+
+    .post-title, .blog-post-content,
+    .blog-post-content h1, .blog-post-content h2,
+    .blog-post-content h3, .blog-post-content h4,
+    .blog-post-content h5, .blog-post-content h6,
+    .vote-count { color: var(--ms-text); }
+
+    .post-subtitle, .post-date, .vote-label, .social-label,
+    .organization-badge, .blog-post-content blockquote {
+        color: var(--ms-muted);
+    }
+
+    .blog-post-meta, .blog-post-social,
+    .blog-post-content blockquote, .blog-post-content hr,
+    .blog-post-content th, .blog-post-content td {
+        border-color: var(--ms-border);
+    }
+
+    .blog-post-meta { flex-wrap: wrap; }
+    .author-info, .post-actions { min-width: 0; overflow-wrap: anywhere; }
+    .post-actions { flex-wrap: wrap; }
+    .post-title, .post-subtitle { overflow-wrap: anywhere; }
+
+    .blog-post-content { max-width: 100%; }
+    .blog-post-content table { color: var(--ms-text); }
+    .blog-post-content th { color: var(--ms-text); background-color: var(--ms-surface); }
+    .blog-post-content a:not(.rating a):not(.rate-group) {
+        color: var(--ms-accent);
+        &:hover { color: var(--ms-accent-hover); }
+    }
+
+    .post-edit-action { color: var(--ms-accent); }
+    .organization-badge, .vote-buttons { background-color: var(--ms-page); }
+    .vote-btn { color: var(--ms-muted) !important; }
+    .vote-btn:hover:not(:disabled) { color: var(--ms-text) !important; }
+    .vote-btn.voted { color: var(--ms-accent) !important; }
+
+    .social-buttons a {
+        color: var(--ms-accent);
+        background-color: var(--ms-page);
+        .fa { color: inherit; }
+        &:hover { color: var(--ms-surface); background-color: var(--ms-accent); }
+    }
+
+    .blog-toc-sidebar { background-color: var(--ms-surface); border-color: var(--ms-border); }
+    .blog-toc-header { border-color: var(--ms-border); }
+    .blog-toc-header h3 { color: var(--ms-muted); }
+    .blog-toc-link {
+        &, &:link, &:visited { color: var(--ms-muted) !important; }
+        &:hover { color: var(--ms-text) !important; }
+        &.active, &.active:link, &.active:visited { color: var(--ms-accent) !important; }
+        &:focus-visible { outline: 2px solid var(--ms-focus) !important; outline-offset: 2px; }
+    }
+}

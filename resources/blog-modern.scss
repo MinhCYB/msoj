@@ -909,3 +909,169 @@
         color: inherit;
     }
 }
+
+.public-blog-listing {
+    background: var(--ms-page);
+    color: var(--ms-text);
+
+    .magazine-main,
+    .search-input-wrapper,
+    .search-input,
+    .card-footer > *,
+    .card-actions .stat-item {
+        min-width: 0;
+    }
+
+    .magazine-topbar {
+        background: var(--ms-page);
+        border-color: var(--ms-border);
+    }
+
+    .magazine-search {
+        flex-wrap: wrap;
+    }
+
+    .search-input-wrapper {
+        flex-basis: 200px;
+    }
+
+    .blog-search-label {
+        flex: 0 0 100%;
+        width: 100%;
+        font-size: 14px;
+        color: var(--ms-text);
+    }
+
+    .blog-control-label {
+        display: block;
+        color: var(--ms-text);
+    }
+
+    input.search-input[type="text"],
+    .search-type-select,
+    .select-wrap select {
+        background-color: var(--ms-surface);
+        color: var(--ms-text);
+        border-color: var(--ms-muted);
+        max-width: 100%;
+    }
+
+    .search-input::placeholder {
+        color: var(--ms-muted);
+        opacity: 1;
+    }
+
+    .search-input:focus-visible,
+    .search-icon:focus-visible,
+    .search-type-select:focus-visible,
+    .select-wrap select:focus-visible,
+    a:focus-visible {
+        outline: 2px solid var(--ms-focus);
+        outline-offset: 2px;
+    }
+
+    .magazine-card,
+    .blog-empty {
+        background: var(--ms-surface);
+        color: var(--ms-text);
+        border-color: var(--ms-border);
+    }
+
+    .badge-pinned .fa-thumb-tack {
+        color: var(--ms-accent);
+    }
+
+    .blog-empty {
+        grid-column: 1 / -1;
+        margin: 0;
+        padding: 20px;
+    }
+
+    .magazine-card {
+        height: auto;
+        max-height: none;
+        overflow: visible;
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .magazine-card-title,
+    .magazine-card-excerpt {
+        height: auto;
+        display: block;
+        overflow: visible;
+        min-width: 0;
+    }
+
+    .magazine-card-excerpt p,
+    .card-author a {
+        overflow: visible;
+    }
+
+    .magazine-card-title a {
+        color: var(--ms-text);
+    }
+
+    .magazine-card:hover .magazine-card-title a,
+    .magazine-card-title a:hover,
+    .magazine-card-excerpt a:hover {
+        color: var(--ms-accent-hover);
+    }
+
+    .magazine-card-excerpt,
+    .card-date,
+    .card-author,
+    .card-author i,
+    .card-actions .stat-item,
+    .card-actions .stat-item i,
+    .card-actions .stat-item .stat-label {
+        color: var(--ms-muted);
+    }
+
+    .magazine-card-excerpt a {
+        color: var(--ms-accent);
+    }
+
+    .magazine-card-excerpt pre,
+    .magazine-card-excerpt table {
+        max-width: 100%;
+        overflow-x: auto;
+    }
+
+    .magazine-card-excerpt table {
+        display: block;
+    }
+
+    .card-footer {
+        border-color: var(--ms-border);
+    }
+
+    .card-date,
+    .card-author a {
+        white-space: normal;
+    }
+
+    .card-author,
+    .card-tags,
+    .card-actions {
+        flex-shrink: 1;
+        flex-wrap: wrap;
+        max-width: 100%;
+    }
+
+    .card-actions .stat-item span:not(.stat-label) {
+        color: var(--ms-text);
+    }
+
+    .post-tag {
+        color: var(--ms-muted);
+        background: var(--ms-surface);
+        border-color: var(--ms-border);
+        max-width: 100%;
+        overflow-wrap: anywhere;
+    }
+
+    .post-tag:hover {
+        color: var(--ms-accent-hover);
+    }
+}

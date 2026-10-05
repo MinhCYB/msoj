@@ -40,7 +40,7 @@
 <div class="reading-progress-bar"></div>
 
 
-<div class="blog-post-container">
+<div class="blog-post-container public-modern-reader">
     <!-- Header -->
     <header class="blog-post-header">
         <h1 class="post-title">
@@ -84,13 +84,13 @@
 
             <div class="vote-buttons" id="post-{{ post.id }}">
                 {% if logged_in %}
-                    <button class="vote-btn upvote-link {% if post.vote_score == 1 %} voted{% endif %}"
+                    <button aria-label="{{ _('Upvote') }}" class="vote-btn upvote-link {% if post.vote_score == 1 %} voted{% endif %}"
                             onclick="blog_upvote({{ post.id }}); return false;">
-                        <i class="fa fa-chevron-up"></i>
+                        <i class="fa fa-chevron-up" aria-hidden="true"></i>
                     </button>
                 {% else %}
-                    <button class="vote-btn" onclick="alert('{{ _('Please log in to vote') | escapejs }}');">
-                        <i class="fa fa-chevron-up"></i>
+                    <button aria-label="{{ _('Upvote') }}" class="vote-btn" onclick="alert('{{ _('Please log in to vote') | escapejs }}');">
+                        <i class="fa fa-chevron-up" aria-hidden="true"></i>
                     </button>
                 {% endif %}
 
@@ -98,13 +98,13 @@
                 <span class="vote-label">{{ _('votes') }}</span>
 
                 {% if logged_in %}
-                    <button class="vote-btn downvote-link {% if post.vote_score == -1 %} voted{% endif %}"
+                    <button aria-label="{{ _('Downvote') }}" class="vote-btn downvote-link {% if post.vote_score == -1 %} voted{% endif %}"
                             onclick="blog_downvote({{ post.id }}); return false;">
-                        <i class="fa fa-chevron-down"></i>
+                        <i class="fa fa-chevron-down" aria-hidden="true"></i>
                     </button>
                 {% else %}
-                    <button class="vote-btn" onclick="alert('{{ _('Please log in to vote') | escapejs }}');">
-                            <i class="fa fa-chevron-down"></i>
+                    <button aria-label="{{ _('Downvote') }}" class="vote-btn" onclick="alert('{{ _('Please log in to vote') | escapejs }}');">
+                            <i class="fa fa-chevron-down" aria-hidden="true"></i>
                     </button>
                 {% endif %}
             </div>
@@ -114,7 +114,7 @@
     <div class="blog-post-layout">
         <aside class="blog-toc-sidebar-container">
         </aside>
-        <article class="blog-post-content">
+        <article class="blog-post-content public-reader-body">
             {% cache 86400 'post_content' post.id MATH_ENGINE %}
                 {{ post.content|markdown('blog', MATH_ENGINE)|reference|str|safe}}
             {% endcache %}
@@ -125,8 +125,8 @@
     <div class="blog-post-social">
         <span class="social-label">{{ _('Share') }}</span>
         <div class="social-buttons">
-            {{ post_to_facebook(request, post, '<i class="fa fa-facebook"></i>') }}
-            {{ post_to_twitter(request, SITE_NAME + ':', post, '<i class="fa fa-twitter"></i>') }}
+            {{ post_to_facebook(request, post, ('<i class="fa fa-facebook" aria-hidden="true"></i><span class="sr-only">%s</span>' % (_('Share on Facebook')|escape))|safe) }}
+            {{ post_to_twitter(request, SITE_NAME + ':', post, ('<i class="fa fa-twitter" aria-hidden="true"></i><span class="sr-only">%s</span>' % (_('Share on Twitter')|escape))|safe) }}
         </div>
     </div>
 

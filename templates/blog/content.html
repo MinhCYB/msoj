@@ -18,26 +18,26 @@
 {% endblock %}
 
 {% block title_row %}
-<div id="post-{{ post.id }}" style="display: flex; gap: 0.5em;">
+<div id="post-{{ post.id }}" class="public-classic-reader-header" style="display: flex; gap: 0.5em;">
     <div class="vote">
         {% if logged_in %}
-            <a href="javascript:blog_upvote({{ post.id }})"
+            <a aria-label="{{ _('Upvote') }}" href="javascript:blog_upvote({{ post.id }})"
             class="upvote-link fa fa-chevron-up fa-fw{% if post.vote_score == 1 %} voted{% endif %}"></a>
         {% else %}
-            <a href="javascript:alert({{ _('Please log in to vote')|htmltojs }})" title="{{ _('Please log in to vote') }}"
+            <a aria-label="{{ _('Upvote') }}" href="javascript:alert({{ _('Please log in to vote')|htmltojs }})" title="{{ _('Please log in to vote') }}"
             class="upvote-link fa fa-chevron-up fa-fw"></a>
         {% endif %}
         <br>
         <div id="post-score" class="comment-score">{{ post.score }}</div>
         {% if logged_in %}
-            <a href="javascript:blog_downvote({{ post.id }})"
+            <a aria-label="{{ _('Downvote') }}" href="javascript:blog_downvote({{ post.id }})"
             class="downvote-link fa fa-chevron-down fa-fw{% if post.vote_score == -1 %} voted{% endif %}"></a>
         {% else %}
-            <a href="javascript:alert({{ _('Please log in to vote')|htmltojs }})" title="{{ _('Please log in to vote') }}"
+            <a aria-label="{{ _('Downvote') }}" href="javascript:alert({{ _('Please log in to vote')|htmltojs }})" title="{{ _('Please log in to vote') }}"
             class="downvote-link fa fa-chevron-down fa-fw"></a>
         {% endif %}
     </div>
-    <div style="width: 100%;">
+    <div class="reader-heading" style="width: 100%;">
         <h2 style="display:inline">
             {% block content_title %}
                 {% if content_title %}{{ content_title }}{% else %}{{ title }}{% endif %}
@@ -70,17 +70,17 @@
 {% endblock %}
 
 {% block body %}
-    <div class="post-full">
-        <div class="body content-description">
+    <article class="post-full public-classic-reader">
+        <div class="body content-description public-reader-body">
             {% cache 86400 'post_content' post.id MATH_ENGINE %}
                 {{ post.content|markdown('blog', MATH_ENGINE)|reference|str|safe}}
             {% endcache %}
         </div>
-    </div>
+    </article>
     <hr>
-    <span class="social">
-        {{ post_to_facebook(request, post, '<i class="fa fa-facebook-official"></i>') }}
-        {{ post_to_twitter(request, SITE_NAME + ':', post, '<i class="fa fa-twitter"></i>') }}
+    <span class="social public-reader-social">
+        {{ post_to_facebook(request, post, ('<i class="fa fa-facebook-official" aria-hidden="true"></i><span class="sr-only">%s</span>' % (_('Share on Facebook')|escape))|safe) }}
+        {{ post_to_twitter(request, SITE_NAME + ':', post, ('<i class="fa fa-twitter" aria-hidden="true"></i><span class="sr-only">%s</span>' % (_('Share on Twitter')|escape))|safe) }}
     </span>
     <div id="comments" data-comments-url="{{ url('blog_post_comments', post.id, post.slug) }}"
          data-comments-trigger="auto"

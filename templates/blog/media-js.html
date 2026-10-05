@@ -2,6 +2,30 @@
 {% compress js %}
     <script type="text/javascript">
         $(document).ready(function () {
+            document.querySelectorAll('.public-reader-body').forEach(function (body) {
+                body.querySelectorAll('table').forEach(function (table) {
+                    var wrapper = document.createElement('div');
+                    wrapper.className = 'h-scrollable-table reader-table-scroll';
+                    table.before(wrapper);
+                    wrapper.appendChild(table);
+                });
+                var regions = body.querySelectorAll('.reader-table-scroll, pre');
+                function updateReaderScroll() {
+                    regions.forEach(function (region) {
+                        if (region.scrollWidth > region.clientWidth) {
+                            region.setAttribute('tabindex', '0');
+                            region.setAttribute('role', 'region');
+                            region.setAttribute('aria-label', region.tagName === 'PRE' ? {{ _('Code block')|htmltojs }} : {{ _('Article table')|htmltojs }});
+                        } else {
+                            region.removeAttribute('tabindex');
+                            region.removeAttribute('role');
+                            region.removeAttribute('aria-label');
+                        }
+                    });
+                }
+                updateReaderScroll();
+                window.addEventListener('resize', updateReaderScroll);
+            });
             function ajax_vote(url, id, delta, on_success) {
                 return $.ajax({
                     url: url,

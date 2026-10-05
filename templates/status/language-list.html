@@ -1,19 +1,19 @@
 {% extends "base.html" %}
 {% block media %}
     <style>
-        .table td.language {
+        #runtime-list td.language {
             white-space: nowrap;
         }
 
-        .table td.info .content-description {
+        #runtime-list td.info .content-description {
             margin: -1em 1em -1em 1em;
         }
 
-        td.info {
+        #runtime-list td.info {
             width: 100%;
         }
 
-        .table td {
+        #runtime-list td {
             text-align: left;
         }
     </style>
@@ -28,12 +28,12 @@
 
 {% block body %}
     <div class="h-scrollable-table">
-        <table class="table striped">
+        <table id="runtime-list" class="table striped">
             <thead>
             <tr>
-                <th>{{ _('ID') }}</th>
-                <th>{{ _('Name') }}</th>
-                <th>{{ _('Runtime Info') }}</th>
+                <th scope="col">{{ _('ID') }}</th>
+                <th scope="col">{{ _('Name') }}</th>
+                <th scope="col">{{ _('Runtime Info') }}</th>
             </tr>
             </thead>
             <tbody>

@@ -1,5 +1,7 @@
 {% extends "common-content.html" %}
 
+{% set public_problem_discovery = request.resolver_match.url_name == 'problem_list' %}
+
 {% block media %}
     <link rel="stylesheet" href="{{ static('libs/nouislider.min.css') }}">
     <noscript>
@@ -50,10 +52,19 @@
                     $form.submit();
                 }
 
+                {% if public_problem_discovery %}
+                function public_problem_result(data, container) {
+                    $(container).addClass('public-problem-discovery-result');
+                    return data.text;
+                }
+                {% endif %}
+
                 $category.select2({
+                    {% if public_problem_discovery %}templateResult: public_problem_result,{% endif %}
                     theme: '{{ DMOJ_SELECT2_THEME }}'
                 }).css({'visibility': 'visible'}).change(clean_submit);
                 $('#types').select2({
+                    {% if public_problem_discovery %}templateResult: public_problem_result,{% endif %}
                     theme: '{{ DMOJ_SELECT2_THEME }}',
                     multiple: 1, placeholder: {{ _('Filter by type...')|htmltojs }}
                 }).css({'visibility': 'visible'});
@@ -61,6 +72,17 @@
                     theme: '{{ DMOJ_SELECT2_THEME }}',
                     multiple: 1, placeholder: {{ _('Filter by tag...')|htmltojs }}
                 }).css({'visibility': 'visible'});
+
+                {% if public_problem_discovery %}
+                [$category, $('#types')].forEach(function ($select) {
+                    var label = $select.attr('id') + '-label';
+                    var $container = $select.next('.select2-container');
+                    $container.find('.select2-selection, .select2-search__field').attr('aria-labelledby', label);
+                    $select.on('select2:open', function () {
+                        $('.select2-container--open .select2-search__field').attr('aria-labelledby', label);
+                    });
+                });
+                {% endif %}
 
                 // This is incredibly nasty to do but it's needed because otherwise the select2 steals the focus
                 $search.keypress(function (e) {
@@ -120,6 +142,9 @@
                         $start.prop('disabled', start === point_values.min).val(start);
                         $end.prop('disabled', end === point_values.max).val(end);
                     });
+                    {% if public_problem_discovery %}
+                    $slider.find('[role="slider"]').attr('aria-labelledby', 'point-range-label');
+                    {% endif %}
                 }
             });
         </script>
@@ -134,6 +159,7 @@
 {% endblock %}
 
 {% block body %}
+    {% if public_problem_discovery %}<div class="public-problem-discovery">{% endif %}
     {% if page_obj.has_other_pages() %}
         <div class="top-pagination-bar">{% include "list-pages.html" %}</div>
     {% endif %}
@@ -157,44 +183,44 @@
                 {% endif %}
             </div>
         </div>
-        <div id="content-left" class="problems h-scrollable-table">
+        <div id="content-left" class="problems h-scrollable-table"{% if public_problem_discovery %} role="region" aria-label="{{ title }}" tabindex="0"{% endif %}>
             <table id="problem-table" class="table striped">
                 <thead>
                 <tr>
                     {% if request.user.is_authenticated %}
-                        <th class="solved">
-                            <a href="{{ sort_links.solved }}">
+                        <th class="solved"{% if public_problem_discovery %} scope="col"{% if sort_order.solved %} aria-sort="{{ 'descending' if sort_order.solved == ' ▾' else 'ascending' }}"{% endif %}{% endif %}>
+                            <a href="{{ sort_links.solved }}"{% if public_problem_discovery %} aria-label="{{ _('Solved') }}"{% endif %}>
                                 <i class="fa fa-check"></i>{{ sort_order.solved }}
                             </a>
                         </th>
                     {% endif %}
-                    <th class="problem-code">
+                    <th class="problem-code"{% if public_problem_discovery %} scope="col"{% if sort_order.code %} aria-sort="{{ 'descending' if sort_order.code == ' ▾' else 'ascending' }}"{% endif %}{% endif %}>
                         <a href="{{ sort_links.code }}">{{ _('ID') }}{{ sort_order.code}}</a>
                     </th>
-                    <th class="problem-name">
+                    <th class="problem-name"{% if public_problem_discovery %} scope="col"{% if sort_order.name %} aria-sort="{{ 'descending' if sort_order.name == ' ▾' else 'ascending' }}"{% endif %}{% endif %}>
                         <a href="{{ sort_links.name }}">{{ _('Problem') }}{{ sort_order.name }}</a>
                     </th>
                     {% if not show_org_tags %}
-                    <th class="category">
+                    <th class="category"{% if public_problem_discovery %} scope="col"{% if sort_order.group %} aria-sort="{{ 'descending' if sort_order.group == ' ▾' else 'ascending' }}"{% endif %}{% endif %}>
                         <a href="{{ sort_links.group }}">{{ _('Category') }}{{ sort_order.group }}</a>
                     </th>
                     {% endif %}
                     {% if show_types %}
-                        <th class="types">
+                        <th class="types"{% if public_problem_discovery %} scope="col"{% if sort_order.type %} aria-sort="{{ 'descending' if sort_order.type == ' ▾' else 'ascending' }}"{% endif %}{% endif %}>
                             <a href="{{ sort_links.type }}">{{ _('Types') }}{{ sort_order.type }}</a>
                         </th>
                     {% endif %}
-                    <th class="points">
+                    <th class="points"{% if public_problem_discovery %} scope="col"{% if sort_order.points %} aria-sort="{{ 'descending' if sort_order.points == ' ▾' else 'ascending' }}"{% endif %}{% endif %}>
                         <a href="{{ sort_links.points }}">{{ _('Points') }}{{ sort_order.points }}</a>
                     </th>
-                    <th class="ac-rate">
+                    <th class="ac-rate"{% if public_problem_discovery %} scope="col"{% if sort_order.ac_rate %} aria-sort="{{ 'descending' if sort_order.ac_rate == ' ▾' else 'ascending' }}"{% endif %}{% endif %}>
                         <a href="{{ sort_links.ac_rate }}">{{ _('%% AC') }}{{ sort_order.ac_rate }}</a>
                     </th>
-                    <th class="users">
+                    <th class="users"{% if public_problem_discovery %} scope="col"{% if sort_order.user_count %} aria-sort="{{ 'descending' if sort_order.user_count == ' ▾' else 'ascending' }}"{% endif %}{% endif %}>
                         <a href="{{ sort_links.user_count }}">{{ _('# AC') }}{{ sort_order.user_count }}</a>
                     </th>
-                    <th class="editorial" title="{{ _('Editorial') }}">
-                        <a href="{{ sort_links.editorial }}">
+                    <th class="editorial" title="{{ _('Editorial') }}"{% if public_problem_discovery %} scope="col"{% if sort_order.editorial %} aria-sort="{{ 'descending' if sort_order.editorial == ' ▾' else 'ascending' }}"{% endif %}{% endif %}>
+                        <a href="{{ sort_links.editorial }}"{% if public_problem_discovery %} aria-label="{{ _('Editorial') }}"{% endif %}>
                             <i class="fa fa-book"></i>{{ sort_order.editorial }}
                         </a>
                     </th>
@@ -270,9 +296,13 @@
                 {% endfor %}
                 </tbody>
             </table>
+            {% if public_problem_discovery and not problems %}
+                <p role="status">{{ _('No problems found.') }}</p>
+            {% endif %}
         </div>
     </div>
    {% if page_obj.has_other_pages() %}
        <div class="bottom-pagination-bar">{% include "list-pages.html" %}</div>
    {% endif %}
+    {% if public_problem_discovery %}</div>{% endif %}
 {% endblock %}

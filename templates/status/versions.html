@@ -7,20 +7,42 @@
     {% include "status/status-tabs.html" %}
 {% endblock %}
 
+{% block js_media %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const wrapper = document.getElementById('judge-versions-scroll');
+            const table = document.getElementById('judge-versions');
+            const updateContainment = function () {
+                const fits = table.offsetWidth <= wrapper.clientWidth;
+                wrapper.classList.toggle('matrix-fits', fits);
+                wrapper.tabIndex = fits ? -1 : 0;
+            };
+            const observer = new ResizeObserver(updateContainment);
+            observer.observe(wrapper);
+            observer.observe(table);
+            updateContainment();
+        });
+    </script>
+{% endblock %}
+
 {% block body %}
+    <div id="judge-versions-scroll" class="h-scrollable-table" role="region" aria-label="{{ title }}" tabindex="0">
     <table id="judge-versions" class="table">
+        <thead>
         <tr>
-            <th></th>
+            <th scope="col" aria-label="{{ _('Language') }}"></th>
             {% for judge in judges %}
-                <th>{{ judge }}</th>
+                <th scope="col" id="matrix-judge-{{ loop.index }}">{{ judge }}</th>
             {% endfor %}
         </tr>
+        </thead>
+        <tbody>
         {% for language in languages %}
             <tr>
-                <th>{{ language.name }}</th>
+                <th scope="row" id="matrix-language-{{ language.id }}">{{ language.name }}</th>
                 {% for judge in judges %}
                     {% set versions = matrix[judge][language.id] %}
-                    <td class="version version-
+                    <td headers="matrix-language-{{ language.id }} matrix-judge-{{ loop.index }}" class="version version-
                         {%- if not versions -%}
                             blank
                         {%- elif versions.is_latest -%}
@@ -38,5 +60,7 @@
                 {% endfor %}
             </tr>
         {% endfor %}
+        </tbody>
     </table>
+    </div>
 {% endblock %}
