@@ -2,7 +2,8 @@ var active_tooltip = null;
 
 function display_tooltip(where) {
     if (active_tooltip !== null) {
-        active_tooltip.removeClass(['tooltipped', 'tooltipped-e', 'tooltipped-w']).removeAttr('aria-label');
+        active_tooltip.removeClass(['tooltipped', 'tooltipped-e', 'tooltipped-w']);
+        if (!active_tooltip.closest('.public-profile').length) active_tooltip.removeAttr('aria-label');
     }
     if (where !== null) {
         var day_num = parseInt(where.attr('data-day'));
@@ -17,6 +18,18 @@ function install_tooltips($) {
     display_tooltip(null);
     $('.activity-label').each(function () {
         var link = $(this);
+        if (link.closest('.public-profile').length) {
+            link.attr('tabindex', '0').attr('aria-label', link.attr('data-submission-activity'));
+            link.on('focus', function () { display_tooltip(link); });
+            link.on('blur', function () { display_tooltip(null); });
+            link.hover(function () {
+                if (!$('.public-profile .activity-label:focus').length) display_tooltip(link);
+            }, function () {
+                var focused = $('.public-profile .activity-label:focus');
+                display_tooltip(focused.length ? focused : null);
+            });
+            return;
+        }
         link.hover(
             function (e) {
                 display_tooltip(link);

@@ -913,6 +913,18 @@
 .public-blog-listing {
     background: var(--ms-page);
     color: var(--ms-text);
+    font-family: inherit;
+
+    .magazine-topbar,
+    .magazine-search,
+    input.search-input,
+    .select-wrap select,
+    .magazine-card,
+    .blog-empty,
+    .btn-top-bar,
+    .post-tag {
+        font-family: inherit;
+    }
 
     .magazine-main,
     .search-input-wrapper,
@@ -921,7 +933,6 @@
     .card-actions .stat-item {
         min-width: 0;
     }
-
     .magazine-topbar {
         background: var(--ms-page);
         border-color: var(--ms-border);
@@ -952,8 +963,128 @@
     .select-wrap select {
         background-color: var(--ms-surface);
         color: var(--ms-text);
-        border-color: var(--ms-muted);
+        border: 1px solid var(--ms-border);
+        box-shadow: none;
         max-width: 100%;
+    }
+
+    .search-icon {
+        appearance: none;
+        background: transparent;
+        border: 0;
+        border-radius: var(--ms-radius-sm);
+        box-shadow: none;
+        color: var(--ms-muted) !important;
+        padding: 0;
+        width: 32px;
+        height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        position: absolute;
+        left: 4px;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 2;
+
+        &:hover {
+            background: var(--ms-surface-hover);
+            color: var(--ms-text) !important;
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--ms-focus);
+            outline-offset: 2px;
+        }
+
+        i {
+            font-size: 14px;
+            color: inherit !important;
+        }
+    }
+
+    .search-type-select {
+        border-radius: var(--ms-radius-sm) 0 0 var(--ms-radius-sm);
+        border-right: none;
+        height: 36px;
+        line-height: 22px;
+        padding: 6px 28px 6px 12px;
+        box-sizing: border-box;
+
+        &:focus,
+        &:focus-visible {
+            box-shadow: none;
+        }
+    }
+
+    input.search-input[type="text"] {
+        border-radius: 0 var(--ms-radius-sm) var(--ms-radius-sm) 0;
+        height: 36px;
+        line-height: 22px;
+        padding: 6px 12px 6px 40px;
+        box-sizing: border-box;
+
+        &:focus,
+        &:focus-visible {
+            box-shadow: none;
+        }
+    }
+
+    .magazine-search:not(:has(.search-type-select)) input.search-input[type="text"],
+    .search-input-wrapper:first-child input.search-input[type="text"] {
+        border-radius: var(--ms-radius-sm);
+    }
+
+    .select-wrap select {
+        border-radius: var(--ms-radius-sm);
+        height: 36px;
+        line-height: 22px;
+        padding: 6px 36px 6px 12px;
+        box-sizing: border-box;
+
+        &:focus,
+        &:focus-visible {
+            box-shadow: none;
+        }
+    }
+
+    .btn-top-bar {
+        border-radius: var(--ms-radius-sm);
+        background: var(--ms-btn-bg);
+        color: var(--ms-btn-text);
+        box-shadow: none;
+
+        &:hover {
+            background: var(--ms-btn-bg-hover);
+            color: var(--ms-btn-text);
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--ms-focus);
+            outline-offset: 2px;
+        }
+    }
+
+    .view-toggle {
+        border-radius: var(--ms-radius-sm);
+        border: 1px solid var(--ms-border);
+        background: var(--ms-surface);
+    }
+
+    .view-btn {
+        color: var(--ms-muted);
+        border-color: var(--ms-border);
+
+        &:hover {
+            background: var(--ms-surface-hover);
+            color: var(--ms-text);
+        }
+
+        &.active {
+            background: var(--ms-accent);
+            color: var(--ms-btn-text);
+        }
     }
 
     .search-input::placeholder {
@@ -970,11 +1101,26 @@
         outline-offset: 2px;
     }
 
-    .magazine-card,
-    .blog-empty {
+    .magazine-card {
         background: var(--ms-surface);
         color: var(--ms-text);
-        border-color: var(--ms-border);
+        border: 1px solid var(--ms-border);
+        border-radius: var(--ms-radius-sm);
+        box-shadow: var(--ms-shadow-sm);
+        height: auto;
+        max-height: none;
+        overflow: visible;
+        min-width: 0;
+        overflow-wrap: anywhere;
+
+        &::before {
+            display: none;
+        }
+
+        &:hover {
+            box-shadow: var(--ms-shadow-md);
+            border-color: var(--ms-border);
+        }
     }
 
     .badge-pinned .fa-thumb-tack {
@@ -985,14 +1131,11 @@
         grid-column: 1 / -1;
         margin: 0;
         padding: 20px;
-    }
-
-    .magazine-card {
-        height: auto;
-        max-height: none;
-        overflow: visible;
-        min-width: 0;
-        overflow-wrap: anywhere;
+        background: var(--ms-surface);
+        color: var(--ms-muted);
+        border: 1px solid var(--ms-border);
+        border-radius: var(--ms-radius-sm);
+        box-shadow: var(--ms-shadow-sm);
     }
 
     .magazine-card-title,
@@ -1066,12 +1209,21 @@
     .post-tag {
         color: var(--ms-muted);
         background: var(--ms-surface);
-        border-color: var(--ms-border);
+        border: 1px solid var(--ms-border);
+        border-radius: var(--ms-radius-sm);
+        box-shadow: none;
         max-width: 100%;
         overflow-wrap: anywhere;
-    }
 
-    .post-tag:hover {
-        color: var(--ms-accent-hover);
+        &:hover {
+            color: var(--ms-accent-hover);
+            background: var(--ms-surface-hover);
+            border-color: var(--ms-border);
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--ms-focus);
+            outline-offset: 2px;
+        }
     }
 }

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% set public_profile = request.resolver_match.url_name in ('user_page', 'user_problems') and request.resolver_match.kwargs.get('user') is not none %}
 
 {% block media %}
     {% block user_media %}{% endblock %}
@@ -6,12 +7,30 @@
 
 {% block js_media %}
     {% block user_js_media %}{% endblock %}
+    {% if public_profile %}
+        <script>
+            $(function () {
+                $('.public-profile .content-description table').not('#submission-activity-table, .info-table, #rating-history-table').each(function () {
+                    $(this).wrap($('<div>').addClass('profile-content-table-region').attr('role', 'region').attr('aria-label', {{ _('About')|htmltojs }}));
+                });
+                function update_profile_overflow() {
+                    $('.public-profile .profile-rating-history-region, .public-profile .profile-content-table-region, .public-profile .user-problem-group').each(function () {
+                        if (this.scrollWidth > this.clientWidth) $(this).attr('tabindex', '0');
+                        else $(this).removeAttr('tabindex');
+                    });
+                }
+                $('.public-profile-statistics .profile-disclosure').on('click', function () { setTimeout(update_profile_overflow, 450); });
+                $(window).on('resize', update_profile_overflow);
+                update_profile_overflow();
+            });
+        </script>
+    {% endif %}
 {% endblock %}
 
 {% block body %}
-    <div class="user-info-page">
+    <div class="user-info-page{% if public_profile %} public-profile{% if request.resolver_match.url_name == 'user_problems' %} public-profile-statistics{% endif %}{% endif %}">
         <div class="user-sidebar">
-            <img src="{{ gravatar(user, 135) }}" class="user-gravatar">
+            <img src="{{ gravatar(user, 135) }}" class="user-gravatar"{% if public_profile %} alt="{{ user.display_name }}" width="135" height="135"{% endif %}>
             <br>
             {% if user.user == request.user or request.user.is_superuser %}
                 <div>
@@ -20,21 +39,21 @@
                 </div>
             {% endif %}
             <div><b>
-                    {{ _('Problems solved:') }} {{ user.problem_count }}
+                    {% if public_profile %}<span id="profile-solved-label">{{ _('Problems solved:') }}</span> <span aria-labelledby="profile-solved-label">{{ user.problem_count }}</span>{% else %}{{ _('Problems solved:') }} {{ user.problem_count }}{% endif %}
             </b></div>
 
             {% if not user.is_unlisted %}
-                <div><b class="semibold">{{ _('Rank by points:') }}</b> #{{ rank }}</div>
+                <div><b class="semibold"{% if public_profile %} id="profile-rank-label"{% endif %}>{{ _('Rank by points:') }}</b> {% if public_profile %}<span aria-labelledby="profile-rank-label">#{{ rank }}</span>{% else %}#{{ rank }}{% endif %}</div>
             {% endif %}
             <div>
-                <b class="semibold">{{ _('Total points:') }}</b>
-                <span title="{{ user.performance_points|floatformat(2) }}">
+                <b class="semibold"{% if public_profile %} id="profile-points-label"{% endif %}>{{ _('Total points:') }}</b>
+                <span title="{{ user.performance_points|floatformat(2) }}"{% if public_profile %} aria-labelledby="profile-points-label"{% endif %}>
                     {{ user.performance_points|floatformat(2) }}
                 </span>
             </div>
             <div>
-                <b class="semibold">{{ _('Contribution points:') }}</b>
-                <span title="{{ user.contribution_points }}">
+                <b class="semibold"{% if public_profile %} id="profile-contribution-label"{% endif %}>{{ _('Contribution points:') }}</b>
+                <span title="{{ user.contribution_points }}"{% if public_profile %} aria-labelledby="profile-contribution-label"{% endif %}>
                     {{ user.contribution_points }}
                 </span>
             </div>
@@ -54,11 +73,11 @@
                     {% endtrans -%}
                 </b></div>
                 {% if not user.is_unlisted %}
-                    <div><b class="semibold">{{ _('Rank by rating:') }}</b> #{{ rating_rank }}</div>
+                    <div><b class="semibold"{% if public_profile %} id="profile-rating-rank-label"{% endif %}>{{ _('Rank by rating:') }}</b> {% if public_profile %}<span aria-labelledby="profile-rating-rank-label">#{{ rating_rank }}</span>{% else %}#{{ rating_rank }}{% endif %}</div>
                 {% endif %}
-                <div><b class="semibold">{{ _('Rating:') }}</b> {{ rating_number(rating) }}</div>
-                <div><b class="semibold">{{ _('Min. rating:') }}</b> {{ rating_number(min_rating) }}</div>
-                <div><b class="semibold">{{ _('Max rating:') }}</b> {{ rating_number(max_rating) }}</div>
+                <div><b class="semibold"{% if public_profile %} id="profile-rating-label"{% endif %}>{{ _('Rating:') }}</b> {% if public_profile %}<span aria-labelledby="profile-rating-label">{{ rating_number(rating) }}</span>{% else %}{{ rating_number(rating) }}{% endif %}</div>
+                <div><b class="semibold"{% if public_profile %} id="profile-min-rating-label"{% endif %}>{{ _('Min. rating:') }}</b> {% if public_profile %}<span aria-labelledby="profile-min-rating-label">{{ rating_number(min_rating) }}</span>{% else %}{{ rating_number(min_rating) }}{% endif %}</div>
+                <div><b class="semibold"{% if public_profile %} id="profile-max-rating-label"{% endif %}>{{ _('Max rating:') }}</b> {% if public_profile %}<span aria-labelledby="profile-max-rating-label">{{ rating_number(max_rating) }}</span>{% else %}{{ rating_number(max_rating) }}{% endif %}</div>
             {% endif %}
         </div>
         <div class="user-content">{% block user_content %}{% endblock %}</div>

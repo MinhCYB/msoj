@@ -7,6 +7,10 @@
         window.load_more_pp = function () {
             if (window.currently_requesting_pp) return;
             window.currently_requesting_pp = true;
+            {% if public_profile %}
+                $('#submissions-table').attr('aria-busy', 'true');
+                $('#pp-load-more-link').attr('aria-disabled', 'true');
+            {% endif %}
 
             $.get('{{ url('user_pp_ajax', user.user.username) }}', {
                 start: window.show_pp_base * 10,
@@ -20,8 +24,24 @@
                     $("#pp-load-link-wrapper").hide();
                 }
                 window.currently_requesting_pp = false;
+                {% if public_profile %}
+                    $('#submissions-table').attr('aria-busy', 'false');
+                    $('#pp-load-more-link').attr('aria-disabled', 'false');
+                {% endif %}
             });
         };
+        {% if public_profile %}
+            $(function () {
+                $('#pp-load-more-link').on('click', window.load_more_pp);
+                $('.public-profile-statistics .profile-disclosure').on('click', function () {
+                    var button = $(this), heading = button.parent(), table = $('#' + button.attr('aria-controls'));
+                    var expanded = button.attr('aria-expanded') === 'true';
+                    button.attr('aria-expanded', String(!expanded));
+                    heading.toggleClass('open', !expanded).toggleClass('closed', expanded);
+                    table.stop(true, true)[expanded ? 'hide' : 'show'](400);
+                });
+            });
+        {% endif %}
     </script>
 {% endblock %}
 
@@ -29,18 +49,20 @@
 
 {% block title_row %}
     {% set tab = 'problems' %}
+    {% if public_profile %}<div class="public-profile-navigation">{% endif %}
     {% include "user/user-tabs.html" %}
+    {% if public_profile %}</div>{% endif %}
 {% endblock %}
 
 {% block user_content %}
     {% if pp_breakdown %}
-        <h3 class="pp-breakdown-header">{{ _('Points breakdown') }}</h3>
-        <div id="submissions-table" class="pp-table table">
+        <h3 class="pp-breakdown-header"{% if public_profile %} id="profile-pp-heading"{% endif %}>{{ _('Points breakdown') }}</h3>
+        <div id="submissions-table" class="pp-table table"{% if public_profile %} role="region" aria-labelledby="profile-pp-heading" aria-busy="false"{% endif %}>
             {% include "user/pp-table-body.html" %}
         </div>
         {% if pp_has_more %}
             <div id="pp-load-link-wrapper">
-                <a id="pp-load-more-link" href="javascript:load_more_pp()">{{ _('Load more...') }}</a>
+                {% if public_profile %}<button id="pp-load-more-link" type="button" aria-controls="submissions-table" aria-disabled="false">{{ _('Load more...') }}</button>{% else %}<a id="pp-load-more-link" href="javascript:load_more_pp()">{{ _('Load more...') }}</a>{% endif %}
             </div>
         {% endif %}
     {% else %}
@@ -49,15 +71,17 @@
 
     {% if authored %}
         <div class="user-problem-group">
-            <h3 class="unselectable toggle closed">
-                <span class="fa fa-chevron-right fa-fw"></span>{{ _('Authored problems') }} ({{ authored|length }})
+            <h3 class="unselectable {% if public_profile %}profile-disclosure-heading{% else %}toggle{% endif %} closed"{% if public_profile %} id="profile-authored-heading"{% endif %}>
+                {% if public_profile %}<button type="button" class="profile-disclosure" aria-controls="profile-authored-table" aria-expanded="false">{% endif %}
+                <span class="fa fa-chevron-right fa-fw"{% if public_profile %} aria-hidden="true"{% endif %}></span>{{ _('Authored problems') }} ({{ authored|length }})
+                {% if public_profile %}</button>{% endif %}
             </h3>
-            <table style="display: none" class="table striped toggled">
+            <table style="display: none" class="table striped toggled"{% if public_profile %} id="profile-authored-table" aria-labelledby="profile-authored-heading"{% endif %}>
                 <thead>
                 <tr>
-                    <th>{{ _('Problem') }}</th>
-                    <th>{{ _('Category') }}</th>
-                    <th>{{ _('Points') }}</th>
+                    <th{% if public_profile %} scope="col"{% endif %}>{{ _('Problem') }}</th>
+                    <th{% if public_profile %} scope="col"{% endif %}>{{ _('Category') }}</th>
+                    <th{% if public_profile %} scope="col"{% endif %}>{{ _('Points') }}</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -91,16 +115,18 @@
 
     {% for group in best_submissions %}
         <div class="user-problem-group">
-            <h3 class="unselectable toggle closed"><span class="fa fa-chevron-right fa-fw"></span>
+            <h3 class="unselectable {% if public_profile %}profile-disclosure-heading{% else %}toggle{% endif %} closed"{% if public_profile %} id="profile-group-heading-{{ loop.index }}"{% endif %}>
+                {% if public_profile %}<button type="button" class="profile-disclosure" aria-controls="profile-group-table-{{ loop.index }}" aria-expanded="false">{% endif %}<span class="fa fa-chevron-right fa-fw"{% if public_profile %} aria-hidden="true"{% endif %}></span>
                 {%- with points_str=group.points|floatformat(-3) -%}
                     {{ _('%(group)s (%(val)s points)', group=group.name, val=points_str) }}
                 {%- endwith -%}
+                {% if public_profile %}</button>{% endif %}
             </h3>
-            <table style="display: none" class="table striped toggled">
+            <table style="display: none" class="table striped toggled"{% if public_profile %} id="profile-group-table-{{ loop.index }}" aria-labelledby="profile-group-heading-{{ loop.index }}"{% endif %}>
                 <thead>
                 <tr>
-                    <th>{{ _('Problem') }}</th>
-                    <th>{{ _('Score') }}</th>
+                    <th{% if public_profile %} scope="col"{% endif %}>{{ _('Problem') }}</th>
+                    <th{% if public_profile %} scope="col"{% endif %}>{{ _('Score') }}</th>
                 </tr>
                 </thead>
                 <tbody>

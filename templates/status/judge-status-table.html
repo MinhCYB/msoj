@@ -1,13 +1,13 @@
 <thead>
 <tr>
-    <th>{{ _('Judge') }}</th>
+    <th scope="col">{{ _('Judge') }}</th>
     {% if see_all_judges %}
-        <th>{{ _('Online') }}</th>
+        <th scope="col">{{ _('Online') }}</th>
     {% endif %}
-    <th>{{ _('Uptime') }}</th>
-    <th>{{ _('Ping') }}</th>
-    <th>{{ _('Load') }}</th>
-    <th>{{ _('Runtimes') }}</th>
+    <th scope="col">{{ _('Uptime') }}</th>
+    <th scope="col">{{ _('Ping') }}</th>
+    <th scope="col">{{ _('Load') }}</th>
+    <th scope="col">{{ _('Runtimes') }}</th>
 </tr>
 </thead>
 <tbody>
@@ -54,7 +54,7 @@
             {% if judge.online %}
                 {% for key, info in runtime_version_data[judge.name] -%}
                     <a href="javascript:void(0)" data-judge="{{ judge.id }}" data-lang="{{ key }}"
-                       data-runtime-info="{{ runtime_versions(info.runtime) }}"
+                       data-runtime-info="{{ runtime_versions(info.runtime) }}" title="{{ runtime_versions(info.runtime) }}"
                        class="runtime-label">{{ info.name }}</a>
                     {%- if not loop.last %}, {% endif %}
                 {%- endfor %}

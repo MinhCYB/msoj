@@ -1,14 +1,14 @@
 {% macro make_tab(name, fa, url, text) %}
     <li class="tab{% if tab == name %} active{% endif %}">
-        {%- if url %}<a href="{{ url }}">{% else %}<span>{% endif -%}
-        <i class="tab-icon fa {{ fa }}"></i> {{ text }}
+        {%- if url %}<a href="{{ url }}"{% if contest_detail_overview|default(false) and tab == name %} aria-current="page"{% endif %}>{% else %}<span>{% endif -%}
+        <i class="tab-icon fa {{ fa }}"{% if contest_detail_overview|default(false) and name in ('detail', 'ranking', 'official_ranking', 'submissions') %} aria-hidden="true"{% endif %}></i> {{ text }}
         {%- if url %}</a>{% else %}</span>{% endif -%}
     </li>
 {% endmacro %}
 
 <div class="tabs">
     {% if not left_align_tabs %}
-        <h2>{{ content_title or title }}</h2>
+        {% if contest_detail_overview|default(false) %}<h1 class="contest-detail-title">{{ content_title or title }}</h1>{% else %}<h2>{{ content_title or title }}</h2>{% endif %}
     {% endif %}
     {% block post_tab_spacer %}{% endblock %}
     <ul>

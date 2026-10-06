@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block header %}
-    <span class="submission-info">
+    <span class="submission-info submission-detail-metadata">
         <span class="submission-date">
             {% with date=submission.date|date(_('N j, Y, g:i a')), can_edit=submission.problem.is_editable_by(request.user) %}
                 {% if can_edit and submission.judged_on %}

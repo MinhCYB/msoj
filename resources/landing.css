@@ -12,88 +12,6 @@ body:has(.msoj-landing) {
   font-family: "Segoe UI", "Source Sans Pro", Arial, sans-serif;
 }
 
-body:has(.msoj-landing) #navigation {
-  height: 68px;
-  background: var(--land-paper);
-  border-bottom: 1px solid var(--land-line);
-  box-shadow: none;
-}
-body:has(.msoj-landing) #nav-container {
-  max-width: 1440px;
-  margin: auto;
-  background: var(--land-paper);
-  position: relative;
-}
-body:has(.msoj-landing) #nav-shadow {
-  display: none;
-}
-body:has(.msoj-landing) #nav-list {
-  margin: 0;
-  padding: 0 20px;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-body:has(.msoj-landing) #nav-list > li {
-  text-transform: none;
-}
-body:has(.msoj-landing) #nav-list > li > a:not(.nav-home) {
-  font-family: inherit;
-  color: var(--land-muted);
-  font-size: 13px;
-  font-weight: 600;
-  padding: 12px 13px;
-  height: auto;
-  border: 0;
-  border-radius: 6px;
-}
-body:has(.msoj-landing) #nav-list > li > a:not(.nav-home):hover,
-body:has(.msoj-landing) #nav-list > li > a.active {
-  color: var(--land-accent);
-  background: #eef3fa;
-}
-body:has(.msoj-landing) .home-nav-element:first-child {
-  margin-right: 21px;
-}
-body:has(.msoj-landing) .home-nav-element:first-child a {
-  height: auto;
-}
-body:has(.msoj-landing) .home-nav-element:first-child a:hover {
-  background: transparent;
-}
-body:has(.msoj-landing) .home-nav-element:nth-child(2) {
-  display: none;
-}
-body:has(.msoj-landing) .msoj-wordmark {
-  height: auto;
-  padding: 0;
-  color: var(--land-ink);
-  font-size: 22px;
-  font-weight: 800;
-  letter-spacing: -0.06em;
-}
-body:has(.msoj-landing) #navigation .home-nav-element a:hover .msoj-wordmark {
-  color: var(--land-accent);
-}
-body:has(.msoj-landing) #user-links {
-  color: var(--land-muted);
-  padding-right: 24px;
-}
-body:has(.msoj-landing) #user-links .anon a {
-  color: var(--land-ink);
-  font-size: 13px;
-}
-body:has(.msoj-landing) #user-links .anon a:last-child {
-  display: inline-block;
-  padding: 9px 15px;
-  border: 1px solid var(--land-line);
-  border-radius: 6px;
-}
-body:has(.msoj-landing) #user-links .anon a:hover {
-  color: var(--land-accent);
-}
-
 body:has(.msoj-landing) #page-container {
   max-width: none;
   border: 0;
@@ -123,9 +41,9 @@ body:has(.msoj-landing) footer #footer-content {
 }
 
 .msoj-landing {
-  max-width: 1220px;
+  max-width: 1440px;
   margin: 0 auto;
-  padding: 0 32px 110px;
+  padding: 0 20px 110px;
   line-height: 1.55;
   box-sizing: border-box;
 }
@@ -148,10 +66,9 @@ body:has(.msoj-landing) footer #footer-content {
 .msoj-landing a {
   color: var(--land-accent);
 }
-.msoj-landing a:focus-visible,
-body:has(.msoj-landing) #navigation a:focus-visible {
-  outline: 3px solid var(--land-accent);
-  outline-offset: 3px;
+.msoj-landing a:focus-visible {
+  outline: 2px solid var(--land-accent);
+  outline-offset: 2px;
 }
 
 .msoj-landing .msoj-landing-hero {
@@ -422,51 +339,11 @@ body:has(.msoj-landing) #navigation a:focus-visible {
 }
 
 @media (max-width: 1100px) {
-  body:has(.msoj-landing) #nav-list > li > a:not(.nav-home) {
-    padding: 10px 8px;
-  }
   .msoj-landing .msoj-landing-hero {
     gap: 30px;
   }
 }
 @media (max-width: 760px) {
-  body:has(.msoj-landing) #navigation {
-    height: 56px;
-  }
-  body:has(.msoj-landing) #navicon {
-    color: var(--land-ink);
-    margin: 10px 8px;
-    font-size: 24px;
-  }
-  body:has(.msoj-landing) #nav-list {
-    display: none;
-    position: fixed;
-    top: 56px;
-    bottom: 0;
-    left: 0;
-    width: min(290px, 85vw);
-    height: auto;
-    padding: 18px;
-    background: var(--land-paper);
-    border-right: 1px solid var(--land-line);
-    overflow: auto;
-  }
-  body:has(.msoj-landing) #nav-list.show-list {
-    display: block;
-  }
-  body:has(.msoj-landing) #nav-list > li {
-    display: block;
-  }
-  body:has(.msoj-landing) #nav-list > li > a:not(.nav-home) {
-    display: block;
-    padding: 12px;
-  }
-  body:has(.msoj-landing) #nav-list .home-nav-element:first-child {
-    margin: 0 0 12px;
-  }
-  body:has(.msoj-landing) #user-links {
-    padding-right: 12px;
-  }
   body:has(.msoj-landing) #content {
     margin-top: 56px;
   }

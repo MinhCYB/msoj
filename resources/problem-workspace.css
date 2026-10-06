@@ -31,102 +31,6 @@ body[data-theme="dark"]:has(.ms-workspace) {
     --ws-accent-hover: #a1c3fa;
   }
 }
-body:has(.ms-workspace) #navigation {
-  height: 68px;
-  background: var(--ws-bg);
-  border-bottom: 1px solid var(--ws-border);
-  box-shadow: none;
-}
-body:has(.ms-workspace) #nav-container {
-  height: 100%;
-  max-width: none;
-  position: relative;
-  background: var(--ws-bg);
-}
-body:has(.ms-workspace) #nav-shadow {
-  display: none;
-}
-body:has(.ms-workspace) #nav-list {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  height: 100%;
-  margin: 0;
-  padding: 0 28px;
-}
-body:has(.ms-workspace) #nav-list > li {
-  text-transform: none;
-}
-body:has(.ms-workspace) #nav-list > li > a:not(.nav-home) {
-  height: auto;
-  padding: 11px 13px;
-  color: var(--ws-muted);
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 650;
-  border: 0;
-  border-radius: 6px;
-}
-body:has(.ms-workspace) #nav-list > li > a:not(.nav-home):hover,
-body:has(.ms-workspace) #nav-list > li > a.active {
-  background: color-mix(in srgb, var(--ws-accent) 10%, var(--ws-bg));
-  color: var(--ws-accent);
-}
-body:has(.ms-workspace) #nav-list .home-nav-element:first-child {
-  margin-right: 20px;
-}
-body:has(.ms-workspace) #nav-list .home-nav-element:first-child a {
-  height: auto;
-}
-body:has(.ms-workspace) #nav-list .home-nav-element:nth-child(2) {
-  display: none;
-}
-body:has(.ms-workspace) .msoj-wordmark {
-  height: auto;
-  padding: 0;
-  color: var(--ws-ink);
-  font-size: 22px;
-  font-weight: 800;
-  letter-spacing: -0.06em;
-}
-body:has(.ms-workspace) #navigation .home-nav-element a:hover .msoj-wordmark {
-  color: var(--ws-accent);
-}
-body:has(.ms-workspace) #user-links {
-  padding-right: 28px;
-  color: var(--ws-muted);
-}
-body:has(.ms-workspace) #user-links > ul > li > a > span,
-body:has(.ms-workspace) #user-links a,
-body:has(.ms-workspace) #user-links a:link {
-  color: var(--ws-ink);
-}
-body:has(.ms-workspace) #user-links > ul > li > a > span > span {
-  color: var(--ws-ink);
-}
-body:has(.ms-workspace) #user-links .anon a:last-child {
-  display: inline-block;
-  padding: 9px 15px;
-  border: 1px solid var(--ws-border);
-  border-radius: 6px;
-}
-body:has(.ms-workspace) #navigation ul li ul {
-  background: var(--ws-bg);
-  color: var(--ws-ink);
-  border: 1px solid var(--ws-border);
-  border-radius: 6px;
-  box-shadow: 0 12px 32px #18212d20;
-}
-body:has(.ms-workspace) #navigation ul li ul a,
-body:has(.ms-workspace) #navigation ul li ul button {
-  color: var(--ws-ink);
-  border-left-color: var(--ws-accent);
-}
-body:has(.ms-workspace) #navigation ul li ul a:hover,
-body:has(.ms-workspace) #navigation ul li ul button:hover {
-  color: var(--ws-accent);
-  background: var(--ws-page);
-}
 body:has(.ms-workspace) #page-container {
   max-width: none;
   border: 0;
@@ -254,14 +158,6 @@ body:has(.ms-workspace) .problem-title .view-pdf:hover {
 .ms-mentor button {
   cursor: pointer;
 }
-.ms-annotate-launch {
-  white-space: nowrap;
-  border: 1px solid var(--ws-border);
-  background: var(--ws-bg);
-  color: var(--ws-accent);
-  border-radius: 6px;
-  padding: 9px 12px;
-}
 .ms-statement-wrap {
   position: relative;
   min-width: 0;
@@ -286,13 +182,13 @@ body:has(.ms-workspace) .problem-title .view-pdf:hover {
 }
 .ms-annotation-toolbar {
   position: sticky;
-  bottom: 10px;
+  top: 0;
+  bottom: auto;
   z-index: 20;
-  padding: 12px;
+  padding: 6px 8px;
   background: var(--ws-bg);
-  border: 1px solid var(--ws-border);
-  border-radius: 8px;
-  box-shadow: 0 8px 25px #18212d22;
+  border-bottom: 1px solid var(--ws-border);
+  box-shadow: none;
 }
 .ms-annotation-toolbar[hidden],
 .ms-mentor-panel[hidden] {
@@ -305,20 +201,9 @@ body:has(.ms-workspace) .problem-title .view-pdf:hover {
 }
 .ms-annotation-tools {
   display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
   align-items: center;
-}
-.ms-annotation-tools button {
-  border: 1px solid var(--ws-border);
-  background: var(--ws-bg);
-  color: var(--ws-ink);
-  border-radius: 4px;
-  padding: 7px 9px;
-}
-.ms-annotation-tools button[aria-pressed="true"] {
-  background: var(--ws-accent);
-  color: #fff;
+  gap: 4px;
+  flex-wrap: nowrap;
 }
 .ms-annotation-tools label {
   font-size: 12px;
@@ -465,10 +350,9 @@ body:has(.ms-workspace) .problem-title .view-pdf:hover {
 }
 .ms-workspace a:focus-visible,
 .ms-workspace button:focus-visible,
-.ms-workspace input:focus-visible,
-body:has(.ms-workspace) #navigation a:focus-visible {
-  outline: 3px solid var(--ws-accent);
-  outline-offset: 2px;
+.ms-workspace input:focus-visible {
+  outline: 2px solid var(--ws-accent);
+  outline-offset: 1px;
 }
 .ms-workspace-form #ace_source {
   min-height: 330px;
@@ -511,15 +395,6 @@ body:has(.ms-workspace) #navigation a:focus-visible {
 .ms-mentor-panel {
   pointer-events: auto;
 }
-.ms-mentor-launch {
-  background: #2457a7;
-  border: 0;
-  border-radius: 28px;
-  padding: 13px 21px;
-  color: white;
-  font-weight: 700;
-  box-shadow: 0 5px 20px #18212d33;
-}
 .ms-mentor-launch[hidden] {
   display: none;
 }
@@ -550,40 +425,54 @@ body:has(.ms-workspace) #navigation a:focus-visible {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 10px 8px 16px;
+  padding: 8px 12px;
   border-bottom: 1px solid var(--ws-border);
   flex: 0 0 auto;
-  min-height: 50px;
+  min-height: 48px;
   box-sizing: border-box;
 }
 .ms-mentor-title {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   min-width: 0;
+  color: var(--ws-ink);
+  font-size: 14px;
+}
+.ms-mentor-title strong {
+  font-weight: 700;
+  color: var(--ws-ink);
 }
 .ms-mentor-header-actions {
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
 }
-.ms-mentor-panel header button {
-  display: inline-grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
+.ms-mentor-panel header .ms-mentor-header-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
   border: 1px solid transparent;
   border-radius: 6px;
   background: transparent;
-  font-size: 23px;
+  box-shadow: none;
+  font-size: 18px;
   line-height: 1;
-  color: var(--ws-ink) !important;
+  color: var(--ws-muted) !important;
   padding: 0;
   cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease,
+    border-color 0.15s ease;
 }
-.ms-mentor-panel header button:hover {
-  background: color-mix(in srgb, var(--ws-accent) 15%, var(--ws-bg));
-  color: var(--ws-accent) !important;
+.ms-mentor-panel header .ms-mentor-header-actions button:hover,
+.ms-mentor-panel header .ms-mentor-header-actions button:focus-visible {
+  background: var(--ws-page);
+  color: var(--ws-ink) !important;
+  border-color: var(--ws-border);
 }
 .ms-mentor-conversation {
   flex: 1 1 auto;
@@ -669,24 +558,40 @@ body:has(.ms-workspace) #navigation a:focus-visible {
   background: var(--ws-bg);
 }
 .ms-mentor-input {
-  position: relative;
-}
-.ms-mentor-composer textarea {
-  display: block;
-  width: 100%;
-  min-height: 40px;
-  max-height: 112px;
-  box-sizing: border-box;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
   border: 1px solid var(--ws-border);
   border-radius: 8px;
-  padding: 9px 52px 9px 10px;
   background: var(--ws-bg);
+  padding: 6px 8px 6px 10px;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+.ms-mentor-input:focus-within {
+  border-color: var(--ws-accent);
+  box-shadow: 0 0 0 1px var(--ws-accent);
+}
+.ms-mentor-composer textarea {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  min-height: 28px;
+  max-height: 112px;
+  box-sizing: border-box;
+  border: 0;
+  outline: none;
+  padding: 3px 0;
+  margin: 0;
+  background: transparent;
   color: var(--ws-ink);
   resize: none;
   overflow-y: auto;
   font: inherit;
   font-size: 13px;
-  line-height: 1.4;
+  line-height: 1.45;
+  scrollbar-width: thin;
 }
 .ms-mentor-composer textarea::placeholder {
   color: var(--ws-muted);
@@ -694,7 +599,6 @@ body:has(.ms-workspace) #navigation a:focus-visible {
 }
 .ms-mentor-composer textarea:disabled {
   opacity: 0.7;
-  background: var(--ws-page);
 }
 .ms-mentor-info {
   position: relative;
@@ -702,23 +606,29 @@ body:has(.ms-workspace) #navigation a:focus-visible {
   flex: 0 0 auto;
 }
 .ms-mentor-panel header .ms-mentor-info-button {
-  display: inline-grid;
-  place-items: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 28px;
   height: 28px;
   padding: 0;
-  border: 0;
+  border: 1px solid transparent;
   border-radius: 6px;
   background: transparent;
   color: var(--ws-muted) !important;
-  font-size: 16px;
+  font-size: 14px;
   line-height: 1;
   cursor: help;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease,
+    border-color 0.15s ease;
 }
 .ms-mentor-panel header .ms-mentor-info-button:hover,
 .ms-mentor-panel header .ms-mentor-info-button:focus-visible {
   color: var(--ws-accent) !important;
   background: color-mix(in srgb, var(--ws-accent) 12%, var(--ws-bg));
+  border-color: transparent;
 }
 .ms-mentor-tooltip {
   position: absolute;
@@ -744,28 +654,23 @@ body:has(.ms-workspace) #navigation a:focus-visible {
   opacity: 1;
   visibility: visible;
 }
-.ms-mentor-send,
-.ms-mentor-refresh,
-.ms-mentor-retry {
-  border: 1px solid var(--ws-border);
-  border-radius: 6px;
-  padding: 7px 12px;
-  background: var(--ws-bg);
-  color: var(--ws-ink);
-  cursor: pointer;
-}
 .ms-mentor-send {
-  position: absolute;
-  right: 4px;
-  bottom: 4px;
-  display: inline-grid;
-  place-items: center;
+  position: static;
+  flex: 0 0 32px;
   width: 32px;
   height: 32px;
-  padding: 0;
-  border-color: #2457a7;
+  margin: 0;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid #2457a7;
+  border-radius: 6px;
   background: #2457a7;
-  color: #fff;
+  color: #fff !important;
+  box-shadow: none;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
 }
 .ms-mentor-send svg {
   display: block;
@@ -821,44 +726,6 @@ body:has(.ms-workspace) #navigation a:focus-visible {
   border-color: var(--ws-accent);
 }
 @media (max-width: 850px) {
-  body:has(.ms-workspace) #navigation {
-    height: 56px;
-  }
-  body:has(.ms-workspace) #navicon {
-    color: var(--ws-ink);
-    margin: 9px 8px;
-    font-size: 24px;
-  }
-  body:has(.ms-workspace) #nav-list {
-    display: none;
-    position: fixed;
-    top: 56px;
-    bottom: 0;
-    left: 0;
-    width: min(290px, 85vw);
-    height: auto;
-    padding: 18px;
-    background: var(--ws-bg);
-    border-right: 1px solid var(--ws-border);
-    overflow: auto;
-  }
-  body:has(.ms-workspace) #nav-list.show-list {
-    display: block;
-  }
-  body:has(.ms-workspace) #nav-list > li {
-    display: block;
-  }
-  body:has(.ms-workspace) #nav-list > li > a:not(.nav-home) {
-    display: block;
-    padding: 12px;
-  }
-  body:has(.ms-workspace) #nav-list .home-nav-element:first-child {
-    display: block;
-    margin: 0 0 12px;
-  }
-  body:has(.ms-workspace) #user-links {
-    padding-right: 10px;
-  }
   body:has(.ms-workspace) #content {
     margin-top: 56px;
     padding: 18px 16px 75px;
@@ -1386,26 +1253,42 @@ body:has(.ms-workspace) .problem-title .view-pdf {
   padding-top: 8px;
   border-top: 1px solid var(--ws-border);
 }
-.ms-workspace-rail a {
+.ms-workspace-rail a,
+.ms-workspace-rail button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  min-height: 44px;
+  width: 40px;
+  height: 40px;
+  min-height: 40px;
+  padding: 0;
+  border: 1px solid transparent;
   border-radius: 6px;
-  color: var(--ws-muted);
-  font-size: 19px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--ws-muted) !important;
+  font-size: 17px;
+  line-height: 1;
   text-decoration: none;
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease,
+    border-color 0.15s ease;
 }
 .ms-workspace-rail a:hover,
-.ms-workspace-rail a:focus-visible {
-  color: var(--ws-accent);
-  background: var(--ws-page);
+.ms-workspace-rail a:focus-visible,
+.ms-workspace-rail button:hover,
+.ms-workspace-rail button:focus-visible {
+  color: var(--ws-accent) !important;
+  background: color-mix(in srgb, var(--ws-accent) 8%, var(--ws-bg));
+  border-color: transparent;
 }
-.ms-workspace-rail a[aria-current="page"] {
-  color: #2457a7;
-  background: #e9f0fa;
-  box-shadow: inset 3px 0 #2457a7;
+.ms-workspace-rail a[aria-current="page"],
+.ms-workspace-rail button[aria-expanded="true"] {
+  color: var(--ws-accent) !important;
+  background: color-mix(in srgb, var(--ws-accent) 12%, var(--ws-bg));
+  box-shadow: inset 3px 0 var(--ws-accent);
 }
 .ms-workspace-rail a span {
   position: absolute;
@@ -1502,32 +1385,65 @@ body:has(.ms-workspace) .problem-title .view-pdf {
 .ms-problem-more-content .toggle {
   cursor: pointer;
 }
-.ms-workspace .ms-annotate-launch {
-  color: #2457a7 !important;
-  background: var(--ws-bg);
-  border: 1px solid var(--ws-border);
-  text-shadow: none;
-  background-image: none;
-}
-.ms-workspace .ms-annotate-launch:hover {
-  color: #194584 !important;
-  background: var(--ws-page);
-}
 .ms-workspace .ms-annotation-tools button {
-  color: var(--ws-ink) !important;
-  background: var(--ws-bg);
-  border: 1px solid var(--ws-border);
-  text-shadow: none;
-  background-image: none;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--ws-muted) !important;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease,
+    border-color 0.15s ease;
 }
-.ms-workspace .ms-annotation-tools button[aria-pressed="true"] {
-  color: #fff !important;
-  background: #2457a7;
-  border-color: #2457a7;
-}
-.ms-workspace .ms-annotation-tools button:hover:not([aria-pressed="true"]) {
-  color: var(--ws-accent) !important;
+.ms-workspace .ms-annotation-tools button:hover:not(:disabled):not([aria-pressed="true"]) {
   background: var(--ws-page);
+  color: var(--ws-ink) !important;
+  border-color: var(--ws-border);
+}
+.ms-workspace .ms-annotation-tools button:focus-visible {
+  outline: 2px solid var(--ws-accent);
+  outline-offset: 1px;
+}
+.ms-workspace .ms-annotation-tools button[data-tool][aria-pressed="true"],
+.ms-workspace .ms-annotation-tools button[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--ws-accent) 14%, var(--ws-bg));
+  border-color: var(--ws-accent);
+  color: var(--ws-accent) !important;
+  font-weight: 600;
+}
+.ms-workspace .ms-annotation-tools button[data-action="undo"],
+.ms-workspace .ms-annotation-tools button[data-action="redo"] {
+  color: var(--ws-muted) !important;
+}
+.ms-workspace .ms-annotation-tools button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  background: transparent;
+}
+.ms-workspace .ms-annotation-tools button[data-action="clear"]:hover {
+  background: color-mix(in srgb, #dc2626 12%, var(--ws-bg));
+  border-color: color-mix(in srgb, #dc2626 30%, transparent);
+  color: #dc2626 !important;
+}
+.ms-workspace .ms-annotation-tools button[data-action="close"] {
+  color: var(--ws-muted) !important;
+}
+.ms-workspace .ms-annotation-tools button[data-action="close"]:hover {
+  background: var(--ws-page);
+  color: var(--ws-ink) !important;
+  border-color: var(--ws-border);
 }
 @media (max-width: 850px) {
   .ms-workspace-layout {
@@ -1584,8 +1500,9 @@ body:has(.ms-workspace) .problem-title .view-pdf {
     overflow: visible;
     clip: auto;
   }
-  .ms-workspace-rail a[aria-current="page"] {
-    box-shadow: inset 0 -3px #2457a7;
+  .ms-workspace-rail a[aria-current="page"],
+  .ms-workspace-rail button[aria-expanded="true"] {
+    box-shadow: inset 0 -3px var(--ws-accent);
   }
   .ms-workspace-main {
     width: 100%;
@@ -1717,14 +1634,8 @@ body:has(.ms-workspace) .problem-title .view-pdf {
 }
 
 /* Compact context bar and edge-to-edge working surfaces. */
-body:has(.ms-workspace) #navigation {
-  height: 54px;
-}
-body:has(.ms-workspace) #content {
-  margin-top: 54px;
-}
 body:has(.ms-workspace) .problem-title {
-  top: 54px;
+  top: 68px;
   min-height: 48px;
   padding: 4px clamp(12px, 1.5vw, 24px);
   gap: 6px 10px;
@@ -1781,55 +1692,46 @@ body:has(.ms-workspace) .problem-title h2 {
 body:has(.ms-workspace) .problem-title .title-state {
   font-size: 19px;
 }
-.ms-workspace-rail .ms-annotate-launch {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  min-height: 44px;
-  padding: 0;
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--ws-muted) !important;
-  font-size: 19px;
-}
-.ms-workspace-rail .ms-annotate-launch[aria-expanded="true"] {
-  background: #e9f0fa;
-  color: #2457a7 !important;
-}
 .ms-annotation-toolbar {
   position: sticky;
   top: 0;
   bottom: auto;
   z-index: 20;
-  padding: 6px;
-  border-width: 0 0 1px;
-  border-radius: 0;
+  padding: 6px 8px;
+  background: var(--ws-bg);
+  border-bottom: 1px solid var(--ws-border);
   box-shadow: none;
 }
 .ms-annotation-tools {
+  display: flex;
+  align-items: center;
   flex-wrap: nowrap;
   overflow-x: auto;
   gap: 3px;
 }
-.ms-workspace .ms-annotation-tools button {
-  flex: 0 0 34px;
-  width: 34px;
-  height: 34px;
-  padding: 0;
-  font-size: 16px;
-}
 .ms-annotation-tools input[type="color"] {
-  flex: 0 0 34px;
-  width: 34px;
-  height: 34px;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
   padding: 2px;
+  margin: 0 2px;
+  border: 1px solid var(--ws-border);
+  border-radius: 6px;
+  background: var(--ws-bg);
   cursor: pointer;
+  box-sizing: border-box;
+}
+.ms-annotation-tools input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+.ms-annotation-tools input[type="color"]::-webkit-color-swatch {
+  border: 0;
+  border-radius: 4px;
 }
 .ms-annotation-separator {
   flex: 0 0 1px;
-  height: 24px;
+  width: 1px;
+  height: 20px;
   background: var(--ws-border);
   margin: 0 4px;
 }
@@ -1916,7 +1818,7 @@ body:has(.ms-workspace) .problem-title .title-state {
   body:has(.ms-workspace) .problem-title {
     top: 54px;
   }
-  .ms-workspace-rail .ms-annotate-launch {
+  .ms-workspace-rail button {
     flex: 0 0 40px;
     min-height: 40px;
   }
@@ -1925,27 +1827,6 @@ body:has(.ms-workspace) .problem-title .title-state {
   }
 }
 
-/* Mentor opens from the navigation rail, leaving the submission footer unobstructed. */
-.ms-workspace-rail .ms-mentor-launch {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  min-height: 44px;
-  padding: 0;
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
-  box-shadow: none;
-  color: var(--ws-muted) !important;
-  font-size: 19px;
-  cursor: pointer;
-}
-.ms-workspace-rail .ms-mentor-launch:hover,
-.ms-workspace-rail .ms-mentor-launch[aria-expanded="true"] {
-  background: #e9f0fa;
-  color: #2457a7 !important;
-}
 .ms-mentor {
   position: fixed;
 }

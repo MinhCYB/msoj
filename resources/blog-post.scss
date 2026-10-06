@@ -590,7 +590,15 @@
 .public-modern-reader {
     background-color: var(--ms-surface);
     color: var(--ms-text);
+    font-family: inherit;
 
+    .blog-post-content {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Georgia', serif;
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Georgia', serif;
+        }
+    }
     .post-title, .blog-post-content,
     .blog-post-content h1, .blog-post-content h2,
     .blog-post-content h3, .blog-post-content h4,
@@ -621,22 +629,87 @@
         &:hover { color: var(--ms-accent-hover); }
     }
 
-    .post-edit-action { color: var(--ms-accent); }
-    .organization-badge, .vote-buttons { background-color: var(--ms-page); }
-    .vote-btn { color: var(--ms-muted) !important; }
-    .vote-btn:hover:not(:disabled) { color: var(--ms-text) !important; }
-    .vote-btn.voted { color: var(--ms-accent) !important; }
+    .post-edit-action {
+        color: var(--ms-accent);
+        &:focus-visible {
+            outline: 2px solid var(--ms-focus);
+            outline-offset: 2px;
+        }
+    }
+    .organization-badge, .vote-buttons {
+        background-color: var(--ms-page);
+        border: 1px solid var(--ms-border);
+        border-radius: var(--ms-radius-sm);
+        box-shadow: none;
+    }
+    .organization-badge {
+        &:hover {
+            background-color: var(--ms-surface-hover);
+            color: var(--ms-text);
+            border-color: var(--ms-border);
+        }
+        &:focus-visible {
+            outline: 2px solid var(--ms-focus);
+            outline-offset: 2px;
+        }
+    }
+    .vote-btn {
+        appearance: none;
+        background: transparent !important;
+        border: 0 !important;
+        box-shadow: none !important;
+        color: var(--ms-muted) !important;
+        cursor: pointer;
+
+        &:hover:not(:disabled) {
+            color: var(--ms-text) !important;
+            background: transparent !important;
+        }
+        &.voted { color: var(--ms-accent) !important; }
+        &:focus-visible {
+            outline: 2px solid var(--ms-focus) !important;
+            outline-offset: 2px;
+        }
+    }
 
     .social-buttons a {
         color: var(--ms-accent);
         background-color: var(--ms-page);
+        border: 1px solid var(--ms-border);
+        border-radius: var(--ms-radius-sm);
+        box-shadow: none;
         .fa { color: inherit; }
-        &:hover { color: var(--ms-surface); background-color: var(--ms-accent); }
+        &:hover {
+            color: var(--ms-surface);
+            background-color: var(--ms-accent);
+            border-color: var(--ms-accent);
+        }
+        &:focus-visible {
+            outline: 2px solid var(--ms-focus);
+            outline-offset: 2px;
+        }
     }
 
-    .blog-toc-sidebar { background-color: var(--ms-surface); border-color: var(--ms-border); }
-    .blog-toc-header { border-color: var(--ms-border); }
-    .blog-toc-header h3 { color: var(--ms-muted); }
+    .blog-toc-sidebar {
+        background-color: var(--ms-surface);
+        border: 1px solid var(--ms-border);
+        border-radius: var(--ms-radius-sm);
+        box-shadow: var(--ms-shadow-sm);
+    }
+    .reading-progress-bar {
+        background: var(--ms-accent);
+    }
+    .blog-post-comments {
+        border-color: var(--ms-border);
+        .comments-title {
+            color: var(--ms-text);
+            font-family: inherit;
+        }
+    }
+    .blog-toc-header {
+        border-color: var(--ms-border);
+        h3 { color: var(--ms-muted); }
+    }
     .blog-toc-link {
         &, &:link, &:visited { color: var(--ms-muted) !important; }
         &:hover { color: var(--ms-text) !important; }

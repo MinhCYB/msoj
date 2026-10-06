@@ -17,7 +17,7 @@
 {% endblock %}
 
 {% block body %}
-    <div class="h-scrollable-table">
+    <div class="h-scrollable-table judge-status-surface" role="region" aria-label="{{ title }}">
         <table id="judge-status" class="table striped">
             {% include "status/judge-status-table.html" %}
         </table>

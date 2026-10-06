@@ -5,7 +5,9 @@
 {% block title_row %}
     {% set tab = 'about' %}
     {% set title = link_user(user) %}
+    {% if public_profile %}<div class="public-profile-navigation">{% endif %}
     {% include "user/user-tabs.html" %}
+    {% if public_profile %}</div>{% endif %}
 {% endblock %}
 
 {% block user_content %}
@@ -30,7 +32,7 @@
         {% endif %}
 
         {% if user.about %}
-            <h4>{{ _('About') }}</h4>
+            {% if public_profile %}<h3 class="profile-section-heading">{{ _('About') }}</h3>{% else %}<h4>{{ _('About') }}</h4>{% endif %}
             {% cache 86400 'user_about' user.id MATH_ENGINE %}
                 {{ user.about|markdown('self-description', MATH_ENGINE)|reference|str|safe }}
             {% endcache %}
@@ -45,57 +47,57 @@
             <br>
         {% endif %}
 
-        <h4>{{ _('Badges & Awards') }}</h4>
+        {% if public_profile %}<h3 class="profile-section-heading">{{ _('Badges & Awards') }}</h3>{% else %}<h4>{{ _('Badges & Awards') }}</h4>{% endif %}
         {% for badge in user.badges.all() %}
             <div style="display: inline-block; margin-left: 1em; margin-right: 1em;">
-                <img src="{{ badge.full_size or badge.mini or '' }}" title="{{ badge.name }}" style="height: 10em; width: auto; display: block; margin: 0 auto;" />
+                <img src="{{ badge.full_size or badge.mini or '' }}" title="{{ badge.name }}"{% if public_profile %} alt="{{ badge.name }}"{% endif %} style="height: 10em; width: auto; display: block; margin: 0 auto;" />
                 <p style="text-align: center; font-weight: bold; text-transform: uppercase;">{{ badge.name }}</p>
             </div>
         {% else %}
             <i>{{ _('This user has not earned any badges or awards.') }}</i>
         {% endfor %}
 
-        <h4 id="submission-activity-header"></h4>
+        {% if public_profile %}<h3 class="profile-section-heading" id="submission-activity-header"></h3>{% else %}<h4 id="submission-activity-header"></h4>{% endif %}
         <div id="submission-activity" style="display: none;">
             <div id="submission-activity-actions">
-                <a href="javascript:void(0)" id="prev-year-action">&laquo;</a>
-                &nbsp;<span id="year"></span>&nbsp;
-                <a href="javascript:void(0)" id="next-year-action">&raquo;</a>
+                {% if public_profile %}<button type="button" id="prev-year-action" aria-label="{{ _('Previous interval') }}" aria-controls="submission-activity-display">&laquo;</button>{% else %}<a href="javascript:void(0)" id="prev-year-action">&laquo;</a>{% endif %}
+                &nbsp;<span id="year"{% if public_profile %} role="status" aria-label="{{ _('Current interval') }}"{% endif %}></span>&nbsp;
+                {% if public_profile %}<button type="button" id="next-year-action" aria-label="{{ _('Next interval') }}" aria-controls="submission-activity-display">&raquo;</button>{% else %}<a href="javascript:void(0)" id="next-year-action">&raquo;</a>{% endif %}
             </div>
             <div id="submission-activity-display">
-                <table id="submission-activity-table">
+                <table id="submission-activity-table"{% if public_profile %} aria-labelledby="submission-activity-header"{% endif %}>
                     <tr id="submission-0">
-                        <th class="submission-date-col info-text">
+                        <th class="submission-date-col info-text"{% if public_profile %} scope="row"{% endif %}>
                             {{ _('Sun') }}
                         </th>
                     </tr>
                     <tr id="submission-1">
-                        <th class="submission-date-col info-text">
+                        <th class="submission-date-col info-text"{% if public_profile %} scope="row"{% endif %}>
                             {{ _('Mon') }}
                         </th>
                     </tr>
                     <tr id="submission-2">
-                        <th class="submission-date-col info-text">
+                        <th class="submission-date-col info-text"{% if public_profile %} scope="row"{% endif %}>
                             {{ _('Tues') }}
                         </th>
                     </tr>
                     <tr id="submission-3">
-                        <th class="submission-date-col info-text">
+                        <th class="submission-date-col info-text"{% if public_profile %} scope="row"{% endif %}>
                             {{ _('Wed') }}
                         </th>
                     </tr>
                     <tr id="submission-4">
-                        <th class="submission-date-col info-text">
+                        <th class="submission-date-col info-text"{% if public_profile %} scope="row"{% endif %}>
                             {{ _('Thurs') }}
                         </th>
                     </tr>
                     <tr id="submission-5">
-                        <th class="submission-date-col info-text">
+                        <th class="submission-date-col info-text"{% if public_profile %} scope="row"{% endif %}>
                             {{ _('Fri') }}
                         </th>
                     </tr>
                     <tr id="submission-6">
-                        <th class="submission-date-col info-text">
+                        <th class="submission-date-col info-text"{% if public_profile %} scope="row"{% endif %}>
                             {{ _('Sat') }}
                         </th>
                     </tr>
@@ -119,9 +121,9 @@
         </div>
 
         {% if rating %}
-            <h4>{{ _('Rating history') }}</h4>
+            {% if public_profile %}<h3 class="profile-section-heading" id="rating-history-heading">{{ _('Rating history') }}</h3>{% else %}<h4>{{ _('Rating history') }}</h4>{% endif %}
             <div id="rating-chart">
-                <canvas></canvas>
+                <canvas{% if public_profile %} role="img" aria-labelledby="rating-history-heading" aria-describedby="rating-history-table"{% endif %}></canvas>
             </div>
             <div id="rating-tooltip">
                 <div class="contest"></div>
@@ -131,6 +133,19 @@
                     <span class="rating"></span>, #<span class="rank"></span>
                 </div>
             </div>
+            {% if public_profile %}
+                <div class="profile-rating-history-region" role="region" aria-labelledby="rating-history-heading">
+                    <table id="rating-history-table" class="table striped" aria-labelledby="rating-history-heading">
+                        <thead><tr>
+                            <th scope="col">{{ _('Contest') }}</th>
+                            <th scope="col">{{ _('Date') }}</th>
+                            <th scope="col">{{ _('Rating:') }}</th>
+                            <th scope="col">{{ _('Rank') }}</th>
+                        </tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            {% endif %}
         {% endif %}
     </div>
 {% endblock %}
@@ -156,6 +171,20 @@
                 item.x = new Date(item.timestamp);
                 item.y = item.rating;
             });
+            {% if public_profile %}
+                $(function () {
+                    var body = $('#rating-history-table tbody');
+                    rating_history.forEach(function (item) {
+                        var row = $('<tr>');
+                        row.append($('<td>').append($('<a>').attr('href', item.link).text(item.label)));
+                        row.append($('<td>').text(item.date));
+                        row.append($('<td>').append($('<span>').attr('class', 'rating ' + item.class).text(item.rating)));
+                        row.append($('<td>').text(item.ranking));
+                        body.append(row);
+                    });
+                    $(window).trigger('resize');
+                });
+            {% endif %}
 
             $(function () {
                 var $canvas = $('#rating-chart').find('canvas');

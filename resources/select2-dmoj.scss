@@ -1,16 +1,58 @@
 @use "vars" as *;
 @use "select2/select2";
 
-/* Hack to make dropdown background follow theming */
+/* Dropdown background and borders follow theme */
 .select2-dropdown {
-    background-color: $color_primary0 !important;
-    border: 1px solid $color_primary33 !important;
-    color: $color_primary100 !important;
+    background-color: var(--ms-surface) !important;
+    border: 1px solid var(--ms-border) !important;
+    border-radius: var(--ms-radius-sm);
+    box-shadow: var(--ms-shadow-md);
+    color: var(--ms-text) !important;
 }
 
 .select2-container--dmoj {
     @include select2.single;
     @include select2.multiple;
+
+    .select2-selection--single {
+        height: 34px;
+        background-color: var(--ms-surface);
+        border: 1px solid var(--ms-border);
+        border-radius: var(--ms-radius-sm);
+        box-shadow: none;
+
+        .select2-selection__rendered {
+            line-height: 32px;
+            color: var(--ms-text);
+            padding-left: 10px;
+            padding-right: 24px;
+        }
+
+        .select2-selection__arrow {
+            height: 32px;
+        }
+    }
+
+    .select2-selection--multiple {
+        min-height: 34px;
+        background-color: var(--ms-surface);
+        border: 1px solid var(--ms-border);
+        border-radius: var(--ms-radius-sm);
+        box-shadow: none;
+
+        .select2-selection__rendered {
+            padding: 2px 6px;
+        }
+
+        .select2-selection__choice {
+            background-color: var(--ms-surface-subtle);
+            border: 1px solid var(--ms-border);
+            border-radius: 4px;
+            color: var(--ms-text);
+            padding: 2px 6px;
+            font-size: 13px;
+        }
+    }
 
     &.select2-container--open.select2-container--above {
         .select2-selection--single, .select2-selection--multiple {
@@ -28,23 +70,27 @@
 
     .select2-search--dropdown {
         .select2-search__field {
-            border: 1px solid $color_primary33;
-            background-color: $color_select2_search_dropdown;
-            color: $color_primary100;
+            border: 1px solid var(--ms-border);
+            background-color: var(--ms-surface-subtle);
+            color: var(--ms-text);
+            border-radius: var(--ms-radius-sm);
         }
     }
 
     .select2-search--inline {
         .select2-search__field {
-            background: transparent;
-            border: none;
+            height: auto !important;
+            min-height: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            background: transparent !important;
+            border: none !important;
             outline: 0;
-            box-shadow: none;
-            color: $color_primary100;
+            box-shadow: none !important;
+            color: var(--ms-text);
             -webkit-appearance: textfield;
         }
     }
-
     .select2-results > .select2-results__options {
         max-height: 200px;
         overflow-y: auto;
@@ -99,8 +145,8 @@
     }
 
     .select2-results__option--highlighted[aria-selected] {
-        background-color: $highlight_blue;
-        color: white;
+        background-color: var(--ms-btn-bg);
+        color: var(--ms-btn-text, #ffffff);
     }
 
     .select2-results__group {

@@ -83,8 +83,10 @@
     if (!form) return;
     question.disabled = !available || submitting || !!activeTurn || !!ambiguous;
     send.disabled = !available || submitting || !!activeTurn || !!ambiguous;
-    retry.hidden = !ambiguous || !available || !!activeTurn;
-    retry.disabled = submitting || inFlight;
+    if (retry) {
+      retry.hidden = !ambiguous || !available || !!activeTurn;
+      retry.disabled = submitting || inFlight;
+    }
   }
 
   function stop() {
@@ -184,8 +186,8 @@
     if (panel.hidden || token !== generation || !activeTurn) return;
     clearTimeout(timer);
     if (polls >= 60) {
-      status.textContent = "Mentor vẫn đang xử lý. Chọn Kiểm tra lại để xem kết quả.";
-      refresh.hidden = false;
+      status.textContent = "Mentor vẫn đang xử lý. Hãy đợi trong giây lát.";
+      if (refresh) refresh.hidden = false;
       return;
     }
     timer = setTimeout(
@@ -203,7 +205,7 @@
       var data = await request(turnUrl.replace(/\/0\/$/, "/" + encodeURIComponent(id) + "/"));
       if (token !== generation || id !== activeTurn || panel.hidden) return;
       failures = 0;
-      refresh.hidden = true;
+      if (refresh) refresh.hidden = true;
       truncated.hidden = !data.history_truncated;
       if (data.status === "pending" || data.status === "running") {
         status.textContent =
@@ -256,7 +258,7 @@
           },
           Math.min(3000 * Math.pow(2, failures), 12000),
         );
-      else refresh.hidden = false;
+      else if (refresh) refresh.hidden = false;
     }
   }
 
@@ -266,23 +268,23 @@
       var data = await request(sessionUrl);
       if (token !== generation || panel.hidden) return false;
       failures = 0;
-      refresh.hidden = true;
+      if (refresh) refresh.hidden = true;
       updateSession(data);
       if (ambiguous && !data.active_turn) {
         status.textContent = "Chưa xác nhận được câu hỏi đã gửi hay chưa.";
-        notify("Kiểm tra kết nối rồi chọn Gửi lại cùng yêu cầu; Mentor không tạo lượt hỏi trùng.");
-        refresh.hidden = false;
+        notify("Kiểm tra kết nối rồi thử lại.");
+        if (refresh) refresh.hidden = false;
       }
       return true;
     } catch (error) {
       if (token !== generation || panel.hidden || error.name === "AbortError") return false;
       available = false;
       controls();
-      refresh.hidden = false;
+      if (refresh) refresh.hidden = false;
       notify(
         error.code ? explain(error.code) : "Không tải được Mentor. Kiểm tra kết nối rồi thử lại.",
       );
-      refresh.hidden = false;
+      if (refresh) refresh.hidden = false;
       return false;
     }
   }
@@ -311,7 +313,7 @@
     submitting = true;
     pendingPayload = payload;
     controls();
-    refresh.hidden = true;
+    if (refresh) refresh.hidden = true;
     notify("");
     status.textContent = "Đang gửi câu hỏi…";
     try {
@@ -362,7 +364,7 @@
         ambiguous = null;
         pendingPayload = null;
         notify(explain(error.code));
-        if (["turn_in_progress", "idempotency_conflict"].includes(error.code))
+        if (["turn_in_progress", "idempotency_conflict"].includes(error.code) && refresh)
           refresh.hidden = false;
       } else {
         ambiguous = payload;
@@ -370,7 +372,7 @@
         notify(
           "Chưa xác nhận được yêu cầu đã gửi. Hãy kiểm tra trạng thái hoặc gửi lại cùng yêu cầu; mã và mã định danh của lượt này được giữ nguyên.",
         );
-        refresh.hidden = false;
+        if (refresh) refresh.hidden = false;
       }
       status.textContent = "Chưa xác nhận được yêu cầu này.";
     } finally {
@@ -427,24 +429,28 @@
     sizeQuestion();
   }
 
-  retry.addEventListener("click", function () {
-    if (ambiguous && available && !activeTurn && !submitting && !inFlight)
-      sendTurn(ambiguous, generation);
-  });
+  if (retry) {
+    retry.addEventListener("click", function () {
+      if (ambiguous && available && !activeTurn && !submitting && !inFlight)
+        sendTurn(ambiguous, generation);
+    });
+  }
 
-  refresh.addEventListener("click", function () {
-    if (inFlight) return;
-    refresh.hidden = true;
-    clearTimeout(timer);
-    failures = 0;
-    polls = 0;
-    loadSession(generation);
-  });
+  if (refresh) {
+    refresh.addEventListener("click", function () {
+      if (inFlight) return;
+      refresh.hidden = true;
+      clearTimeout(timer);
+      failures = 0;
+      polls = 0;
+      loadSession(generation);
+    });
+  }
   panel.addEventListener("mentor:open", function () {
     stop();
     status.textContent = "Đang tải hội thoại Mentor…";
     notify(failedMessage);
-    refresh.hidden = true;
+    if (refresh) refresh.hidden = true;
     loadSession(generation);
   });
   panel.addEventListener("mentor:close", stop);

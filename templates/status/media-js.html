@@ -4,6 +4,16 @@
         var table = $("#judge-status");
         table.tablesorter();
 
+        var scroll_region = table.closest('.judge-status-surface');
+        function update_scroll_focus() {
+            if (scroll_region[0].scrollWidth > scroll_region[0].clientWidth)
+                scroll_region.attr('tabindex', '0');
+            else
+                scroll_region.removeAttr('tabindex');
+        }
+        new ResizeObserver(update_scroll_focus).observe(table[0]);
+        update_scroll_focus();
+
         var tooltip_classes = 'tooltipped tooltipped-w';
         var active_judge = null;
         var active_lang = null;
@@ -15,11 +25,11 @@
         function install_tooltips() {
             $('.runtime-label').each(function () {
                 var link = $(this);
-                link.mouseenter(function (e) {
+                link.on('mouseenter focus', function (e) {
                     active_judge = link.attr('data-judge');
                     active_lang = link.attr('data-lang');
                     display_tooltip(link);
-                }).mouseleave(function (e) {
+                }).on('mouseleave blur', function (e) {
                     active_judge = active_lang = null;
                     link.removeClass(tooltip_classes).removeAttr('aria-label');
                 });

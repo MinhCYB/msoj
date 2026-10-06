@@ -63,6 +63,7 @@
   });
 </script>
 {% endif %} {% endblock %} {% block body %}
+<div class="submission-detail">
 <br />
 {% if not submission.language.file_only or request.user.is_superuser %}
 <div><a href="{{ url('submission_source', submission.id) }}">{{ _('View source') }}</a></div>
@@ -107,6 +108,7 @@ perms.judge.rejudge_submission and can_edit and not submission.is_locked %} {% c
 <br />
 
 <div id="test-cases">{% include "submission/status-testcases.html" %}</div>
+</div>
 
 {% if ai_review_panel %} {% include "submission/ai-review.html" %} {% endif %} {% if not
 submission.is_graded %} {% if (request.user == submission.user.user and not

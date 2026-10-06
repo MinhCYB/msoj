@@ -236,7 +236,7 @@
             {% if request.organization is not defined %}
                 <li class="home-nav-element"><a href="{{ url('home') }}">{% include "site-logo-fragment.html" %}</a></li>
                 <li class="home-nav-element"><span class="nav-divider"></span></li>
-                <li class="home-menu-item"><a href="{{ url('home') }}" class="nav-home">{{ _('Home') }}</a></li>
+                <li class="home-menu-item"><a href="{{ url('home') }}" class="nav-home{% if request.path == url('home') or 'home' in nav_tab %} active{% endif %}">{{ _('Home') }}</a></li>
                 {% for node in mptt_tree(nav_bar) recursive %}
                     <li>
                         <a href="{{ node.path }}" class="nav-{{ node.key }}{% if node.key in nav_tab %} active{% endif %}">
@@ -272,12 +272,12 @@
             <ul>
                 <li>
                     {% if request.user.is_superuser %}
-                        <a href="{{ url('misc_config') }}" style="margin-right: 5px;">
+                        <a href="{{ url('misc_config') }}">
                     {% else %}
-                        <a href="javascript:void(0)" style="margin-right: 5px;">
+                        <a href="javascript:void(0)">
                     {% endif %}
                         <span title="{{ _('Settings') }}">
-                            <i class="fa fa-gear" style="color: rgb(200,200,200); font-size: 1.15em"></i>
+                            <i class="fa fa-gear" style="font-size: 1.15em"></i>
                         </span>
                     </a>
                     <ul class="settings-popup" style="min-width: 210px; right: 0; left: auto;">
@@ -309,9 +309,9 @@
                     {% else %}
                         "/tickets/new?issue_url={{ request.build_absolute_uri()|urlencode }}"
                     {% endif %}
-                style="margin-right: 5px;">
+                >
                     <span title="{{ _('Report issue') }}">
-                        <i class="fa fa-exclamation-triangle" style="color: yellow;"></i>
+                        <i class="fa fa-exclamation-triangle"></i>
                     </span>
                 </a>
                 <ul id="notification-nav">
