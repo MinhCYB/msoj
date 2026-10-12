@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% from 'roadmap/nodes.html' import node with context %}
+{% block title_row %}{% endblock %}
+{% block title_ruler %}{% endblock %}
+{% block js_media %}<script src="{{ static('roadmap.js') }}" defer></script>{% endblock %}
+{% block body %}
+<section class="ms-roadmap" data-revision="{{ roadmap.tree_revision }}" data-api-root="{{ map_url }}">
+    <nav class="rm-breadcrumb" aria-label="Đường dẫn lộ trình">
+        <a href="{{ url('roadmap_list') }}">Lộ trình</a><span aria-hidden="true">/</span>
+        <a href="{{ map_url }}" {% if not focus %}aria-current="page"{% endif %}>{{ roadmap.title }}</a>
+        {% for ancestor in breadcrumb %}<span aria-hidden="true">/</span><a href="{{ map_url }}?focus={{ ancestor.pk }}" {% if loop.last %}aria-current="page"{% endif %}>{{ ancestor.title }}</a>{% endfor %}
+    </nav>
+    <header class="rm-header">
+        <p class="rm-eyebrow">BẢN ĐỒ KIẾN THỨC</p>
+        <h1 id="rm-heading" tabindex="-1">{{ focus.title if focus else roadmap.title }}</h1>
+        {% if focus %}<a href="{{ map_url }}">Quay lại toàn lộ trình</a>{% elif roadmap.introduction %}<p class="rm-introduction">{{ roadmap.introduction }}</p>{% endif %}
+        <p class="rm-help">Mở nhánh để khám phá chuyên đề. Vào học là thao tác riêng; AC chỉ phản ánh bài tập, không phải mức độ nắm vững lý thuyết.</p>
+        {% if not request.user.is_authenticated %}<p class="rm-guest"><a href="{{ url('auth_login') }}?next={{ request.get_full_path()|urlencode }}">Đăng nhập</a> để xem tiến độ AC của bạn.</p>{% endif %}
+    </header>
+    <div id="rm-roots" class="rm-page rm-map" data-endpoint="{{ map_url }}?format=json" {% if not focus and next_cursor %}data-next-cursor="{{ next_cursor }}"{% endif %}>
+        <ul class="rm-list rm-spine">
+        {% for item in nodes %}
+            {% if focus and item.has_children %}
+                {% call node(item, true) %}
+                    <ul class="rm-list">{% for child in children %}{{ node(child, parent_title=focus.title) }}{% endfor %}</ul>
+                    <p class="rm-status" role="status"></p><button type="button" class="button rm-retry" hidden>Thử lại</button>
+                    <button type="button" class="button rm-more" {% if not next_cursor %}hidden{% endif %}>Tải thêm node</button>
+                    {% if next_url %}<a class="rm-next-fallback" href="{{ next_url }}">Trang nhánh tiếp theo</a>{% endif %}
+                {% endcall %}
+            {% else %}{{ node(item) }}{% endif %}
+        {% else %}<li class="rm-empty">Lộ trình đang được bổ sung nội dung. <a href="{{ url('problem_list') }}">Luyện bài trong Problems</a>.</li>{% endfor %}
+        </ul>
+        <p class="rm-status" role="status"></p><button type="button" class="button rm-retry" hidden>Thử lại</button>
+        <button type="button" class="button rm-more" hidden>Tải thêm node</button>
+        {% if not focus and next_url %}<a class="rm-next-fallback" href="{{ next_url }}">Trang node tiếp theo</a>{% endif %}
+    </div>
+    <template id="rm-node-template">
+        <li class="rm-node"><div class="rm-row"><span class="rm-marker" aria-hidden="true"></span><div class="rm-summary">
+            <div class="rm-meta"><span class="rm-kind"></span><span class="rm-difficulty"></span><span class="rm-content-status" hidden>Sắp cập nhật</span></div>
+            <p class="rm-parent" hidden></p>
+            <a class="rm-title rm-focus"></a><div class="rm-progress"><span class="rm-progress-direct"></span><span class="rm-progress-subtree"></span></div>
+            <div class="rm-actions"><a class="button rm-learn" hidden>Vào học</a><button type="button" class="button rm-disclosure">Mở nhánh</button><a class="rm-focus rm-focus-link">Xem nhánh</a></div><p class="rm-depth-hint">Cây sâu? Chọn “Xem nhánh” để tập trung vào chuyên đề này.</p>
+        </div></div><div class="rm-branch rm-page" hidden><ul class="rm-list"></ul><p class="rm-status" role="status"></p><button type="button" class="button rm-retry" hidden>Thử lại</button><button type="button" class="button rm-more" hidden>Tải thêm node</button></div></li>
+    </template>
+</section>
+{% endblock %}

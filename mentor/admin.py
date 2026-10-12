@@ -13,10 +13,8 @@ from .models import (
     BrainstormSession,
     BrainstormTurn,
     ProblemHint,
-    RoadmapNode,
-    RoadmapPrerequisite,
-    Topic,
 )
+from . import roadmap_admin  # noqa: F401
 
 
 class ReadOnlyBrainstormAdmin(admin.ModelAdmin):
@@ -174,23 +172,6 @@ class AIReviewApproachInline(admin.TabularInline):
     model = AIReviewApproach
     extra = 0
 
-
-@admin.register(Topic)
-class TopicAdmin(admin.ModelAdmin):
-    list_display = ('name', 'slug')
-    search_fields = ('name', 'slug')
-
-
-@admin.register(RoadmapNode)
-class RoadmapNodeAdmin(admin.ModelAdmin):
-    list_display = ('title', 'topic', 'order', 'is_optional_review', 'organization')
-    list_filter = ('topic', 'is_optional_review', 'organization')
-    search_fields = ('title',)
-
-
-@admin.register(RoadmapPrerequisite)
-class RoadmapPrerequisiteAdmin(admin.ModelAdmin):
-    list_display = ('node', 'prerequisite')
 
 
 @admin.register(BrainstormSession)

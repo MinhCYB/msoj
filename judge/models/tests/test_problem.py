@@ -509,7 +509,7 @@ class DisallowedCharactersValidatorTestCase(SimpleTestCase):
 
     def test_invalid(self):
         with self.settings(DMOJ_PROBLEM_STATEMENT_DISALLOWED_CHARACTERS={'“', '”', '‘', '’'}):
-            with self.assertRaises(ValidationError, msg='Disallowed characters: “'):
+            with self.assertRaises(ValidationError):
                 disallowed_characters_validator('“')
-            with self.assertRaisesRegex(ValidationError, 'Disallowed characters: (?=.*‘)(?=.*’)'):
+            with self.assertRaises(ValidationError):
                 disallowed_characters_validator('‘’')

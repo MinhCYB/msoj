@@ -133,6 +133,11 @@ class ProblemSolution(SolvedProblemMixin, ProblemMixin, TitleMixin, CommentedDet
     context_object_name = 'problem'
     template_name = 'problem/editorial.html'
 
+    def get_template_names(self):
+        if self.request.GET.get('workspace') == '1':
+            return ['problem/editorial-workspace.html']
+        return super().get_template_names()
+
     def get_title(self):
         return _('Editorial for {0}').format(self.object.name)
 

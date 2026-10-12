@@ -1,0 +1,86 @@
+<div class="submission-feed ms-workspace-submission-feed">
+  <aside class="ms-workspace-submission-filters">
+    <h2>{{ _('Filter submissions') }}</h2>
+    <form class="ms-workspace-submission-filter-form" method="get">
+      <div class="filter-form-group">
+        <label for="workspace-status">{{ _('Status') }}</label>
+        <select
+          id="workspace-status"
+          name="status"
+          {%
+          if
+          not
+          is_in_low_power_mode
+          %}
+          multiple{%
+          endif
+          %}
+        >
+          {% if is_in_low_power_mode %}
+          <option value="">{{ _('All') }}</option>
+          {% endif %} {% for id, name in all_statuses %}
+          <option value="{{ id }}" {% if id in selected_statuses %} selected{% endif %}>
+            {{ name }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="filter-form-group">
+        <label for="workspace-language">{{ _('Language') }}</label>
+        <select
+          id="workspace-language"
+          name="language"
+          {%
+          if
+          not
+          is_in_low_power_mode
+          %}
+          multiple{%
+          endif
+          %}
+        >
+          {% if is_in_low_power_mode %}
+          <option value="">{{ _('All') }}</option>
+          {% endif %} {% for code, name in all_languages %}
+          <option value="{{ code }}" {% if code in selected_languages %} selected{% endif %}>
+            {{ name }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      {% if not is_in_low_power_mode %}
+      <div class="filter-form-group">
+        <label for="workspace-organization">{{ _('Organization') }}</label>
+        <select id="workspace-organization" name="organization">
+          <option value="">{{ _('All') }}</option>
+          {% for code, name in all_organizations %}
+          <option value="{{ code }}"{% if code == selected_organization %} selected{% endif %}>
+            {{ name }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endif %}
+      <button type="submit" class="button">{{ _('Go') }}</button>
+    </form>
+  </aside>
+  <div class="ms-workspace-submission-results">
+    {% if page_obj.has_other_pages() %}
+    <div class="top-pagination-bar">{% include "list-pages.html" %}</div>
+    {% endif %}
+    <div class="ms-workspace-submission-rows" id="submissions-table">
+      {% set profile_id = request.profile.id if request.user.is_authenticated else 0 %} {% for
+      submission in submissions %}
+      <div class="submission-row" id="{{ submission.id }}">
+        {% with problem_name=show_problem and (submission.problem.i18n_name or
+        submission.problem.name) %} {% include "submission/row.html" %} {% endwith %}
+      </div>
+      {% else %}
+      <p class="ms-workspace-empty">{{ _('No submissions found.') }}</p>
+      {% endfor %}
+    </div>
+    {% if page_obj.has_other_pages() %}
+    <div class="bottom-pagination-bar">{% include "list-pages.html" %}</div>
+    {% endif %}
+  </div>
+</div>

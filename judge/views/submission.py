@@ -371,6 +371,11 @@ class SubmissionsListBase(DiggPaginatorMixin, TitleMixin, ListView):
     context_object_name = 'submissions'
     first_page_href = None
 
+    def get_template_names(self):
+        if self.request.GET.get('workspace') == '1':
+            return ['submission/workspace-list.html']
+        return super().get_template_names()
+
     def get_result_data(self):
         result = self._get_result_data()
         for category in result['categories']:
@@ -495,6 +500,12 @@ class SubmissionsListBase(DiggPaginatorMixin, TitleMixin, ListView):
 
         context['page_suffix'] = suffix = ('?' + self.request.GET.urlencode()) if self.request.GET else ''
         context['first_page_href'] = (self.first_page_href or '.') + suffix
+        if self.request.GET.get('workspace') == '1':
+            page_query = self.request.GET.copy()
+            page_query.pop(self.page_kwarg, None)
+            page_query = page_query.urlencode()
+            context['first_page_href'] = self.request.path + (('?' + page_query) if page_query else '')
+            context['page_prefix'] = self.request.path + '?' + page_query + ('&' if page_query else '') + self.page_kwarg + '='
         context['my_submissions_link'] = self.get_my_submissions_page()
         context['all_submissions_link'] = self.get_all_submissions_page()
         context['is_in_low_power_mode'] = self.is_in_low_power_mode()

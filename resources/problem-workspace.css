@@ -1173,14 +1173,13 @@ body:has(.ms-workspace) .problem-title .view-pdf {
   padding-top: 0;
 }
 .ms-workspace-comments .problem-tabs {
-  border-bottom: 1px solid var(--ws-border);
+  display: none;
 }
 .ms-workspace-comments .problem-tabs a {
   font-weight: 700;
 }
 .ms-workspace-comments .comment-area > h2 {
-  margin: 0 0 12px;
-  font-size: 23px;
+  display: none;
 }
 .ms-workspace-comments .comment-area > hr {
   margin: 10px 0;
@@ -1507,6 +1506,9 @@ body:has(.ms-workspace) .problem-title .view-pdf {
   .ms-workspace-main {
     width: 100%;
   }
+  .ms-workspace-submission-feed {
+    grid-template-columns: minmax(0, 1fr);
+  }
   .ms-workspace .ms-workspace-grid {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -1516,8 +1518,101 @@ body:has(.ms-workspace) .problem-title .view-pdf {
 }
 
 .ms-workspace-grid[hidden],
-.ms-workspace-comments[hidden] {
+.ms-workspace-comments[hidden],
+.ms-workspace-submissions[hidden],
+.ms-workspace-editorial[hidden] {
   display: none !important;
+}
+
+.ms-workspace-submissions,
+.ms-workspace-editorial {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.ms-workspace-submissions {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid var(--ws-border);
+  border-radius: 8px;
+  background: var(--ws-bg);
+}
+.ms-workspace-submission-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--ws-border);
+  background: var(--ws-bg);
+}
+.ms-workspace-submission-tabs a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 0 14px;
+  color: var(--ws-muted);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+}
+.ms-workspace-submission-tabs a:hover,
+.ms-workspace-submission-tabs a[aria-current="page"] {
+  color: var(--ws-accent);
+}
+.ms-workspace-submission-tabs a[aria-current="page"] {
+  border-bottom-color: var(--ws-accent);
+  font-weight: 600;
+}
+.ms-workspace-submissions-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 14px;
+}
+.ms-workspace-submission-feed {
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+  gap: 16px;
+}
+.ms-workspace-submission-filters,
+.ms-workspace-submission-results {
+  min-width: 0;
+}
+.ms-workspace-submission-filters {
+  padding: 12px;
+  border: 1px solid var(--ws-border);
+  border-radius: 8px;
+  background: var(--ws-bg);
+}
+.ms-workspace-submission-filters h2 {
+  margin: 0 0 12px;
+  font-size: 16px;
+}
+.ms-workspace-submission-filter-form {
+  display: grid;
+  gap: 10px;
+}
+.ms-workspace-submission-filter-form select {
+  width: 100%;
+  min-height: 36px;
+}
+.ms-workspace-submission-results .top-pagination-bar,
+.ms-workspace-submission-results .bottom-pagination-bar {
+  margin: 8px 0;
+}
+.ms-workspace-empty {
+  padding: 20px;
+  color: var(--ws-muted);
+  text-align: center;
+}
+.ms-workspace-editorial-content {
+  max-width: 1100px;
+  margin: 0 auto;
 }
 
 /* The desktop problem workspace uses the visible viewport, with pane-local scrolling. */

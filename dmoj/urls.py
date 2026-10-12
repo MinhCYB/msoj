@@ -113,6 +113,7 @@ urlpatterns = [
     # URL Shortener management (on main domain)
     path('shorteners/', include('urlshortener.urls')),
     path('mentor/', include('mentor.urls')),
+    path('', include('mentor.roadmap_urls')),
 
     path('problems', include([
         path('/', problem.ProblemList.as_view(), name='problem_list'),

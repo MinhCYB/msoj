@@ -6,6 +6,7 @@ from django.db.models import F, Q
 from django.utils import timezone
 
 from .constants import IDLE_TIMEOUT_SECONDS, compute_hint_level
+from .roadmap_models import LearningTopic, NodeProblem, Roadmap, RoadmapNode, RoadmapPrerequisite, TopicLesson
 
 
 # Policy templates are instructions; referenced application data is rendered in
@@ -128,54 +129,6 @@ class ProblemHint(models.Model):
             raise ValidationError({'content': 'A hint cannot be empty.'})
 
 
-class Topic(models.Model):
-    name = models.CharField(max_length=100)
-    slug = models.SlugField(max_length=100, unique=True)
-    description = models.TextField(blank=True)
-
-    def __str__(self):
-        return self.name
-
-
-class RoadmapNode(models.Model):
-    topic = models.ForeignKey(Topic, on_delete=models.CASCADE, related_name='roadmap_nodes')
-    problem = models.ForeignKey(
-        'judge.Problem',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='mentor_roadmap_nodes',
-    )
-    title = models.CharField(max_length=200)
-    order = models.PositiveIntegerField(default=0)
-    is_optional_review = models.BooleanField(
-        default=False,
-        help_text='Đánh dấu thủ công bởi admin: đây là node ôn tập phụ, không thuộc lộ trình chính bắt buộc',
-    )
-    organization = models.ForeignKey(
-        'judge.Organization',
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        related_name='mentor_roadmap_nodes',
-    )
-
-    class Meta:
-        ordering = ['order']
-
-    def __str__(self):
-        return f'{self.order}. {self.title}'
-
-
-class RoadmapPrerequisite(models.Model):
-    node = models.ForeignKey(RoadmapNode, on_delete=models.CASCADE, related_name='prerequisites')
-    prerequisite = models.ForeignKey(RoadmapNode, on_delete=models.CASCADE, related_name='required_by')
-
-    class Meta:
-        unique_together = ('node', 'prerequisite')
-
-    def __str__(self):
-        return f'{self.node} requires {self.prerequisite}'
 
 
 class BrainstormSession(models.Model):

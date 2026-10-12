@@ -1,0 +1,11 @@
+{% extends 'roadmap/learning-base.html' %}
+{% block learning_content %}
+<article aria-labelledby="rm-theory-heading"><h2 id="rm-theory-heading">Nội dung bài học</h2>{{ prose(lesson_data.lesson.body) }}</article>
+<nav class="rm-lesson-navigation" aria-label="Điều hướng bài học">
+    {% if lesson_data.navigation.prev_lesson_url %}<a class="button" href="{{ lesson_data.navigation.prev_lesson_url }}">Bài trước</a>{% endif %}
+    <a href="{{ learn_url }}">Danh sách bài học</a>
+    {% if lesson_data.navigation.next_lesson_url %}<a class="button" href="{{ lesson_data.navigation.next_lesson_url }}">Bài tiếp theo</a>{% endif %}
+</nav>
+<details class="rm-lesson-directory"><summary>Danh sách bài học của chuyên đề</summary><ol class="rm-lesson-list">{% for lesson in learning.lessons %}<li><a href="{{ lesson.lesson_url }}" {% if lesson.id == lesson_data.lesson.id %}aria-current="page"{% endif %}>{{ lesson.title }}</a></li>{% endfor %}</ol></details>
+{% include 'roadmap/exercises.html' %}
+{% endblock %}

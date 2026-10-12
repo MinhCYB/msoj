@@ -4,9 +4,13 @@ from unittest.mock import Mock
 from django.contrib.admin.sites import AdminSite
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.db import IntegrityError, transaction
-from django.test import TestCase, TransactionTestCase
+from copy import deepcopy
+from uuid import uuid4
+from django.db import IntegrityError, connections, transaction
+from django.db.migrations.executor import MigrationExecutor
+from django.test import TestCase, TransactionTestCase, override_settings
 from django.utils import timezone
+from .tests_roadmap_migrations import RehearsalRouter
 
 from judge.models import Contest, ContestParticipation, Language, Problem, ProblemGroup, Profile
 
@@ -192,45 +196,65 @@ class BrainstormSchemaTests(TestCase):
 
 class BrainstormMigrationTests(TransactionTestCase):
     """Exercise backfill on an actual pre-3A database, including legacy STUB rows."""
+    databases = {'default'}
+
+    def setUp(self):
+        super().setUp()
+        default = connections['default']
+        if default.vendor != 'mysql':
+            self.skipTest('Migration rehearsal uses the deployment-compatible MySQL backend.')
+        self.database_name = 'test_brainstorm_mig_' + uuid4().hex[:12]
+        self.alias = 'brainstorm_migration'
+        config = deepcopy(default.settings_dict)
+        config['NAME'] = self.database_name
+        config['TEST']['MIRROR'] = None
+        with default.cursor() as cursor:
+            cursor.execute(f'CREATE DATABASE `{self.database_name}` CHARACTER SET utf8mb4')
+        connections.databases[self.alias] = config
+        self.db = connections[self.alias]
+        self.addCleanup(self.cleanup_database)
+        self.old = [('mentor', '0003_review_provider_call_started_at')]
+        self.new = [('mentor', '0004_brainstormcall_brainstormcontestconfig_and_more')]
+        executor = MigrationExecutor(self.db)
+        with override_settings(DATABASE_ROUTERS=[RehearsalRouter(self.alias)]):
+            executor.migrate(self.old)
+        self.old_apps = executor.loader.project_state(self.old).apps
+
+    def cleanup_database(self):
+        self.db.close()
+        del connections[self.alias]
+        del connections.databases[self.alias]
+        with connections['default'].cursor() as cursor:
+            cursor.execute(f'DROP DATABASE `{self.database_name}`')
 
     def test_backfill_preserves_messages_as_unapproved(self):
-        from django.db.migrations.executor import MigrationExecutor
-        from django.db import connection
-
-        old = [('mentor', '0003_review_provider_call_started_at')]
-        new = [('mentor', '0004_brainstormcall_brainstormcontestconfig_and_more')]
-        executor = MigrationExecutor(connection)
-        original_targets = executor.loader.graph.leaf_nodes()
-        executor.migrate(old)
-        try:
-            apps = executor.loader.project_state(old).apps
+        with override_settings(DATABASE_ROUTERS=[RehearsalRouter(self.alias)]):
+            apps = self.old_apps
             UserModel = apps.get_model('auth', 'User')
             ProfileModel = apps.get_model('judge', 'Profile')
             GroupModel = apps.get_model('judge', 'ProblemGroup')
             ProblemModel = apps.get_model('judge', 'Problem')
             SessionModel = apps.get_model('mentor', 'BrainstormSession')
             MessageModel = apps.get_model('mentor', 'BrainstormMessage')
-            user = UserModel.objects.create(username='migration-scope-owner')
-            profile = ProfileModel.objects.create(user=user)
-            group = GroupModel.objects.create(name='migration-scope', full_name='Migration scope')
-            problem = ProblemModel.objects.create(code='MIG_SCOPE', name='Migration scope', group=group,
-                                                  time_limit=1, memory_limit=65536, points=100)
-            session = SessionModel.objects.create(profile=profile, problem=problem)
-            message = MessageModel.objects.create(session=session, role='ai', content='[STUB] old response',
-                                                  hint_level_granted=1)
-            executor = MigrationExecutor(connection)
-            executor.migrate(new)
-            apps = executor.loader.project_state(new).apps
-            updated = apps.get_model('mentor', 'BrainstormSession').objects.get(pk=session.pk)
-            migrated = apps.get_model('mentor', 'BrainstormMessage').objects.get(pk=message.pk)
+            user = UserModel.objects.using(self.alias).create(username='migration-scope-owner')
+            profile = ProfileModel.objects.using(self.alias).create(user=user)
+            group = GroupModel.objects.using(self.alias).create(name='migration-scope', full_name='Migration scope')
+            problem = ProblemModel.objects.using(self.alias).create(code='MIG_SCOPE', name='Migration scope', group=group,
+                                                                  time_limit=1, memory_limit=65536, points=100)
+            session = SessionModel.objects.using(self.alias).create(profile=profile, problem=problem)
+            message = MessageModel.objects.using(self.alias).create(session=session, role='ai', content='[STUB] old response',
+                                                                  hint_level_granted=1)
+            executor = MigrationExecutor(self.db)
+            executor.migrate(self.new)
+            apps = executor.loader.project_state(self.new).apps
+            updated = apps.get_model('mentor', 'BrainstormSession').objects.using(self.alias).get(pk=session.pk)
+            migrated = apps.get_model('mentor', 'BrainstormMessage').objects.using(self.alias).get(pk=message.pk)
             self.assertEqual(updated.scope_key, 'practice')
             self.assertIsNone(updated.participation_id)
             self.assertEqual(migrated.content, '[STUB] old response')
             self.assertTrue(migrated.is_legacy_stub)
             self.assertIsNone(migrated.turn_id)
-        finally:
-            MigrationExecutor(connection).migrate(original_targets)
-            with connection.cursor() as cursor:
+            with self.db.cursor() as cursor:
                 self.assertIn('provider_call_started_at',
-                              [column.name for column in connection.introspection.get_table_description(
+                              [column.name for column in self.db.introspection.get_table_description(
                                   cursor, 'mentor_aireviewattempt')])

@@ -6,8 +6,10 @@
   var rail = workspace.querySelector(".ms-workspace-rail");
   var main = workspace.querySelector(".ms-workspace-main");
   var comments = workspace.querySelector(".ms-workspace-comments");
-  var statementLink = rail.querySelector('a[href="#ms-statement"]');
-  var commentsLink = rail.querySelector('a[href="#comments"]');
+  var submissions = main.querySelector(".ms-workspace-submissions");
+  var submissionsContent = main.querySelector(".ms-workspace-submissions-content");
+  var editorial = main.querySelector(".ms-workspace-editorial");
+  var submissionLinks = Array.from(main.querySelectorAll("[data-submission-kind]"));
   var grid = main.querySelector(".ms-workspace-grid");
   var divider = grid.querySelector(".ms-workspace-divider");
   var editorToggle = divider.querySelector(".ms-editor-toggle");
@@ -64,39 +66,200 @@
       endResize();
     }
   });
-  function showPane(showComments) {
-    comments.hidden = !showComments;
-    grid.hidden = showComments;
-    statementLink.removeAttribute("aria-current");
-    commentsLink.removeAttribute("aria-current");
-    (showComments ? commentsLink : statementLink).setAttribute("aria-current", "page");
-    if (showComments && window.jQuery) {
-      var load = window.jQuery("#comments").data("load-comments");
-      if (load) load();
-    }
+  var loadedFragments = Object.create(null);
+  var pendingRequests = Object.create(null);
+  var activeFragmentUrls = Object.create(null);
+  var activeSubmissionKind = main.dataset.submissionsMineUrl ? "mine" : "all";
+  function isSubmissionTab(tab) {
+    return tab === "submission" || tab === "submission-all" || tab === "submission-best";
   }
-  [statementLink, commentsLink].forEach(function (link) {
-    link.addEventListener("click", function (event) {
-      event.preventDefault();
-      showPane(link === commentsLink);
-      history.pushState(null, "", link.getAttribute("href"));
+  function submissionKindForTab(tab) {
+    if (tab === "submission-all") return "all";
+    if (tab === "submission-best") return "best";
+    return main.dataset.submissionsMineUrl ? "mine" : "all";
+  }
+  function setCurrentTab(tab) {
+    var isStatement = tab === "statement";
+    var isComments = tab === "comments" || /^comment-\d+$/.test(tab);
+    var isSubmissions = isSubmissionTab(tab);
+    var isEditorial = tab === "editorial";
+    if (isSubmissions) activeSubmissionKind = submissionKindForTab(tab);
+    grid.hidden = !isStatement;
+    comments.hidden = !isComments;
+    submissions.hidden = !isSubmissions;
+    editorial.hidden = !isEditorial;
+
+    rail.querySelectorAll("[data-workspace-tab]").forEach(function (link) {
+      var active =
+        link.dataset.workspaceTab === tab ||
+        (link.dataset.workspaceTab === "comments" && isComments) ||
+        (link.dataset.workspaceTab === "submission" && isSubmissions);
+      if (active) link.setAttribute("aria-current", "page");
+      else link.removeAttribute("aria-current");
     });
-  });
-  function openHash() {
-    var hash = location.hash;
-    if (hash === "#comments" || /^#comment-\d+$/.test(hash)) {
-      if (hash !== "#comments" && window.jQuery) {
-        var pending = window.jQuery("#comments").data("set-pending-scroll");
-        if (pending) pending(hash);
+    submissionLinks.forEach(function (link) {
+      var selected =
+        link.dataset.workspaceTab === tab ||
+        (tab === "submission" && link.dataset.submissionKind === activeSubmissionKind);
+      if (selected) link.setAttribute("aria-current", "page");
+      else link.removeAttribute("aria-current");
+    });
+
+    if (isComments && window.jQuery) {
+      var $comments = window.jQuery("#comments").first();
+      if (/^comment-\d+$/.test(tab)) {
+        var pending = $comments.data("set-pending-scroll");
+        if (pending) pending("#" + tab);
+        var comment = document.getElementById(tab);
+        if (comment)
+          requestAnimationFrame(function () {
+            comment.scrollIntoView({ block: "start" });
+          });
       }
-      showPane(true);
-    } else if (hash === "#ms-statement" || !hash) {
-      showPane(!!workspace.dataset.commentErrors && !hash);
+      var loadComments = $comments.data("load-comments");
+      if (loadComments) loadComments();
+    }
+    if (isSubmissions) loadWorkspaceFragment(tab);
+    if (isEditorial) loadWorkspaceFragment(tab);
+    if (isStatement && window.ace) {
+      var aceNode = editor.querySelector(".ace_editor");
+      if (aceNode && ace.edit)
+        requestAnimationFrame(function () {
+          ace.edit(aceNode).resize();
+        });
     }
   }
-  window.addEventListener("hashchange", openHash);
-  window.addEventListener("popstate", openHash);
-  openHash();
+
+  function fragmentUrl(tab) {
+    var key =
+      tab === "editorial"
+        ? "editorialUrl"
+        : "submissions" +
+          activeSubmissionKind[0].toUpperCase() +
+          activeSubmissionKind.slice(1) +
+          "Url";
+    var value = main.dataset[key];
+    if (!value) return null;
+    var url = new URL(value, window.location.href);
+    if (tab !== "editorial") url.searchParams.set("workspace", "1");
+    return url.toString();
+  }
+
+  function loadWorkspaceFragment(tab, requestedUrl) {
+    var target = tab === "editorial" ? editorial : submissionsContent;
+    var url = requestedUrl || activeFragmentUrls[tab] || fragmentUrl(tab);
+    var requestKind = tab === "editorial" ? null : activeSubmissionKind;
+    if (!url) {
+      target.textContent = main.dataset.workspaceError;
+      return;
+    }
+    if (loadedFragments[url]) {
+      target.innerHTML = loadedFragments[url];
+      initializeWorkspaceFragment(target);
+      return;
+    }
+    if (pendingRequests[url]) return;
+
+    target.textContent = main.dataset.workspaceLoading;
+    activeFragmentUrls[tab] = url;
+    pendingRequests[url] = true;
+    fetch(url, { credentials: "same-origin", headers: { "X-Requested-With": "XMLHttpRequest" } })
+      .then(function (response) {
+        if (!response.ok) throw new Error("Workspace fragment request failed");
+        return response.text();
+      })
+      .then(function (html) {
+        delete pendingRequests[url];
+        loadedFragments[url] = html;
+        // A response may finish after the user selected another view. Keep it
+        // cached, but don't replace the content of the now-active view.
+        var activeHash = window.location.hash.slice(1) || "statement";
+        if (
+          (tab === "editorial" && activeHash !== "editorial") ||
+          (tab !== "editorial" &&
+            (!isSubmissionTab(activeHash) || activeSubmissionKind !== requestKind))
+        )
+          return;
+        activeFragmentUrls[activeHash] = url;
+        target.innerHTML = html;
+        initializeWorkspaceFragment(target);
+        if (window.MathJax && window.MathJax.typesetPromise)
+          window.MathJax.typesetPromise([target]);
+      })
+      .catch(function () {
+        delete pendingRequests[url];
+        var activeHash = window.location.hash.slice(1) || "statement";
+        if (
+          (tab === "editorial" && activeHash === "editorial") ||
+          (tab !== "editorial" &&
+            isSubmissionTab(activeHash) &&
+            activeSubmissionKind === requestKind)
+        )
+          target.textContent = main.dataset.workspaceError;
+      });
+  }
+
+  function initializeWorkspaceFragment(target) {
+    target.querySelectorAll(".ms-workspace-submission-filter-form").forEach(function (form) {
+      form.addEventListener("submit", function (event) {
+        event.preventDefault();
+        var currentTab = window.location.hash.slice(1) || "submission";
+        var url = new URL(fragmentUrl(currentTab), window.location.href);
+        url.search = new URLSearchParams(new FormData(form)).toString();
+        url.searchParams.set("workspace", "1");
+        loadWorkspaceFragment(currentTab, url.toString());
+      });
+    });
+    target.querySelectorAll(".pagination a").forEach(function (link) {
+      link.addEventListener("click", function (event) {
+        event.preventDefault();
+        loadWorkspaceFragment(window.location.hash.slice(1) || "submission", link.href);
+      });
+    });
+  }
+
+  function currentTabFromHash() {
+    var hash = location.hash.replace(/^#/, "");
+    if (hash === "" || hash === "ms-statement" || hash === "statement") return "statement";
+    if (hash === "comments" || /^comment-\d+$/.test(hash)) return hash;
+    if (hash === "submission")
+      return main.dataset.submissionsMineUrl ? "submission" : "submission-all";
+    if (hash === "submission-all" || hash === "submission-best") {
+      var key = hash === "submission-all" ? "submissionsAllUrl" : "submissionsBestUrl";
+      if (!main.dataset[key])
+        return main.dataset.submissionsMineUrl ? "submission" : "submission-all";
+      return hash;
+    }
+    if (hash === "editorial") return main.dataset.editorialUrl ? hash : "statement";
+    return "statement";
+  }
+
+  function navigateTab(tab, replace) {
+    if (isSubmissionTab(tab)) activeSubmissionKind = submissionKindForTab(tab);
+    var hash = "#" + tab;
+    if (location.hash !== hash) {
+      if (replace) history.replaceState(null, "", hash);
+      else history.pushState(null, "", hash);
+    }
+    setCurrentTab(tab);
+  }
+
+  function restoreTabFromHistory() {
+    setCurrentTab(currentTabFromHash());
+  }
+  window.addEventListener("hashchange", restoreTabFromHistory);
+  window.addEventListener("popstate", restoreTabFromHistory);
+  var initialTab = currentTabFromHash();
+  if (isSubmissionTab(initialTab)) activeSubmissionKind = submissionKindForTab(initialTab);
+  if (initialTab === "statement" && workspace.dataset.commentErrors && !location.hash)
+    initialTab = "comments";
+  if (
+    (!location.hash && initialTab !== "statement") ||
+    location.hash === "#submissions" ||
+    (location.hash && location.hash !== "#" + initialTab)
+  )
+    navigateTab(initialTab, true);
+  else setCurrentTab(initialTab);
 
   function sizeWorkspace() {
     var top = workspace.getBoundingClientRect().top;

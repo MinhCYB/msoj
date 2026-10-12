@@ -1,0 +1,28 @@
+{% macro progress(value, label) -%}
+    {% if value.state == 'available' %}{{ label }}: AC {{ value.solved }}/{{ value.total }}
+    {% elif value.state == 'anonymous' %}Đăng nhập để xem AC
+    {% elif value.state == 'empty' %}Chưa có bài tập
+    {% else %}Tiến độ tạm không khả dụng{% endif %}
+{%- endmacro %}
+{% macro node(item, opened=false, parent_title='') %}
+<li class="rm-node" data-node-id="{{ item.id }}" data-type="{{ item.type }}" data-title="{{ item.title }}" data-content-state="{{ item.content_state }}">
+    <div class="rm-row">
+        <span class="rm-marker" aria-hidden="true"></span>
+        <div class="rm-summary">
+            <div class="rm-meta"><span class="rm-kind">{{ 'Nhóm kiến thức' if item.type == 'GROUP' else 'Chuyên đề' }}</span><span class="rm-difficulty">{{ {'BASIC': 'Cơ bản', 'INTERMEDIATE': 'Trung cấp', 'ADVANCED': 'Nâng cao'}.get(item.difficulty, '') }}</span><span class="rm-content-status" {% if item.content_state != 'UPCOMING' %}hidden{% endif %}>Sắp cập nhật</span></div>
+            {% if parent_title %}<p class="rm-parent">Thuộc: {{ parent_title }}</p>{% endif %}
+            <a class="rm-title rm-focus" href="{{ item.focus_url }}">{{ item.title }}</a>
+            <div class="rm-progress"><span class="rm-progress-direct" data-state="{{ item.progress.state }}" data-complete="{{ 'true' if item.progress.state == 'available' and item.progress.total and item.progress.solved == item.progress.total else 'false' }}">{{ progress(item.progress, 'Bài tập') }}</span><span class="rm-progress-subtree" {% if not item.has_children or item.subtree_progress.state == 'anonymous' %}hidden{% endif %}>{{ progress(item.subtree_progress, 'Cả nhánh') }}</span></div>
+            <div class="rm-actions">
+                <a class="button rm-learn" {% if item.learn_url %}href="{{ item.learn_url }}"{% else %}hidden{% endif %}>Vào học<span class="rm-sr"> {{ item.title }}</span></a>
+                {% if item.has_children %}<button type="button" class="button rm-disclosure" hidden aria-expanded="{{ 'true' if opened else 'false' }}" aria-controls="rm-children-{{ item.id }}" aria-label="{{ 'Thu' if opened else 'Mở' }} nhánh {{ item.title }}">{{ 'Thu nhánh' if opened else 'Mở nhánh' }}</button>{% endif %}
+                {% if item.has_children %}<a class="rm-focus rm-focus-link" href="{{ item.focus_url }}">Xem nhánh<span class="rm-sr"> {{ item.title }}</span></a>{% endif %}
+            </div>
+            {% if item.has_children %}<p class="rm-depth-hint">Cây sâu? Chọn “Xem nhánh” để tập trung vào chuyên đề này.</p>{% endif %}
+        </div>
+    </div>
+    {% if item.has_children %}<div class="rm-branch rm-page" id="rm-children-{{ item.id }}" data-parent-id="{{ item.id }}" data-endpoint="{{ url('roadmap_node_children', roadmap.slug, item.id) }}" {% if opened %}data-loaded="true" data-next-cursor="{{ next_cursor or '' }}"{% else %}hidden{% endif %}>
+        {% if caller is defined %}{{ caller() }}{% else %}<ul class="rm-list"></ul><p class="rm-status" role="status"></p><button type="button" class="button rm-retry" hidden>Thử lại</button><button type="button" class="button rm-more" hidden>Tải thêm node</button>{% endif %}
+    </div>{% endif %}
+</li>
+{% endmacro %}

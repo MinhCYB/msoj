@@ -4,7 +4,7 @@ from django.http import Http404
 from django.test import RequestFactory, TestCase
 from django.utils import timezone
 
-from judge.models import Contest, Language, Submission
+from judge.models import Contest, Language, Solution, Submission
 from judge.models.tests.util import (
     CommonDataMixin,
     create_contest,
@@ -942,6 +942,18 @@ class ProblemSubmissionsTestCase(CommonDataMixin, TestCase):
 
         cls.public_problem = create_problem(code='public_problem', is_public=True)
         cls.other_problem = create_problem(code='other_problem', is_public=True)
+        Solution.objects.create(
+            problem=cls.public_problem,
+            is_public=True,
+            publish_on=cls._now - timezone.timedelta(days=1),
+            content='Public workspace editorial',
+        )
+        Solution.objects.create(
+            problem=cls.other_problem,
+            is_public=False,
+            publish_on=cls._now + timezone.timedelta(days=1),
+            content='Private workspace editorial',
+        )
 
         # Create submissions for different problems
         cls.sub_public_problem = Submission.objects.create(
@@ -950,6 +962,8 @@ class ProblemSubmissionsTestCase(CommonDataMixin, TestCase):
             language=Language.get_python3(),
             result='AC',
             status='D',
+            time=0.01,
+            memory=1024,
         )
 
         cls.sub_other_problem = Submission.objects.create(
@@ -1013,6 +1027,43 @@ class ProblemSubmissionsTestCase(CommonDataMixin, TestCase):
         # Should only include submissions for public_problem
         self.assertIn(self.sub_public_problem.id, submission_ids)
         self.assertNotIn(self.sub_other_problem.id, submission_ids)
+
+    def test_workspace_request_returns_submission_fragment(self):
+        self.client.force_login(self.users['superuser'])
+
+        response = self.client.get(
+            f'/problem/{self.public_problem.code}/submissions/',
+            {'workspace': '1'},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'submission/workspace-list.html')
+        self.assertContains(response, 'ms-workspace-submission-feed')
+        self.assertContains(response, str(self.sub_public_problem.id))
+        self.assertNotContains(response, '<html')
+
+    def test_public_editorial_workspace_request_returns_fragment(self):
+        self.client.force_login(self.users['normal'])
+
+        response = self.client.get(
+            f'/problem/{self.public_problem.code}/editorial',
+            {'workspace': '1'},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'problem/editorial-workspace.html')
+        self.assertContains(response, 'Public workspace editorial')
+        self.assertNotContains(response, '<html')
+
+    def test_workspace_request_cannot_expose_private_editorial(self):
+        self.client.force_login(self.users['normal'])
+
+        response = self.client.get(
+            f'/problem/{self.other_problem.code}/editorial',
+            {'workspace': '1'},
+        )
+
+        self.assertEqual(response.status_code, 404)
 
     def test_global_access_to_super_private_problem_not_in_current_contest(self):
         """

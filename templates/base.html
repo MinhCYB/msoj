@@ -250,6 +250,9 @@
                         {% endwith %}
                     </li>
                 {% endfor %}
+                {% if not nav_bar|selectattr('path', 'equalto', url('roadmap_list'))|list %}
+                    <li><a href="{{ url('roadmap_list') }}" class="nav-roadmap{% if request.path.startswith('/roadmap/') or request.path == url('roadmap_list') %} active{% endif %}">Lộ trình</a></li>
+                {% endif %}
             {% else %}
                 {% macro make_navbar_item(key, url, text) %}
                     <li>

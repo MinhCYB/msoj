@@ -6,7 +6,7 @@
     {% if request.user.is_authenticated and form %}
         {{ form.media.css }}
     {% endif %}
-    <link rel="stylesheet" href="{{ static('problem-workspace.css') }}?v=17">
+    <link rel="stylesheet" href="{{ static('problem-workspace.css') }}?v=19">
     <style>
         .title-state {
             font-size: 2em;
@@ -68,7 +68,7 @@
     {% if request.user.is_authenticated and form %}
         {% include "problem/submit-js.html" %}
     {% endif %}
-    <script defer src="{{ static('problem-workspace.js') }}?v=8"></script>
+    <script defer src="{{ static('problem-workspace.js') }}?v=10"></script>
     <script defer src="{{ static('brainstorm.js') }}?v=3"></script>
     <script type="text/javascript">
         $(function() {
@@ -283,28 +283,28 @@
         <div class="ms-workspace-layout">
         <nav class="ms-workspace-rail" aria-label="Điều hướng bài tập">
             <div class="ms-workspace-rail-nav">
-            <a href="#ms-statement" class="ms-rail-current" aria-current="page" aria-label="Đề bài" title="Đề bài"><i class="fa fa-file-text-o" aria-hidden="true"></i><span>Đề bài</span></a>
-            {% if request.in_contest and contest_problem %}
-                {% set contest = contest_problem.contest %}
-                <a href="{{ url('contest_user_submissions', contest.key, request.user.username, problem.code) }}" aria-label="Bài nộp của tôi" title="Bài nộp của tôi"><i class="fa fa-history" aria-hidden="true"></i><span>Bài nộp của tôi</span></a>
-                {% if contest.can_see_full_submission_list(request.user) %}
-                    <a href="{{ url('chronological_submissions', problem.code) }}" aria-label="Danh sách bài nộp" title="Danh sách bài nộp"><i class="fa fa-list-alt" aria-hidden="true"></i><span>Danh sách bài nộp</span></a>
-                    <a href="{{ url('contest_ranked_submissions', contest.key, problem.code) }}" aria-label="Bài nộp tốt nhất" title="Bài nộp tốt nhất"><i class="fa fa-trophy" aria-hidden="true"></i><span>Bài nộp tốt nhất</span></a>
-                {% endif %}
-            {% else %}
-                {% if request.user.is_authenticated and has_submissions %}<a href="{{ url('user_submissions', problem.code, request.user.username) }}" aria-label="Bài nộp của tôi" title="Bài nộp của tôi"><i class="fa fa-history" aria-hidden="true"></i><span>Bài nộp của tôi</span></a>{% endif %}
-                <a href="{{ url('chronological_submissions', problem.code) }}" aria-label="Danh sách bài nộp" title="Danh sách bài nộp"><i class="fa fa-list-alt" aria-hidden="true"></i><span>Danh sách bài nộp</span></a>
-                <a href="{{ url('ranked_submissions', problem.code) }}" aria-label="Bài nộp tốt nhất" title="Bài nộp tốt nhất"><i class="fa fa-trophy" aria-hidden="true"></i><span>Bài nộp tốt nhất</span></a>
-            {% endif %}
-            <a href="#comments" aria-label="Bình luận" title="Bình luận"><i class="fa fa-comments-o" aria-hidden="true"></i><span>Bình luận</span></a>
-            {% if (editorial and editorial.is_accessible_by(request.user)) and not request.in_contest %}<a href="{{ url('problem_editorial', problem.code) }}" aria-label="Lời giải" title="Lời giải"><i class="fa fa-lightbulb-o" aria-hidden="true"></i><span>Lời giải</span></a>{% endif %}
+            <a href="#statement" data-workspace-tab="statement" class="ms-rail-current" aria-current="page" aria-label="Đề bài" title="Đề bài"><i class="fa fa-file-text-o" aria-hidden="true"></i><span>Đề bài</span></a>
+            <a href="#submission" data-workspace-tab="submission" aria-label="Bài nộp" title="Bài nộp"><i class="fa fa-history" aria-hidden="true"></i><span>Bài nộp</span></a>
+            <a href="#comments" data-workspace-tab="comments" aria-label="Bình luận" title="Bình luận"><i class="fa fa-comments-o" aria-hidden="true"></i><span>Bình luận</span></a>
+            {% if (editorial and editorial.is_accessible_by(request.user)) and not request.in_contest %}<a href="#editorial" data-workspace-tab="editorial" aria-label="Lời giải" title="Lời giải"><i class="fa fa-lightbulb-o" aria-hidden="true"></i><span>Lời giải</span></a>{% endif %}
             </div>
             <div class="ms-workspace-tools" role="group" aria-label="Công cụ workspace">
                 <button type="button" class="ms-annotate-launch" aria-label="Nháp" title="Nháp" aria-controls="ms-annotation-toolbar" aria-expanded="false"><i class="fa fa-pencil" aria-hidden="true"></i></button>
                 <button type="button" class="ms-mentor-launch" aria-label="Mở Mentor" title="Mentor" aria-controls="ms-mentor-panel" aria-expanded="false"><i class="fa fa-lightbulb-o" aria-hidden="true"></i></button>
             </div>
         </nav>
-        <div class="ms-workspace-main">
+        {% if request.in_contest and contest_problem %}
+            {% set active_contest = contest_problem.contest %}
+            {% set mine_workspace_url = url('contest_user_submissions', active_contest.key, request.user.username, problem.code) if request.user.is_authenticated else '' %}
+            {% set best_workspace_url = url('contest_ranked_submissions', active_contest.key, problem.code) if active_contest.can_see_full_submission_list(request.user) else '' %}
+            {% set all_workspace_url = url('chronological_submissions', problem.code) if active_contest.can_see_full_submission_list(request.user) else '' %}
+        {% else %}
+            {% set mine_workspace_url = url('user_submissions', problem.code, request.user.username) if request.user.is_authenticated else '' %}
+            {% set best_workspace_url = url('ranked_submissions', problem.code) %}
+            {% set all_workspace_url = url('chronological_submissions', problem.code) %}
+        {% endif %}
+        {% set editorial_workspace_url = (url('problem_editorial', problem.code) ~ '?workspace=1') if editorial and editorial.is_accessible_by(request.user) and not request.in_contest else '' %}
+        <div class="ms-workspace-main" data-submissions-mine-url="{{ mine_workspace_url }}" data-submissions-all-url="{{ all_workspace_url }}" data-submissions-best-url="{{ best_workspace_url }}" data-editorial-url="{{ editorial_workspace_url }}" data-workspace-loading="{{ _('Loading...') }}" data-workspace-error="{{ _('Could not load this section. Please try again.') }}">
         <div class="ms-workspace-grid">
             <section id="ms-statement" class="ms-workspace-statement" aria-label="Đề bài">
                 {% include "problem/annotation-toolbar.html" %}
@@ -331,6 +331,17 @@
             </section>
         </div>
         <section class="ms-workspace-comments" aria-label="Bình luận" hidden>{{ self.comments() }}</section>
+        <section class="ms-workspace-submissions" aria-label="Bài nộp" hidden>
+            <nav class="ms-workspace-submission-tabs" aria-label="Loại bài nộp">
+                {% if request.user.is_authenticated %}<a href="#submission" data-workspace-tab="submission" data-submission-kind="mine">Của tôi</a>{% endif %}
+                {% if not request.in_contest or (contest_problem and contest_problem.contest.can_see_full_submission_list(request.user)) %}
+                    <a href="#submission-all" data-workspace-tab="submission-all" data-submission-kind="all">Tất cả</a>
+                    <a href="#submission-best" data-workspace-tab="submission-best" data-submission-kind="best">Tốt nhất</a>
+                {% endif %}
+            </nav>
+            <div class="ms-workspace-submissions-content" aria-live="polite" data-empty-message="{{ _('No submissions found.') }}"></div>
+        </section>
+        <section class="ms-workspace-editorial" aria-label="Lời giải" hidden></section>
         </div>
         </div>
     </div>
@@ -338,12 +349,6 @@
 {% endblock %}
 
 {% block comments %}
-    <div class="problem-tabs">
-        <ul>
-            <li><a href="#comments" class="active">{{ _('Comments') }}</a></li>
-        </ul>
-    </div>
-
     <div id="comments" class="tab-content active"
          data-comments-url="{{ url('problem_comments', problem.code) }}" data-comments-trigger="tab"
          data-comments-preloaded="{{ 'true' if comment_form and comment_form.errors else 'false' }}">

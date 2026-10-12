@@ -1,11 +1,14 @@
 from datetime import timedelta
 from unittest.mock import patch
 
+from copy import deepcopy
+from uuid import uuid4
 from django.contrib.auth.models import User
-from django.db import connection
+from django.db import connection, connections
 from django.db.migrations.executor import MigrationExecutor
-from django.test import TestCase, TransactionTestCase
+from django.test import TestCase, TransactionTestCase, override_settings
 from django.utils import timezone
+from .tests_roadmap_migrations import RehearsalRouter
 
 from judge.models import Contest, Language, Problem, ProblemGroup, Profile, Submission, SubmissionSource, SubmissionTestCase
 from judge.judgeapi import judge_submission
@@ -147,37 +150,62 @@ class ReviewContextTests(TestCase):
 
 
 class LegacyReviewMigrationTests(TransactionTestCase):
+    databases = {'default'}
     migrate_from = [('mentor', '0001_initial'), ('judge', '0236_judge_storages')]
     migrate_to = [('mentor', '0002_review_history'), ('judge', '0237_submission_judge_generation')]
 
-    def test_legacy_review_is_stale_and_approaches_are_preserved(self):
-        executor = MigrationExecutor(connection)
-        original_targets = executor.loader.graph.leaf_nodes()
-        executor.migrate(self.migrate_from)
-        old = executor.loader.project_state(self.migrate_from).apps
-        user = old.get_model('auth', 'User').objects.create(username='legacy-review-user')
-        profile = old.get_model('judge', 'Profile').objects.create(user_id=user.pk)
-        group = old.get_model('judge', 'ProblemGroup').objects.create(name='legacy-review-group', full_name='Legacy')
-        problem = old.get_model('judge', 'Problem').objects.create(
-            code='legacy_review_problem', name='Legacy', group_id=group.pk,
-            time_limit=1, memory_limit=65536, points=100)
-        language = old.get_model('judge', 'Language').objects.create(
-            key='LEGACY_REV', name='Legacy', common_name='Legacy', ace='text', pygments='text', extension='txt')
-        submission = old.get_model('judge', 'Submission').objects.create(
-            user_id=profile.pk, problem_id=problem.pk, language_id=language.pk)
-        review = old.get_model('mentor', 'AIReview').objects.create(
-            submission_id=submission.pk, overall_feedback='legacy feedback')
-        old.get_model('mentor', 'AIReviewApproach').objects.create(
-            review_id=review.pk, title='Old approach', description='Old text', complexity='O(n)', practicality='high')
+    def setUp(self):
+        super().setUp()
+        default = connections['default']
+        if default.vendor != 'mysql':
+            self.skipTest('Migration rehearsal uses the deployment-compatible MySQL backend.')
+        self.database_name = 'test_review_mig_' + uuid4().hex[:12]
+        self.alias = 'review_migration'
+        config = deepcopy(default.settings_dict)
+        config['NAME'] = self.database_name
+        config['TEST']['MIRROR'] = None
+        with default.cursor() as cursor:
+            cursor.execute(f'CREATE DATABASE `{self.database_name}` CHARACTER SET utf8mb4')
+        connections.databases[self.alias] = config
+        self.db = connections[self.alias]
+        self.addCleanup(self.cleanup_database)
+        executor = MigrationExecutor(self.db)
+        with override_settings(DATABASE_ROUTERS=[RehearsalRouter(self.alias)]):
+            executor.migrate(self.migrate_from)
+        self.old = executor.loader.project_state(self.migrate_from).apps
 
-        executor = MigrationExecutor(connection)
-        executor.migrate(self.migrate_to)
-        migrated = executor.loader.project_state(self.migrate_to).apps
-        current = migrated.get_model('mentor', 'AIReview').objects.get(pk=review.pk)
-        attempt = migrated.get_model('mentor', 'AIReviewAttempt').objects.get(review_id=review.pk)
-        approach = migrated.get_model('mentor', 'AIReviewApproach').objects.get(attempt_id=attempt.pk)
-        self.assertEqual((current.status, current.current_revision, current.overall_feedback), ('stale', '', ''))
-        self.assertEqual((attempt.status, attempt.generation, attempt.overall_feedback),
-                         ('stale', 0, 'legacy feedback'))
-        self.assertEqual(approach.title, 'Old approach')
-        MigrationExecutor(connection).migrate(original_targets)
+    def cleanup_database(self):
+        self.db.close()
+        del connections[self.alias]
+        del connections.databases[self.alias]
+        with connections['default'].cursor() as cursor:
+            cursor.execute(f'DROP DATABASE `{self.database_name}`')
+
+    def test_legacy_review_is_stale_and_approaches_are_preserved(self):
+        old = self.old
+        with override_settings(DATABASE_ROUTERS=[RehearsalRouter(self.alias)]):
+            user = old.get_model('auth', 'User').objects.using(self.alias).create(username='legacy-review-user')
+            profile = old.get_model('judge', 'Profile').objects.using(self.alias).create(user_id=user.pk)
+            group = old.get_model('judge', 'ProblemGroup').objects.using(self.alias).create(name='legacy-review-group', full_name='Legacy')
+            problem = old.get_model('judge', 'Problem').objects.using(self.alias).create(
+                code='legacy_review_problem', name='Legacy', group_id=group.pk,
+                time_limit=1, memory_limit=65536, points=100)
+            language = old.get_model('judge', 'Language').objects.using(self.alias).create(
+                key='LEGACY_REV', name='Legacy', common_name='Legacy', ace='text', pygments='text', extension='txt')
+            submission = old.get_model('judge', 'Submission').objects.using(self.alias).create(
+                user_id=profile.pk, problem_id=problem.pk, language_id=language.pk)
+            review = old.get_model('mentor', 'AIReview').objects.using(self.alias).create(
+                submission_id=submission.pk, overall_feedback='legacy feedback')
+            old.get_model('mentor', 'AIReviewApproach').objects.using(self.alias).create(
+                review_id=review.pk, title='Old approach', description='Old text', complexity='O(n)', practicality='high')
+
+            executor = MigrationExecutor(self.db)
+            executor.migrate(self.migrate_to)
+            migrated = executor.loader.project_state(self.migrate_to).apps
+            current = migrated.get_model('mentor', 'AIReview').objects.using(self.alias).get(pk=review.pk)
+            attempt = migrated.get_model('mentor', 'AIReviewAttempt').objects.using(self.alias).get(review_id=review.pk)
+            approach = migrated.get_model('mentor', 'AIReviewApproach').objects.using(self.alias).get(attempt_id=attempt.pk)
+            self.assertEqual((current.status, current.current_revision, current.overall_feedback), ('stale', '', ''))
+            self.assertEqual((attempt.status, attempt.generation, attempt.overall_feedback),
+                             ('stale', 0, 'legacy feedback'))
+            self.assertEqual(approach.title, 'Old approach')
