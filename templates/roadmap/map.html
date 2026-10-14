@@ -1,46 +1,189 @@
 {% extends 'base.html' %}
-{% from 'roadmap/nodes.html' import node with context %}
 {% block title_row %}{% endblock %}
 {% block title_ruler %}{% endblock %}
-{% block js_media %}<script src="{{ static('roadmap.js') }}" defer></script>{% endblock %}
+{% block js_media %}<script src="{{ static('roadmap.js') }}?v=topic-finder-1" defer></script>{% endblock %}
 {% block body %}
-<section class="ms-roadmap" data-revision="{{ roadmap.tree_revision }}" data-api-root="{{ map_url }}">
-    <nav class="rm-breadcrumb" aria-label="Đường dẫn lộ trình">
-        <a href="{{ url('roadmap_list') }}">Lộ trình</a><span aria-hidden="true">/</span>
-        <a href="{{ map_url }}" {% if not focus %}aria-current="page"{% endif %}>{{ roadmap.title }}</a>
-        {% for ancestor in breadcrumb %}<span aria-hidden="true">/</span><a href="{{ map_url }}?focus={{ ancestor.pk }}" {% if loop.last %}aria-current="page"{% endif %}>{{ ancestor.title }}</a>{% endfor %}
-    </nav>
-    <header class="rm-header">
-        <p class="rm-eyebrow">BẢN ĐỒ KIẾN THỨC</p>
-        <h1 id="rm-heading" tabindex="-1">{{ focus.title if focus else roadmap.title }}</h1>
-        {% if focus %}<a href="{{ map_url }}">Quay lại toàn lộ trình</a>{% elif roadmap.introduction %}<p class="rm-introduction">{{ roadmap.introduction }}</p>{% endif %}
-        <p class="rm-help">Mở nhánh để khám phá chuyên đề. Vào học là thao tác riêng; AC chỉ phản ánh bài tập, không phải mức độ nắm vững lý thuyết.</p>
-        {% if not request.user.is_authenticated %}<p class="rm-guest"><a href="{{ url('auth_login') }}?next={{ request.get_full_path()|urlencode }}">Đăng nhập</a> để xem tiến độ AC của bạn.</p>{% endif %}
-    </header>
-    <div id="rm-roots" class="rm-page rm-map" data-endpoint="{{ map_url }}?format=json" {% if not focus and next_cursor %}data-next-cursor="{{ next_cursor }}"{% endif %}>
-        <ul class="rm-list rm-spine">
-        {% for item in nodes %}
-            {% if focus and item.has_children %}
-                {% call node(item, true) %}
-                    <ul class="rm-list">{% for child in children %}{{ node(child, parent_title=focus.title) }}{% endfor %}</ul>
-                    <p class="rm-status" role="status"></p><button type="button" class="button rm-retry" hidden>Thử lại</button>
-                    <button type="button" class="button rm-more" {% if not next_cursor %}hidden{% endif %}>Tải thêm node</button>
-                    {% if next_url %}<a class="rm-next-fallback" href="{{ next_url }}">Trang nhánh tiếp theo</a>{% endif %}
-                {% endcall %}
-            {% else %}{{ node(item) }}{% endif %}
-        {% else %}<li class="rm-empty">Lộ trình đang được bổ sung nội dung. <a href="{{ url('problem_list') }}">Luyện bài trong Problems</a>.</li>{% endfor %}
-        </ul>
-        <p class="rm-status" role="status"></p><button type="button" class="button rm-retry" hidden>Thử lại</button>
-        <button type="button" class="button rm-more" hidden>Tải thêm node</button>
-        {% if not focus and next_url %}<a class="rm-next-fallback" href="{{ next_url }}">Trang node tiếp theo</a>{% endif %}
+{% set exp = explorer %}
+{% set is_path = exp.mode == 'path' %}
+{% set current_goal = exp.goal %}
+{% set selected_node = exp.selected %}
+{% set current_group = exp.group %}
+{% set is_journey = not is_path and not current_group and exp.journey %}
+{% macro node_card(item, catalog=false) %}
+<li class="rm-node" data-node-id="{{ item.id }}" data-node-type="{{ item.type }}">
+    <a href="{{ item.catalog_url if catalog and item.type == 'GROUP' else item.selection_url }}"
+       class="rm-node-card {% if item.type == 'GROUP' %}is-group{% endif %} {% if selected_node and selected_node.id == item.id %}is-selected{% endif %}"
+       data-node-id="{{ item.id }}" data-node-type="{{ item.type }}" {% if selected_node and selected_node.id == item.id %}aria-current="true"{% endif %}>
+        {% if item.icon_class %}<i class="rm-node-icon fa {{ item.icon_class }}" aria-hidden="true"></i>{% endif %}
+        <div class="rm-node-content">
+            <h3 class="rm-node-title">{{ item.title }}</h3>
+            {% if item.type != 'GROUP' %}
+            <span class="rm-node-meta">
+                {{ {'BASIC': 'Cơ bản', 'INTERMEDIATE': 'Trung cấp', 'ADVANCED': 'Nâng cao'}.get(item.difficulty, 'Chuyên đề') }}
+                {% if item.content_state == 'UPCOMING' %}<span> · Chưa có bài học</span>{% endif %}
+                {% if item.progress.state == 'available' %}<span> · AC {{ item.progress.solved }}/{{ item.progress.total }}</span>{% endif %}
+            </span>
+            {% elif item.progress.state == 'available' %}
+            <span class="rm-node-meta">AC {{ item.progress.solved }}/{{ item.progress.total }}</span>
+            {% endif %}
+        </div>
+    </a>
+</li>
+{% endmacro %}
+<section class="ms-roadmap rm-explorer" data-revision="{{ roadmap.tree_revision }}" data-api-root="{{ map_url }}" data-mode="{{ exp.mode }}">
+    <div class="rm-loading-bar" role="progressbar" aria-label="Đang tải lộ trình" hidden></div>
+    <div class="rm-topline">
+        <nav class="rm-breadcrumb" aria-label="Đường dẫn kiến thức">
+            <a href="{{ url('roadmap_list') }}">Lộ trình</a><span aria-hidden="true">/</span>
+            {% if breadcrumb %}<a href="{{ map_url }}?view=catalog">{{ roadmap.title }}</a>
+            {% else %}<span aria-current="page">{{ roadmap.title }}</span>{% endif %}
+            {% for ancestor in breadcrumb %}
+                <span aria-hidden="true">/</span>
+                {% if loop.last %}<span aria-current="page">{{ ancestor.title }}</span>
+                {% else %}<a href="{{ ancestor.catalog_url }}">{{ ancestor.title }}</a>{% endif %}
+            {% endfor %}
+        </nav>
+        <nav class="rm-mode-tabs" aria-label="Cách khám phá kiến thức">
+            <a class="rm-mode-tab {% if not is_path %}is-active{% endif %}" href="{{ map_url }}?view=catalog" {% if not is_path %}aria-current="page"{% endif %}>{{ 'Hành trình học' if exp.journey else 'Tất cả chuyên đề' }}</a>
+            <a class="rm-mode-tab {% if is_path %}is-active{% endif %}" href="{{ map_url }}?view=path{% if current_goal %}&amp;goal={{ current_goal.id }}{% endif %}" {% if is_path %}aria-current="page"{% endif %}>Theo mục tiêu</a>
+        </nav>
     </div>
-    <template id="rm-node-template">
-        <li class="rm-node"><div class="rm-row"><span class="rm-marker" aria-hidden="true"></span><div class="rm-summary">
-            <div class="rm-meta"><span class="rm-kind"></span><span class="rm-difficulty"></span><span class="rm-content-status" hidden>Sắp cập nhật</span></div>
-            <p class="rm-parent" hidden></p>
-            <a class="rm-title rm-focus"></a><div class="rm-progress"><span class="rm-progress-direct"></span><span class="rm-progress-subtree"></span></div>
-            <div class="rm-actions"><a class="button rm-learn" hidden>Vào học</a><button type="button" class="button rm-disclosure">Mở nhánh</button><a class="rm-focus rm-focus-link">Xem nhánh</a></div><p class="rm-depth-hint">Cây sâu? Chọn “Xem nhánh” để tập trung vào chuyên đề này.</p>
-        </div></div><div class="rm-branch rm-page" hidden><ul class="rm-list"></ul><p class="rm-status" role="status"></p><button type="button" class="button rm-retry" hidden>Thử lại</button><button type="button" class="button rm-more" hidden>Tải thêm node</button></div></li>
-    </template>
+    <header class="rm-goal-header">
+        <div>
+            <h1 id="rm-heading" tabindex="-1">{{ current_goal.title if is_path and current_goal else (current_group.title if current_group else ('Từ nền tảng đến chuyên sâu' if is_journey else 'Khám phá chuyên đề')) }}</h1>
+        </div>
+        {% if exp.goals %}
+        <button type="button" class="rm-finder-open button" hidden>{{ 'Đổi mục tiêu' if is_path else 'Tìm lộ trình học' }}</button>
+        <details class="rm-goal-change">
+            <summary>{{ 'Đổi mục tiêu' if is_path else 'Tìm lộ trình học' }}</summary>
+            <form class="rm-goal-form" method="get" action="{{ map_url }}">
+                <input type="hidden" name="view" value="path">
+                <label id="rm-goal-label" for="rm-goal-select">Bạn muốn học chuyên đề nào?</label>
+                <select id="rm-goal-select" name="goal">
+                    {% for goal in exp.goals %}<option value="{{ goal.id }}" {% if current_goal and goal.id == current_goal.id %}selected{% endif %}>{{ goal.title }}</option>{% endfor %}
+                </select>
+                <button type="submit" class="button rm-goal-submit">Xem kiến thức cần chuẩn bị</button>
+            </form>
+        </details>
+        {% endif %}
+    </header>
+    {% if exp.goals %}
+    <dialog id="rm-topic-finder" class="rm-finder" aria-labelledby="rm-finder-heading">
+        <div class="rm-finder-header"><h2 id="rm-finder-heading">Bạn muốn học chuyên đề nào?</h2><button type="button" class="rm-finder-close button" aria-label="Đóng tìm chuyên đề"><i class="fa fa-times" aria-hidden="true"></i></button></div>
+        <label for="rm-finder-query">Tìm theo tên hoặc viết tắt</label>
+        <input id="rm-finder-query" type="search" placeholder="VD: DFS, qhd, segment tree…" autocomplete="off" aria-describedby="rm-finder-help">
+        <p id="rm-finder-help" class="rm-node-meta">Tên Việt / Anh, có dấu hoặc không dấu. Chọn kết quả để xem kiến thức cần chuẩn bị.</p>
+        <div class="rm-finder-filter" hidden><button type="button" class="rm-finder-all button">Tất cả nhóm</button><span class="rm-finder-group-name"></span></div>
+        <p class="rm-finder-status rm-node-meta" role="status" aria-live="polite"></p>
+        <div class="rm-finder-body">
+            <section class="rm-finder-groups" aria-labelledby="rm-finder-groups-heading">
+                <h3 id="rm-finder-groups-heading">Chưa biết tên? Khám phá theo nhóm</h3>
+                <div class="rm-node-grid">
+                {% for group in exp.groups if not group.parent_id %}<button type="button" class="rm-finder-group" data-group-id="{{ group.id }}">{{ group.title }}</button>{% endfor %}
+                <button type="button" class="rm-finder-group" data-group-id="all">Xem tất cả chuyên đề</button>
+                </div>
+            </section>
+            <ul class="rm-finder-results" aria-label="Chuyên đề phù hợp" hidden>
+                {% for goal in exp.goals %}
+                <li data-title="{{ goal.title }}" data-aliases="{{ goal.finder_aliases|join('|') }}" data-group="{{ goal.finder_group }}">
+                    <a href="{{ goal.path_url }}" class="rm-finder-result">
+                        <span class="rm-node-title">{{ goal.title }}</span>
+                        {% if goal.finder_path %}<span class="rm-node-meta">{{ goal.finder_path }}</span>{% endif %}
+                        <span class="rm-node-meta">{{ {'BASIC': 'Cơ bản', 'INTERMEDIATE': 'Trung cấp', 'ADVANCED': 'Nâng cao'}.get(goal.difficulty, 'Chuyên đề') }} · {{ 'Có bài học' if goal.content_state == 'AVAILABLE' else 'Chưa có bài học' }}</span>
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+            <p class="rm-finder-empty" hidden>Không tìm thấy chuyên đề. Thử tên khác, tên tiếng Anh hoặc bỏ lọc nhóm.</p>
+        </div>
+    </dialog>
+    {% endif %}
+    {% if not is_path and current_group and exp.current_milestone %}
+    <nav class="rm-journey-position" aria-label="Vị trí nhóm trong hành trình">
+        {% for milestone in exp.journey %}
+        <a href="{{ map_url }}?view=catalog#rm-milestone-{{ milestone.number }}" {% if milestone.number == exp.current_milestone.number %}aria-current="location"{% endif %}><span>{{ milestone.number }}</span>{{ milestone.title }}</a>
+        {% endfor %}
+    </nav>
+    {% endif %}
+    {% if is_path and not exp.has_path %}
+    <p class="rm-callout" role="status">Quan hệ tiên quyết chưa đầy đủ. Đây là phần kiến thức hiện có, chưa phải một lộ trình hoàn chỉnh. <a href="{{ map_url }}?view=catalog">Xem tất cả chuyên đề</a>.</p>
+    {% endif %}
+    <div class="rm-layout {% if selected_node %}has-detail{% endif %}">
+        <section class="rm-nodes-container" aria-label="{{ 'Kiến thức dẫn tới mục tiêu' if is_path else 'Danh sách chuyên đề' }}">
+            {% if is_path %}
+            <div class="rm-path-caption"><h2>Kiến thức cần chuẩn bị</h2></div>
+            <ol class="rm-path" aria-label="Các lớp kiến thức từ nền tảng đến mục tiêu">
+                {% for stage in exp.stages %}
+                <li class="rm-path-step {% if loop.last %}is-goal{% endif %}" id="rm-stage-{{ stage.index }}">
+                    <div class="rm-step-heading">
+                        <span class="rm-step-number" aria-hidden="true">{{ loop.index }}</span>
+                        <div><h2>{{ 'Mục tiêu của bạn' if loop.last else ('Kiến thức nền' if loop.first else 'Kiến thức tiếp nối') }}</h2></div>
+                    </div>
+                    <ul class="rm-node-grid">{% for item in stage.nodes %}{{ node_card(item) }}{% endfor %}</ul>
+                </li>
+                {% else %}<li class="rm-empty">Chưa có chuyên đề được công bố. <a href="{{ map_url }}?view=catalog">Xem danh mục kiến thức</a>.</li>{% endfor %}
+            </ol>
+            <p class="rm-path-note">Các lớp không có nghĩa là mọi chuyên đề đều phụ thuộc vào lớp trước. Chọn chuyên đề để xem quan hệ cụ thể.</p>
+            {% elif is_journey %}
+            <ol class="rm-path rm-journey" aria-label="Hành trình từ nền tảng đến chuyên sâu">
+                {% for milestone in exp.journey %}
+                <li class="rm-path-step" id="rm-milestone-{{ milestone.number }}">
+                    <div class="rm-step-heading">
+                        <span class="rm-step-number" aria-hidden="true">{{ milestone.number }}</span>
+                        <div><h2>{{ milestone.title }}</h2></div>
+                    </div>
+                    <ul class="rm-node-grid">{% for item in milestone.nodes %}{{ node_card(item, true) }}{% endfor %}</ul>
+                </li>
+                {% endfor %}
+            </ol>
+            {% if exp.parallel_groups %}
+            <section class="rm-journey-parallel" aria-labelledby="rm-parallel-heading">
+                <h2 id="rm-parallel-heading" class="rm-list-heading">Rèn luyện xuyên suốt</h2>
+                <ul class="rm-node-grid">{% for item in exp.parallel_groups %}{{ node_card(item, true) }}{% endfor %}</ul>
+            </section>
+            {% endif %}
+            {% else %}
+            <h2 class="rm-list-heading">{{ 'Chuyên đề trong nhóm' if current_group else 'Các nhóm kiến thức' }}</h2>
+            <ul class="rm-node-grid rm-catalog-grid">
+                {% for item in exp.visible_nodes %}{{ node_card(item, true) }}
+                {% else %}<li class="rm-empty">Nhóm này chưa có chuyên đề được công bố. <a href="{{ map_url }}?view=catalog">Quay lại danh mục</a>.</li>{% endfor %}
+            </ul>
+            {% endif %}
+        </section>
+        {% if selected_node %}
+        {% set close_url = (map_url ~ '?view=path&goal=' ~ current_goal.id) if is_path and current_goal else (map_url ~ '?view=catalog' ~ ('&group=' ~ current_group.id if current_group else '')) %}
+        <aside id="rm-detail" class="rm-detail-panel is-open" aria-labelledby="rm-detail-heading" tabindex="-1">
+            <div class="rm-detail-header"><span class="rm-context">CHUYÊN ĐỀ ĐANG XEM</span><a class="rm-detail-close" href="{{ close_url }}" aria-label="Đóng chi tiết chuyên đề"><i class="fa fa-times" aria-hidden="true"></i></a></div>
+            <h2 id="rm-detail-heading" class="rm-detail-title" tabindex="-1">{{ selected_node.title }}</h2>
+            {% if exp.summary %}<p class="rm-detail-summary">{{ exp.summary }}</p>{% endif %}
+            {% if selected_node.learn_url %}
+                <a class="button button-primary rm-detail-learn-cta" href="{{ selected_node.learn_url }}">Vào học chuyên đề</a>
+            {% elif selected_node.type != 'GROUP' %}
+                <p class="rm-content-notice">Chưa có bài học khả dụng cho bạn ở chuyên đề này. Bạn vẫn có thể xem các kiến thức liên quan bên dưới.</p>
+            {% endif %}
+            {% if selected_node.has_children %}<a href="{{ selected_node.catalog_url }}" class="rm-detail-children-cta">Khám phá chuyên đề con</a>{% endif %}
+            {% for relations, heading, css_class in [(exp.prerequisites, 'Nên biết trước', 'rm-detail-prereqs'), (exp.successors, 'Có thể học tiếp', 'rm-detail-successors')] %}
+                {% if relations %}
+                <section class="rm-detail-section {{ css_class }}">
+                    <h3>{{ heading }}</h3>
+                    <ul class="rm-relations-list">
+                    {% for rel in relations %}<li><a href="{{ rel.node.selection_url }}" class="rm-relation-link"><span class="rm-relation-title">{{ rel.node.title }}</span>{% if rel.reason %}<span class="rm-relation-reason">{{ rel.reason }}</span>{% endif %}</a></li>{% endfor %}
+                    </ul>
+                </section>
+                {% endif %}
+            {% endfor %}
+            {% if selected_node.type == 'TOPIC' %}<a href="{{ selected_node.path_url }}" class="rm-own-path">Xem toàn tuyến tới chuyên đề này</a>{% endif %}
+            <details class="rm-practice">
+                <summary>Bài tập thực hành{% if selected_node.progress.state == 'available' %} · AC {{ selected_node.progress.solved }}/{{ selected_node.progress.total }}{% endif %}</summary>
+                {% if selected_node.progress.state == 'anonymous' %}<p><a href="{{ url('auth_login') }}?next={{ request.get_full_path()|urlencode }}">Đăng nhập</a> để theo dõi số bài AC.</p>
+                {% elif selected_node.progress.state == 'empty' %}<p>Chuyên đề này chưa có bài tập chấm tự động.</p>
+                {% elif selected_node.progress.state != 'available' %}<p>Tiến độ tạm không khả dụng.</p>{% endif %}
+                <p>AC là số bài đã giải đúng, không phải mức độ nắm vững lý thuyết và không khóa việc học.</p>
+            </details>
+        </aside>
+        {% endif %}
+    </div>
+    <div class="rm-sheet-backdrop" hidden></div>
+    <div class="rm-network-error" role="alert" hidden><p class="rm-error-text"></p><button type="button" class="button rm-error-retry">Thử lại</button></div>
 </section>
 {% endblock %}

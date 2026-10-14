@@ -3,6 +3,9 @@
 Provides JSON endpoints with explicit allowlists, private no-store headers,
 keyset pagination with signed cursors, and strict authorization.
 """
+import json
+
+from .lecture_services import LectureQAError, execute_lesson_qa, update_lesson_reading_state
 from django.http import JsonResponse
 from django.urls import reverse
 
@@ -243,6 +246,74 @@ def roadmap_node_lesson_view(request, slug, node_id, lesson_id):
 
     return _json_response(lesson_data)
 
+
+def roadmap_node_lesson_questions_view(request, slug, node_id, lesson_id):
+    """
+    POST /roadmap/<slug>/nodes/<id>/lessons/<lesson_id>/questions/
+    Contextual theory lesson Q&A via AI Gateway with strict reviewed output.
+    """
+    if request.method != 'POST':
+        return _json_response({'error': 'method_not_allowed'}, status=405)
+
+    if not request.user.is_authenticated:
+        return _json_response({'error': 'access_denied'}, status=401)
+
+    if len(request.body) > 16384:
+        return _json_response({'error': 'bad_request'}, status=400)
+
+    try:
+        body = json.loads(request.body)
+    except (TypeError, ValueError):
+        return _json_response({'error': 'bad_request'}, status=400)
+
+    if not isinstance(body, dict) or not set(body.keys()).issubset({'question', 'content_revision', 'section'}):
+        return _json_response({'error': 'bad_request'}, status=400)
+
+    question = body.get('question')
+    content_revision = body.get('content_revision')
+    section = body.get('section')
+
+    try:
+        result = execute_lesson_qa(
+            request.user, slug, node_id, lesson_id, question, content_revision, section=section
+        )
+        return _json_response(result)
+    except LectureQAError as exc:
+        return _json_response({'error': exc.code}, status=exc.status_code)
+
+
+def roadmap_node_lesson_state_view(request, slug, node_id, lesson_id):
+    """
+    POST /roadmap/<slug>/nodes/<id>/lessons/<lesson_id>/state/
+    Persist normalized reading scroll offset (0..10000) pinned to content revision.
+    """
+    if request.method != 'POST':
+        return _json_response({'error': 'method_not_allowed'}, status=405)
+
+    if not request.user.is_authenticated:
+        return _json_response({'error': 'access_denied'}, status=401)
+
+    if len(request.body) > 16384:
+        return _json_response({'error': 'bad_request'}, status=400)
+
+    try:
+        body = json.loads(request.body)
+    except (TypeError, ValueError):
+        return _json_response({'error': 'bad_request'}, status=400)
+
+    if not isinstance(body, dict) or not set(body.keys()).issubset({'offset', 'content_revision', 'position_version'}):
+        return _json_response({'error': 'bad_request'}, status=400)
+
+    offset = body.get('offset')
+    content_revision = body.get('content_revision')
+
+    try:
+        result = update_lesson_reading_state(
+            request.user, slug, node_id, lesson_id, offset, content_revision, body.get('position_version')
+        )
+        return _json_response(result)
+    except LectureQAError as exc:
+        return _json_response({'error': exc.code}, status=exc.status_code)
 
 def roadmap_progress_view(request, slug):
     """

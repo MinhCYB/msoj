@@ -1,10 +1,12 @@
 """Learning content and the existing Mentor roadmap's tree representation."""
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import F, Q
 from mptt.fields import TreeForeignKey
 from mptt.models import MPTTModel
 
+from .roadmap_icons import ICON_CHOICES
 
 class Publication(models.TextChoices):
     DRAFT = 'DRAFT', 'Draft'
@@ -107,6 +109,7 @@ class TopicLesson(PublishedContent):
     slug = models.SlugField(max_length=100)
     position = models.PositiveIntegerField(default=0)
     body = models.TextField(blank=True)
+    summary = models.TextField(blank=True, default='')
     content_revision = models.PositiveIntegerField(default=1, editable=False)
 
     class Meta:
@@ -169,6 +172,9 @@ class RoadmapNode(MPTTModel):
     title = models.CharField(max_length=200)
     slug = models.SlugField(max_length=100)
     type = models.CharField(max_length=5, choices=Type.choices, default=Type.TOPIC)
+    icon = models.CharField(max_length=24, blank=True, default='', choices=ICON_CHOICES,
+                            verbose_name='Icon',
+                            help_text='Chọn biểu tượng cho thẻ kiến thức. Tự động dùng icon theo nhóm; có thể chọn không hiển thị.')
     position = models.PositiveIntegerField(default=0)
     difficulty = models.CharField(max_length=12, choices=Difficulty.choices, null=True, blank=True)
     status = models.CharField(max_length=10, choices=Publication.choices, default=Publication.DRAFT)
@@ -283,3 +289,81 @@ class RoadmapPrerequisite(models.Model):
 
     def __str__(self):
         return f'{self.node} requires {self.prerequisite}'
+
+
+class TopicLessonState(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='mentor_lesson_states')
+    lesson = models.ForeignKey(TopicLesson, on_delete=models.CASCADE, related_name='learner_states')
+    content_revision = models.PositiveIntegerField()
+    offset = models.PositiveIntegerField(default=0)
+    position_version = models.PositiveBigIntegerField(default=0)
+    last_accessed_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ('-last_accessed_at', 'pk')
+        constraints = [
+            models.UniqueConstraint(fields=('user', 'lesson'), name='mentor_lesson_user_state'),
+            models.CheckConstraint(check=Q(offset__gte=0, offset__lte=10000), name='mentor_lesson_state_offset_range'),
+        ]
+
+    def __str__(self):
+        return f'{self.user_id} - {self.lesson_id} (rev {self.content_revision}, offset {self.offset})'
+
+
+class LessonQARole(models.TextChoices):
+    USER = 'user', 'User'
+    ASSISTANT = 'assistant', 'Assistant'
+
+
+class TopicLessonQAMessage(models.Model):
+    Role = LessonQARole
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='mentor_lesson_qa_messages')
+    lesson = models.ForeignKey(TopicLesson, on_delete=models.CASCADE, related_name='qa_messages')
+    content_revision = models.PositiveIntegerField()
+    role = models.CharField(max_length=10, choices=LessonQARole.choices)
+    content = models.TextField()
+    section = models.CharField(max_length=200, blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ('created_at', 'pk')
+        indexes = [
+            models.Index(fields=('user', 'lesson', 'content_revision'), name='mentor_qa_user_lesson_rev_idx'),
+        ]
+        constraints = [
+            models.CheckConstraint(check=Q(role__in=('user', 'assistant')), name='mentor_lesson_qa_role_valid'),
+        ]
+
+    def __str__(self):
+        return f'{self.get_role_display()} on {self.lesson_id} rev {self.content_revision}'
+
+
+class TopicLessonQAAttempt(models.Model):
+    class Status(models.TextChoices):
+        ACTIVE = 'active', 'Active'
+        SUCCEEDED = 'succeeded', 'Succeeded'
+        FAILED = 'failed', 'Failed'
+        REJECTED = 'rejected', 'Rejected'
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='mentor_lesson_qa_attempts')
+    lesson = models.ForeignKey(TopicLesson, on_delete=models.CASCADE, related_name='qa_attempts')
+    content_revision = models.PositiveIntegerField()
+    claim_token = models.CharField(max_length=64, db_index=True)
+    status = models.CharField(max_length=12, choices=Status.choices, default=Status.ACTIVE)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ('-created_at', 'pk')
+        indexes = [
+            models.Index(fields=('user', 'status'), name='mentor_qa_user_status_idx'),
+            models.Index(fields=('user', 'lesson', 'content_revision'), name='mentor_qa_att_user_rev_idx'),
+            models.Index(fields=('user', 'created_at'), name='mentor_qa_att_user_time_idx'),
+        ]
+        constraints = [
+            models.CheckConstraint(check=Q(status__in=('active', 'succeeded', 'failed', 'rejected')), name='mentor_lesson_qa_status_valid'),
+        ]
+
+    def __str__(self):
+        return f'{self.user_id} - {self.lesson_id} rev {self.content_revision} ({self.status})'

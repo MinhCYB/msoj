@@ -1,53 +1,28 @@
-{% block media %}
-    <style>
-        h4 {
-            padding-top: 1em;
-        }
-
-        .social {
-            display: inline;
-            font-size: 2.3em;
-            float: none;
-        }
-
-        .google-icon i {
-            color: #DD4B38;
-        }
-
-        .facebook-icon i {
-            color: #133783;
-        }
-
-        .github-icon i {
-            color: black;
-        }
-    </style>
-{% endblock %}
-
 {% if oauth.has_google_auth or oauth.has_facebook_auth or oauth.has_github_auth %}
-    {% if request.path == url('registration_register') %}
-        <h4>{{ _('Sign up with Gmail') }}</h4>
-    {% else %}
-        <h4>{{ _('Or log in with...') }}</h4>
-    {% endif %}
-    <div>
-        {% if next is not defined %}
-            {% set next = '' %}
-        {% endif %}
-        {% if oauth.has_google_auth %}
-            <a href="{{ url('social:begin', "google-oauth2") }}?next={{ next }}" class="social google-icon">
-                <i class="fa fa-google-plus-square"></i>
-            </a>
-        {% endif %}
-        {% if oauth.has_facebook_auth %}
-            <a href="{{ url('social:begin', "facebook") }}?next={{ next }}" class="social facebook-icon">
-                <i class="fa fa-facebook-square"></i>
-            </a>
-        {% endif %}
-        {% if oauth.has_github_auth %}
-            <a href="{{ url('social:begin', "github-secure") }}?next={{ next }}" class="social github-icon">
-                <i class="fa fa-github-square"></i>
-            </a>
-        {% endif %}
+    <div class="ms-oauth">
+        <p class="ms-oauth-divider"><span>{{ _('Or') }}</span></p>
+        <div class="ms-oauth-providers">
+            {% set oauth_next = next|default('') %}
+            {% if oauth.has_google_auth %}
+                <a href="{{ url('social:begin', 'google-oauth2') }}?next={{ oauth_next|urlencode }}" class="ms-oauth-provider">
+                    <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+                        <path fill="#4285f4" d="M43.61 24.46c0-1.36-.12-2.66-.35-3.92H24v7.43h11c-.47 2.4-1.91 4.44-4.07 5.81v4.83h6.59c3.86-3.55 6.09-8.78 6.09-14.15z"/>
+                        <path fill="#34a853" d="M24 44c5.51 0 10.13-1.83 13.51-4.96l-6.59-5.11c-1.83 1.23-4.18 1.97-6.92 1.97-5.31 0-9.81-3.58-11.42-8.4H5.78v5.27C9.14 39.42 16.02 44 24 44z"/>
+                        <path fill="#fbbc05" d="M12.58 27.5a12 12 0 0 1 0-7V15.23h-6.8a20 20 0 0 0 0 17.54z"/>
+                        <path fill="#ea4335" d="M24 12.1c3 0 5.67 1.03 7.8 3.05l5.85-5.85C34.1 6 29.51 4 24 4 16.02 4 9.14 8.58 5.78 15.23l6.8 5.27C14.19 15.68 18.69 12.1 24 12.1z"/>
+                    </svg><span>{{ _('Continue with Google') }}</span>
+                </a>
+            {% endif %}
+            {% if oauth.has_facebook_auth %}
+                <a href="{{ url('social:begin', 'facebook') }}?next={{ oauth_next|urlencode }}" class="ms-oauth-provider">
+                    <i class="fa fa-facebook" aria-hidden="true"></i><span>{{ _('Continue with Facebook') }}</span>
+                </a>
+            {% endif %}
+            {% if oauth.has_github_auth %}
+                <a href="{{ url('social:begin', 'github-secure') }}?next={{ oauth_next|urlencode }}" class="ms-oauth-provider">
+                    <i class="fa fa-github" aria-hidden="true"></i><span>{{ _('Continue with GitHub') }}</span>
+                </a>
+            {% endif %}
+        </div>
     </div>
 {% endif %}

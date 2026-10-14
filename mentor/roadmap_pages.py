@@ -1,17 +1,15 @@
 """HTML adapters over the authorized Roadmap read selectors."""
 from urllib.parse import urlencode
 
-from django.http import Http404, HttpResponseBadRequest
+from django.http import Http404, HttpResponseBadRequest, HttpResponseBase
 from django.shortcuts import render
 from django.core.exceptions import PermissionDenied
 from django.urls import reverse
 
+from .roadmap_explorer import build_roadmap_explorer
 from .roadmap_selectors import (
-    TreeRevisionStale, serialize_node_list, get_accessible_roadmap,
-    get_accessible_roadmaps, get_effective_published_node,
-    get_node_immediate_children, get_roadmap_roots,
+    TreeRevisionStale, get_accessible_roadmap, get_accessible_roadmaps,
 )
-
 
 def wants_html(request):
     return request.GET.get('format') != 'json' and 'text/html' in request.headers.get('Accept', '')
@@ -34,53 +32,50 @@ def roadmap_map(request, slug):
     roadmap = get_accessible_roadmap(request.user, slug)
     if roadmap is None:
         raise Http404
-    focus = None
-    cursor = request.GET.get('cursor')
+
     try:
-        focus_id = request.GET.get('focus')
-        limit = int(request.GET.get('limit', 50))
-        if limit < 1:
-            raise ValueError
-        limit = min(100, limit)
-        if focus_id is not None:
-            focus = get_effective_published_node(roadmap, int(focus_id))
-            if focus is None:
-                raise Http404
-        if focus:
-            focus.has_children = focus.children.filter(status='PUBLISHED').exists()
-            nodes = serialize_node_list(roadmap, [focus], request.user)
-            children, next_cursor = get_node_immediate_children(roadmap, focus, request.user, cursor, limit)
-        else:
-            nodes, next_cursor = get_roadmap_roots(roadmap, request.user, cursor, limit)
-            children = []
-    except (ValueError, TypeError):
-        return HttpResponseBadRequest('Tham số lộ trình không hợp lệ.')
+        explorer_result = build_roadmap_explorer(request, roadmap)
+        if isinstance(explorer_result, HttpResponseBase):
+            return explorer_result
     except TreeRevisionStale:
         return private_page(request, 'roadmap/stale.html', {
             'title': 'Lộ trình đã thay đổi', 'roadmap': roadmap,
         }, status=409)
-    map_url = reverse('roadmap_detail', args=[slug])
-    query = {'cursor': next_cursor} if next_cursor else {}
-    if focus:
-        query['focus'] = focus.pk
+
+    explorer = explorer_result['explorer']
+    focus = explorer_result['focus']
+    breadcrumb = explorer_result['breadcrumb']
+    map_url = explorer_result['map_url']
+    title = explorer_result['title']
+
     return private_page(request, 'roadmap/map.html', {
-        'title': roadmap.title, 'roadmap': roadmap, 'nodes': nodes,
-        'focus': focus, 'breadcrumb': list(focus.get_ancestors(include_self=True)) if focus else [],
-        'children': children, 'next_cursor': next_cursor,
-        'next_url': map_url + '?' + urlencode(query) if next_cursor else None,
+        'title': title,
+        'roadmap': roadmap,
+        'explorer': explorer,
         'map_url': map_url,
+        'focus': focus,
+        'breadcrumb': breadcrumb,
+        'nodes': explorer['visible_nodes'],
     })
 
 
 def roadmap_learning_page(request, roadmap, data, lesson=None):
     node = data['node']
     map_url = reverse('roadmap_detail', args=[roadmap.slug])
-    return private_page(request, 'roadmap/lesson.html' if lesson else 'roadmap/learn.html', {
+    context = {
         'title': lesson['lesson']['title'] if lesson else node['title'],
-        'roadmap': roadmap, 'learning': data, 'lesson_data': lesson,
-        'map_url': map_url, 'return_url': f"{map_url}?focus={node['id']}",
+        'roadmap': roadmap,
+        'learning': data,
+        'lesson_data': lesson,
+        'map_url': map_url,
+        'return_url': f"{map_url}?focus={node['id']}",
         'learn_url': reverse('roadmap_node_learn', args=[roadmap.slug, node['id']]),
-    })
+    }
+    if lesson:
+        context['lecture_state'] = lesson.get('lecture_state')
+    else:
+        context['resume_lesson_url'] = data.get('resume_lesson_url')
+    return private_page(request, 'roadmap/lesson.html' if lesson else 'roadmap/learn.html', context)
 
 
 def roadmap_markdown_preview(request):

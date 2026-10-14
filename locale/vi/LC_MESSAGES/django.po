@@ -9592,3 +9592,39 @@ msgstr "URL rút gọn này không hoạt động."
 
 #~ msgid "Maximum single-case runtime:"
 #~ msgstr "Thời gian chạy test lâu nhất:"
+
+#: templates/registration/login.html
+msgid "Competitive programming"
+msgstr "Lập trình thi đấu"
+
+#: templates/registration/login.html
+msgid "Every solution starts with an idea."
+msgstr "Mỗi lời giải bắt đầu từ một ý tưởng."
+
+#: templates/registration/login.html
+msgid "Learn, practise, and find your own approach."
+msgstr "Học, luyện tập và tìm cách giải của riêng bạn."
+
+#: templates/registration/login.html
+msgid "Welcome back to MSOJ."
+msgstr "Chào mừng bạn trở lại MSOJ."
+
+#: templates/registration/login.html
+msgid "New to MSOJ?"
+msgstr "Chưa có tài khoản?"
+
+#: templates/registration/oauth.html
+msgid "Continue with Google"
+msgstr "Tiếp tục với Google"
+
+#: templates/registration/oauth.html
+msgid "Continue with Facebook"
+msgstr "Tiếp tục với Facebook"
+
+#: templates/registration/oauth.html
+msgid "Continue with GitHub"
+msgstr "Tiếp tục với GitHub"
+
+#: templates/registration/logout.html
+msgid "Back to home"
+msgstr "Về trang chủ"

@@ -46,13 +46,14 @@
     {% endif %}
     {% compress css %}
         {% if PREFERRED_STYLE_CSS is not none %}
-            <link rel="stylesheet" href="{{ static(PREFERRED_STYLE_CSS) }}">
+            <link rel="stylesheet" href="{{ static(PREFERRED_STYLE_CSS) }}?v=visual-refresh-17">
         {% else %}
-            <link rel="stylesheet" href="{{ static(LIGHT_STYLE_CSS) }}">
-            <link rel="stylesheet" href="{{ static(DARK_STYLE_CSS) }}" media="(prefers-color-scheme: dark)">
+            <link rel="stylesheet" href="{{ static(LIGHT_STYLE_CSS) }}?v=visual-refresh-17">
+            <link rel="stylesheet" href="{{ static(DARK_STYLE_CSS) }}?v=visual-refresh-17" media="(prefers-color-scheme: dark)">
         {% endif %}
         {% if INLINE_FONTAWESOME %}<link rel="stylesheet" href="{{ static('libs/fontawesome/font-awesome.css') }}">{% endif %}
         <link rel="stylesheet" href="{{ static('source_sans_pro.css') }}">
+        <link rel="stylesheet" href="{{ static('msoj-fonts.css') }}">
         <link rel="stylesheet" type="text/css" href="{{ static('libs/clipboard/tooltip.css') }}">
         <link rel="stylesheet" type="text/css" href="{{ static('libs/select2/select2.css') }}">
     {% endcompress %}
@@ -81,7 +82,7 @@
         <script src="{{ static('libs/moment.js') }}"></script>
         <script src="{{ static('libs/select2/select2.js') }}"></script>
         {% include "extra_js.html" %}
-        <script src="{{ static('common.js') }}"></script>
+        <script src="{{ static('common.js') }}?v=visual-refresh-1"></script>
         <script src="{{ static('event.js') }}"></script>
         <script>
             moment.locale('{{ LANGUAGE_CODE }}');
@@ -223,15 +224,16 @@
         </style>
     </noscript>
 </head>
-<body data-theme="{{ SITE_THEME_NAME }}">
+<body data-theme="{{ SITE_THEME_NAME }}" class="{% block shell_class %}msoj-shell-docked{% endblock %}">
+<a class="ms-skip-link" href="#content">{{ _('Skip to main content') }}</a>
 <svg width="0" height="0" style="display: block">
     <defs>
         <clipPath id="rating-clip"><circle cx="8" cy="8" r="7"/></clipPath>
     </defs>
 </svg>
-<nav id="navigation" class="unselectable">
+<nav id="navigation" class="unselectable {% block navigation_class %}ms-nav-docked{% endblock %}">
     <div id="nav-container">
-        <a id="navicon" href="javascript:void(0)"><i class="fa fa-bars"></i></a>
+        <a id="navicon" href="javascript:void(0)" role="button" aria-label="{{ _('Navigation') }}" aria-expanded="false" aria-controls="nav-list"><i class="fa fa-bars" aria-hidden="true"></i></a>
         <ul id="nav-list">
             {% if request.organization is not defined %}
                 <li class="home-nav-element"><a href="{{ url('home') }}">{% include "site-logo-fragment.html" %}</a></li>
@@ -277,7 +279,7 @@
                     {% if request.user.is_superuser %}
                         <a href="{{ url('misc_config') }}">
                     {% else %}
-                        <a href="javascript:void(0)">
+                        <a href="javascript:void(0)" aria-label="{{ _('Settings') }}">
                     {% endif %}
                         <span title="{{ _('Settings') }}">
                             <i class="fa fa-gear" style="font-size: 1.15em"></i>
@@ -288,8 +290,9 @@
                             <div class="nav-settings-row">
                                 <span class="nav-settings-lbl">{{ _('Theme') }}</span>
                                 <span class="nav-seg">
-                                    <span onclick="set_theme('light')" class="nav-seg-btn{% if SITE_THEME_NAME != 'dark' %} active{% endif %}"><i class="fa fa-sun-o"></i></span>
-                                    <span onclick="set_theme('dark')" class="nav-seg-btn{% if SITE_THEME_NAME == 'dark' %} active{% endif %}"><i class="fa fa-moon-o"></i></span>
+                                    <button type="button" onclick="set_theme('light')" aria-label="{{ _('Light') }}" aria-pressed="{{ 'true' if SITE_THEME_NAME == 'light' else 'false' }}" class="nav-seg-btn{% if SITE_THEME_NAME == 'light' %} active{% endif %}"><i class="fa fa-sun-o" aria-hidden="true"></i></button>
+                                    <button type="button" onclick="set_theme('dark')" aria-label="{{ _('Dark') }}" aria-pressed="{{ 'true' if SITE_THEME_NAME == 'dark' else 'false' }}" class="nav-seg-btn{% if SITE_THEME_NAME == 'dark' %} active{% endif %}"><i class="fa fa-moon-o" aria-hidden="true"></i></button>
+                                    <button type="button" onclick="set_theme('auto')" aria-label="{{ _('Follow system default') }}" aria-pressed="{{ 'true' if SITE_THEME_NAME == 'auto' else 'false' }}" class="nav-seg-btn{% if SITE_THEME_NAME == 'auto' %} active{% endif %}"><i class="fa fa-desktop" aria-hidden="true"></i></button>
                                 </span>
                             </div>
                         </li>
@@ -297,8 +300,8 @@
                             <div class="nav-settings-row">
                                 <span class="nav-settings-lbl">{{ _('Language') }}</span>
                                 <span class="nav-seg">
-                                    <span onclick="submmit_language('vi')" class="nav-seg-btn{% if LANGUAGE_CODE == 'vi' %} active{% endif %}">VI</span>
-                                    <span onclick="submmit_language('en')" class="nav-seg-btn{% if LANGUAGE_CODE == 'en' %} active{% endif %}">EN</span>
+                                    <button type="button" onclick="submmit_language('vi')" aria-pressed="{{ 'true' if LANGUAGE_CODE == 'vi' else 'false' }}" class="nav-seg-btn{% if LANGUAGE_CODE == 'vi' %} active{% endif %}">VI</button>
+                                    <button type="button" onclick="submmit_language('en')" aria-pressed="{{ 'true' if LANGUAGE_CODE == 'en' else 'false' }}" class="nav-seg-btn{% if LANGUAGE_CODE == 'en' %} active{% endif %}">EN</button>
                                 </span>
                             </div>
                         </li>
@@ -404,7 +407,7 @@
         <div id="noscript">{{ _('This site works best with JavaScript enabled.') }}</div>
     </noscript>
     <br>
-    <main id="content">
+    <main id="content" tabindex="-1">
         {% if misc_config.top_notification %}
             {{ render_django(misc_config.top_notification) }}
         {% endif %}
@@ -434,12 +437,13 @@
     {% endif %}
 
     {% block bodyend %}{% endblock %}
+</div>
 
     <footer>
         <span id="footer-content">
             <br>
-            {{_('proudly powered by %(dmoj)s', dmoj=safe('<a style="color: #808080" href="https://dmoj.ca"><b>DMOJ</b></a>'))}} |
-            {{_('follow us on %(github)s and %(facebook)s', github=safe('<a style="color: #808080" href="https://github.com/VNOI-Admin/OJ"><b>Github</b></a>'), facebook=safe('<a style="color: #808080" href="https://www.facebook.com/vnoi.wiki"><b>Facebook</b></a>'))}}
+            {{_('proudly powered by %(dmoj)s', dmoj=safe('<a href="https://dmoj.ca"><b>DMOJ</b></a>'))}} |
+            {{_('follow us on %(github)s and %(facebook)s', github=safe('<a href="https://github.com/VNOI-Admin/OJ"><b>Github</b></a>'), facebook=safe('<a href="https://www.facebook.com/vnoi.wiki"><b>Facebook</b></a>'))}}
             {% if misc_config.footer %}
                 {{ misc_config.footer|safe }} |
             {% endif %}
@@ -455,6 +459,5 @@
             </form>
         </span>
     </footer>
-</div>
 </body>
 </html>

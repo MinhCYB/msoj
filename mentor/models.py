@@ -6,7 +6,10 @@ from django.db.models import F, Q
 from django.utils import timezone
 
 from .constants import IDLE_TIMEOUT_SECONDS, compute_hint_level
-from .roadmap_models import LearningTopic, NodeProblem, Roadmap, RoadmapNode, RoadmapPrerequisite, TopicLesson
+from .roadmap_models import (
+    LearningTopic, NodeProblem, Roadmap, RoadmapNode, RoadmapPrerequisite, TopicLesson,
+    TopicLessonQAAttempt, TopicLessonQAMessage, TopicLessonState,
+)
 
 
 # Policy templates are instructions; referenced application data is rendered in

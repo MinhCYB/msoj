@@ -1,4 +1,10 @@
 <script type="text/javascript" src="{{ static('mathjax_config.js') }}"></script>
+{% if mathjax_dollar_delimiters|default(false) %}
+<script type="text/javascript">
+    MathJax.tex.inlineMath.push(['$', '$']);
+    MathJax.tex.displayMath = [['$$', '$$'], ['\\[', '\\]']];
+</script>
+{% endif %}
 <script type="text/javascript" src="{{ static('vnoj/mathjax/3.2.0/es5/tex-chtml.min.js') }}"></script>
 <script type="text/javascript">
     MathJax.startup.promise.then(function () {

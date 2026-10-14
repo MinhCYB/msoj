@@ -593,10 +593,10 @@
     font-family: inherit;
 
     .blog-post-content {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Georgia', serif;
+        font-family: var(--ms-font-ui);
 
         h1, h2, h3, h4, h5, h6 {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Georgia', serif;
+            font-family: var(--ms-font-ui);
         }
     }
     .post-title, .blog-post-content,
@@ -626,6 +626,8 @@
     .blog-post-content th { color: var(--ms-text); background-color: var(--ms-surface); }
     .blog-post-content a:not(.rating a):not(.rate-group) {
         color: var(--ms-accent);
+        text-decoration: underline;
+        text-underline-offset: 3px;
         &:hover { color: var(--ms-accent-hover); }
     }
 

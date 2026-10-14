@@ -1,4 +1,17 @@
 {% extends "base.html" %}
+{% block shell_class %}msoj-shell-floating{% endblock %}
+{% block navigation_class %}ms-nav-floating{% endblock %}
+{% block title_row %}{% endblock %}
+{% block title_ruler %}{% endblock %}
 {% block body %}
-    <h3>{{ _('See you later!') }}</h3>
+    <section class="ms-logout" aria-labelledby="logout-title">
+        <span class="msoj-wordmark" aria-hidden="true">MSOJ</span>
+        <div class="ms-logout-symbol" aria-hidden="true"><i class="fa fa-check"></i></div>
+        <h1 id="logout-title">{{ _('You have been successfully logged out.') }}</h1>
+        <p>{{ _('See you later!') }}</p>
+        <div class="ms-logout-actions">
+            <a class="button full" href="{{ url('home') }}">{{ _('Back to home') }}</a>
+            <a class="ms-logout-login" href="{{ url('auth_login') }}">{{ _('Log in') }} <i class="fa fa-arrow-right" aria-hidden="true"></i></a>
+        </div>
+    </section>
 {% endblock %}

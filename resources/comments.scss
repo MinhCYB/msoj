@@ -137,7 +137,7 @@ a {
             padding: 2px 0px;
             font-weight: normal;
             border-bottom: 1px $color_primary50 solid;
-            color: $color_primary50;
+            color: var(--ms-muted);
             text-align: right;
         }
     }

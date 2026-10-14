@@ -12,13 +12,14 @@
   var submissionLinks = Array.from(main.querySelectorAll("[data-submission-kind]"));
   var grid = main.querySelector(".ms-workspace-grid");
   var divider = grid.querySelector(".ms-workspace-divider");
+  var resizeHandle = divider.querySelector('.ms-workspace-resize');
   var editorToggle = divider.querySelector(".ms-editor-toggle");
   var editor = grid.querySelector(".ms-workspace-code");
   var ratio = 50;
   function setRatio(value) {
     ratio = Math.max(20, Math.min(80, Math.round(value)));
     grid.style.setProperty("--ws-statement-ratio", String(ratio / 100));
-    divider.setAttribute("aria-valuenow", ratio);
+    resizeHandle.setAttribute("aria-valuenow", ratio);
   }
   function setEditorVisible(visible) {
     grid.classList.toggle("ms-editor-collapsed", !visible);
@@ -58,8 +59,8 @@
   }
   divider.addEventListener("pointerup", endResize);
   divider.addEventListener("pointercancel", endResize);
-  divider.addEventListener("keydown", function (event) {
-    if (event.target !== divider || editor.hidden) return;
+  resizeHandle.addEventListener("keydown", function (event) {
+    if (event.target !== resizeHandle || editor.hidden) return;
     if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
       event.preventDefault();
       setRatio(ratio + (event.key === "ArrowRight" ? 5 : -5));

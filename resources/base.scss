@@ -94,30 +94,28 @@ div.info-float {
   padding: 10px;
 }
 
-footer {
+:where(body) > footer {
   color: var(--ms-muted);
   display: block;
   width: 100%;
-  position: absolute;
-  bottom: 0;
+  flex: 0 0 auto;
+  margin-top: auto;
 }
 
 body {
+  --ms-nav-height: 56px;
   position: relative;
-  min-height: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
   margin: 0 auto;
   font-size: 14px;
   line-height: 1.5;
   background: var(--ms-page);
-  font-family:
-    "Segoe UI",
-    "Source Sans Pro",
-    -apple-system,
-    BlinkMacSystemFont,
-    Arial,
-    sans-serif;
+  font-family: var(--ms-font-ui);
   color: var(--ms-text);
-  height: 100%;
+  height: auto;
 }
 
 .unselectable {
@@ -168,11 +166,11 @@ h4 {
 }
 
 #content {
-  margin: 68px auto auto;
+  margin: calc(var(--ms-nav-height) + 24px) auto auto;
   width: calc(100% - 64px);
   max-width: 1440px;
   box-sizing: border-box;
-  height: 100%;
+  height: auto;
   min-height: 25em;
   display: block;
 
@@ -181,17 +179,21 @@ h4 {
   }
 }
 
-footer {
+:where(body) > footer {
   text-align: center;
   min-height: 48px;
   height: auto;
-  padding: 12px 16px;
+  padding: 22px 20px 28px;
   border-top: 1px solid var(--ms-border);
-  background: var(--ms-surface);
+  background: var(--ms-surface-subtle);
   line-height: 1.4;
   box-sizing: border-box;
 
-  br:first-child {
+  #footer-content {
+    font-size: 12px;
+  }
+
+  #footer-content > br:first-child {
     display: none;
   }
 }
@@ -296,14 +298,19 @@ noscript #noscript {
 }
 
 #page-container {
-  min-height: 100%;
+  min-height: 0;
+  width: 100%;
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
   position: relative;
   margin: 0 auto;
-  border-right: 1px solid var(--ms-border);
-  border-left: 1px solid var(--ms-border);
-  background: var(--ms-page);
+  border: 0;
+  background: radial-gradient(ellipse 70% 280px at 50% 0, var(--ms-ambient), transparent), var(--ms-page);
   max-width: 1440px;
 }
+
+.msoj-shell-docked #page-container > br { display: none; }
 
 // border-bottom: 1px solid rgb(204, 204, 204)
 // border-bottom-left-radius: 4px
@@ -313,7 +320,7 @@ noscript #noscript {
   padding-bottom: 4em;
 }
 
-// Offset the footer
+// Page actions
 
 .title-line-action {
   float: right;
@@ -341,8 +348,30 @@ math {
 
 @media (max-width: 760px) {
   #content {
-    margin-top: 48px;
+    margin-top: var(--ms-nav-height);
     width: auto;
     padding: 16px 12px 32px;
+  }
+}
+
+.ms-skip-link {
+  position: fixed;
+  top: 8px;
+  left: 16px;
+  z-index: 1000;
+  padding: 12px 18px;
+  background: var(--ms-surface);
+  color: var(--ms-text);
+  border-radius: var(--ms-radius-pill);
+  transform: translateY(-160%);
+  &:focus { transform: none; outline: 2px solid var(--ms-focus); }
+}
+
+// Respect the OS preference without affecting code/editor or live judge updates.
+@media (prefers-reduced-motion: reduce) {
+  body #navigation #nav-list > li > a, body #navigation #nav-list > li > button,
+  #navigation #user-links a, #navigation #user-links button, .button, .tabs a,
+  input, select, textarea, .toggle .fa {
+    transition: none;
   }
 }

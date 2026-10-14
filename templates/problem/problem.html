@@ -6,7 +6,7 @@
     {% if request.user.is_authenticated and form %}
         {{ form.media.css }}
     {% endif %}
-    <link rel="stylesheet" href="{{ static('problem-workspace.css') }}?v=19">
+    <link rel="stylesheet" href="{{ static('problem-workspace.css') }}?v=22">
     <style>
         .title-state {
             font-size: 2em;
@@ -68,7 +68,7 @@
     {% if request.user.is_authenticated and form %}
         {% include "problem/submit-js.html" %}
     {% endif %}
-    <script defer src="{{ static('problem-workspace.js') }}?v=10"></script>
+    <script defer src="{{ static('problem-workspace.js') }}?v=11"></script>
     <script defer src="{{ static('brainstorm.js') }}?v=3"></script>
     <script type="text/javascript">
         $(function() {
@@ -306,7 +306,7 @@
         {% set editorial_workspace_url = (url('problem_editorial', problem.code) ~ '?workspace=1') if editorial and editorial.is_accessible_by(request.user) and not request.in_contest else '' %}
         <div class="ms-workspace-main" data-submissions-mine-url="{{ mine_workspace_url }}" data-submissions-all-url="{{ all_workspace_url }}" data-submissions-best-url="{{ best_workspace_url }}" data-editorial-url="{{ editorial_workspace_url }}" data-workspace-loading="{{ _('Loading...') }}" data-workspace-error="{{ _('Could not load this section. Please try again.') }}">
         <div class="ms-workspace-grid">
-            <section id="ms-statement" class="ms-workspace-statement" aria-label="Đề bài">
+            <section id="ms-statement" class="ms-workspace-statement" aria-label="Đề bài" tabindex="0">
                 {% include "problem/annotation-toolbar.html" %}
                 <div class="ms-statement-wrap">
                     <div class="content-description screen">
@@ -314,10 +314,10 @@
                         {{ self.description_end() }}
                         {{ self.post_description_end() }}
                     </div>
-                    <div id="ms-annotation-layer" aria-label="Lớp ghi chú trên đề"></div>
+                    <div id="ms-annotation-layer" role="group" aria-label="Lớp ghi chú trên đề"></div>
                 </div>
             </section>
-            <div class="ms-workspace-divider" role="separator" aria-label="Đổi độ rộng đề bài và trình soạn thảo" aria-orientation="vertical" aria-valuemin="20" aria-valuemax="80" aria-valuenow="50" tabindex="0"><button type="button" class="ms-editor-toggle" aria-label="Ẩn trình soạn thảo" title="Ẩn trình soạn thảo" aria-controls="ms-code" aria-expanded="true"><i class="fa fa-chevron-right" aria-hidden="true"></i></button></div>
+            <div class="ms-workspace-divider"><div class="ms-workspace-resize" role="separator" aria-label="Đổi độ rộng đề bài và trình soạn thảo" aria-orientation="vertical" aria-valuemin="20" aria-valuemax="80" aria-valuenow="50" tabindex="0"></div><button type="button" class="ms-editor-toggle" aria-label="Ẩn trình soạn thảo" title="Ẩn trình soạn thảo" aria-controls="ms-code" aria-expanded="true"><i class="fa fa-chevron-right" aria-hidden="true"></i></button></div>
             <section id="ms-code" class="ms-workspace-code" aria-label="Trình soạn thảo lời giải">
                 {% if request.user.is_authenticated %}
                     <div class="ms-workspace-form">{% include "problem/submit-form.html" %}</div>

@@ -1,9 +1,9 @@
 {% extends 'base.html' %}
 {% from 'roadmap/prose.html' import prose %}
 {% block title_row %}{% endblock %}{% block title_ruler %}{% endblock %}
-{% block js_media %}<script src="{{ static('roadmap-learning.js') }}" defer></script>{% endblock %}
+{% block js_media %}<script src="{{ static('roadmap-learning.js') }}?v=lecture-1" defer></script>{% endblock %}
 {% block body %}
-<section class="ms-roadmap rm-learning">
+<section class="ms-roadmap rm-learning {% if lesson_data %}rm-lecture{% endif %}">
     <a class="rm-skip" href="#rm-learning-content">Đến nội dung học</a>
     <nav class="rm-breadcrumb" aria-label="Đường dẫn học tập">
         <a href="{{ url('roadmap_list') }}">Lộ trình</a><span aria-hidden="true">/</span><a href="{{ map_url }}">{{ roadmap.title }}</a>
@@ -15,7 +15,7 @@
         {% if lesson_data %}<span aria-hidden="true">/</span><span aria-current="page">{{ lesson_data.lesson.title }}</span>{% endif %}
     </nav>
     <header class="rm-header">
-        <p class="rm-eyebrow">{{ 'BÀI HỌC' if lesson_data else ('NHÓM KIẾN THỨC' if learning.node.type == 'GROUP' else 'CHUYÊN ĐỀ') }}</p>
+        <p class="rm-eyebrow">{{ 'BÀI GIẢNG' if lesson_data else ('NHÓM KIẾN THỨC' if learning.node.type == 'GROUP' else 'CHUYÊN ĐỀ') }}</p>
         <h1 id="rm-learning-heading">{{ title }}</h1>
         {% if learning.node.difficulty %}<p class="rm-difficulty">{{ {'BASIC':'Cơ bản', 'INTERMEDIATE':'Trung cấp', 'ADVANCED':'Nâng cao'}.get(learning.node.difficulty) }}</p>{% endif %}
         <div class="rm-actions"><a class="button" href="{{ return_url }}">Quay lại node trên bản đồ</a>{% if lesson_data %}<a href="{{ learn_url }}">Tổng quan chuyên đề</a>{% endif %}</div>
@@ -25,4 +25,4 @@
     </div>
 </section>
 {% endblock %}
-{% block bodyend %}{{ super() }}{% if REQUIRE_JAX %}{% include 'mathjax-load.html' %}{% endif %}{% endblock %}
+{% block bodyend %}{{ super() }}{% with mathjax_dollar_delimiters=true %}{% include 'mathjax-load.html' %}{% endwith %}{% endblock %}

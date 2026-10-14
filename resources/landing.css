@@ -1,49 +1,38 @@
 /* MSOJ landing: page-specific visual language, loaded after the legacy theme. */
 body:has(.msoj-landing) {
-  --land-ink: #18212d;
-  --land-muted: #566474;
-  --land-line: #dce2e9;
-  --land-paper: #ffffff;
-  --land-page: #f8f9fb;
-  --land-accent: #2457a7;
-  --land-accent-dark: #194584;
+  --land-ink: var(--ms-text);
+  --land-muted: var(--ms-muted);
+  --land-line: var(--ms-border);
+  --land-paper: var(--ms-surface);
+  --land-page: var(--ms-page);
+  --land-accent: var(--ms-accent);
+  --land-accent-dark: var(--ms-accent-hover);
   background: var(--land-page);
   color: var(--land-ink);
-  font-family: "Segoe UI", "Source Sans Pro", Arial, sans-serif;
+  font-family: var(--ms-font-ui);
 }
 
 body:has(.msoj-landing) #page-container {
   max-width: none;
   border: 0;
-  background: var(--land-page);
+  background: radial-gradient(ellipse 85% 560px at 50% 120px, var(--ms-ambient), transparent), var(--land-page);
 }
 body:has(.msoj-landing) #content {
   width: auto;
   max-width: none;
   height: auto;
   min-height: 0;
-  margin: 68px auto 0;
+  margin: 92px auto 0;
   padding: 0;
 }
 body:has(.msoj-landing) #content-body {
   padding-bottom: 0;
 }
-body:has(.msoj-landing) footer {
-  height: auto;
-  box-sizing: border-box;
-  padding: 22px 20px 28px;
-  background: #eef1f5;
-  border-top: 1px solid var(--land-line);
-  color: var(--land-muted);
-}
-body:has(.msoj-landing) footer #footer-content {
-  font-size: 12px;
-}
 
 .msoj-landing {
   max-width: 1440px;
   margin: 0 auto;
-  padding: 0 20px 110px;
+  padding: 0 clamp(20px, 4vw, 64px) 110px;
   line-height: 1.55;
   box-sizing: border-box;
 }
@@ -72,6 +61,8 @@ body:has(.msoj-landing) footer #footer-content {
 }
 
 .msoj-landing .msoj-landing-hero {
+  position: relative;
+  isolation: isolate;
   display: grid;
   grid-template-columns: minmax(0, 1.13fr) minmax(330px, 0.87fr);
   align-items: stretch;
@@ -79,18 +70,34 @@ body:has(.msoj-landing) footer #footer-content {
   padding: 84px 0 94px;
   border-bottom: 1px solid var(--land-line);
 }
+.msoj-landing-hero::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 3% -12px 8%;
+  border-radius: 50%;
+  background:
+    radial-gradient(ellipse at 50% 75%, transparent 42%, var(--ms-ambient-warm) 58%, transparent 72%),
+    radial-gradient(ellipse at 45% 40%, var(--ms-ambient), transparent 65%);
+  pointer-events: none;
+}
 .msoj-landing-intro {
   align-self: center;
   padding: 12px 0;
 }
 .msoj-landing .msoj-landing-eyebrow {
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 10px;
+  padding: 9px 14px;
+  border: 1px solid var(--land-line);
+  border-radius: var(--ms-radius-pill);
+  background: var(--land-paper);
   color: var(--land-accent);
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.16em;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
   margin: 0 0 27px;
 }
 .msoj-landing-mark {
@@ -131,19 +138,20 @@ body:has(.msoj-landing) footer #footer-content {
   gap: 23px;
   min-height: 50px;
   padding: 0 22px;
-  border-radius: 6px;
-  background: var(--land-accent);
-  color: #fff;
-  box-shadow: 0 5px 14px rgba(36, 87, 167, 0.13);
+  border-radius: var(--ms-radius-pill);
+  background: var(--ms-btn-bg);
+  color: var(--ms-btn-text);
+  box-shadow: var(--ms-shadow-md);
 }
 .msoj-landing .msoj-landing-primary:hover {
-  background: var(--land-accent-dark);
-  color: #fff;
+  background: var(--ms-btn-bg-hover);
+  color: var(--ms-btn-text);
 }
 .msoj-landing-secondary {
   display: inline-flex;
   gap: 12px;
   align-items: center;
+  min-height: 44px;
 }
 .msoj-landing-secondary:hover {
   text-decoration: underline;
@@ -153,7 +161,7 @@ body:has(.msoj-landing) footer #footer-content {
   font-size: 10px;
   letter-spacing: 0.14em;
   font-weight: 700;
-  color: #8995a3;
+  color: var(--land-muted);
 }
 .msoj-landing-intro-note span {
   margin: 0 8px;
@@ -164,9 +172,10 @@ body:has(.msoj-landing) footer #footer-content {
   padding: 32px 34px 0;
   background: var(--land-paper);
   border: 1px solid var(--land-line);
-  border-top: 3px solid var(--land-accent);
-  border-radius: 4px;
-  box-shadow: 0 15px 50px rgba(24, 33, 45, 0.045);
+  align-self: center;
+  padding-bottom: 0;
+  border-radius: var(--ms-radius-panel);
+  box-shadow: var(--ms-shadow-md);
 }
 .msoj-landing-aside-header {
   display: flex;
@@ -209,10 +218,10 @@ body:has(.msoj-landing) footer #footer-content {
 }
 .msoj-landing-explore-links a:hover {
   color: var(--land-accent);
-  padding-left: 8px;
+  background: var(--ms-surface-hover);
 }
 .msoj-landing-link-number {
-  color: #8c9bab;
+  color: var(--land-muted);
   font-size: 11px;
   font-weight: 600;
 }
@@ -223,7 +232,8 @@ body:has(.msoj-landing) footer #footer-content {
 .msoj-landing-aside-footer {
   margin: 27px -34px 0;
   padding: 17px 34px;
-  background: #f1f5fa;
+  background: var(--ms-surface-subtle);
+  border-radius: 0 0 var(--ms-radius-panel) var(--ms-radius-panel);
   color: var(--land-muted);
   font-size: 10px;
   font-weight: 700;
@@ -242,7 +252,7 @@ body:has(.msoj-landing) footer #footer-content {
   letter-spacing: 0.13em;
 }
 .msoj-landing-section-kicker span {
-  color: #98a4b0;
+  color: var(--land-muted);
   margin-left: 7px;
 }
 .msoj-landing .msoj-landing-section h2 {
@@ -267,18 +277,19 @@ body:has(.msoj-landing) footer #footer-content {
   min-height: 245px;
   padding: 26px;
   border: 1px solid var(--land-line);
-  border-radius: 5px;
+  border-radius: var(--ms-radius-panel);
+  box-shadow: var(--ms-shadow-sm);
   background: var(--land-paper);
 }
 .msoj-landing-card-index span {
-  color: #a7b2be;
+  color: var(--land-muted);
   margin: 0 5px;
 }
 .msoj-landing-card-symbol {
   display: block;
   margin: 20px 0 5px;
   color: var(--land-accent);
-  font-family: Consolas, monospace;
+  font-family: var(--ms-font-display);
   font-size: 29px;
   line-height: 1;
 }
@@ -345,7 +356,7 @@ body:has(.msoj-landing) footer #footer-content {
 }
 @media (max-width: 760px) {
   body:has(.msoj-landing) #content {
-    margin-top: 56px;
+    margin-top: 76px;
   }
   .msoj-landing {
     padding: 0 20px 64px;
@@ -384,45 +395,27 @@ body:has(.msoj-landing) footer #footer-content {
     min-height: 205px;
   }
 }
-@media (prefers-color-scheme: dark) {
-  body[data-theme="auto"]:has(.msoj-landing) {
-    --land-ink: #e9edf2;
-    --land-muted: #a9b5c2;
-    --land-line: #35414e;
-    --land-paper: #1b222b;
-    --land-page: #11151b;
-    --land-accent: #80acf2;
-    --land-accent-dark: #a1c3fa;
+
+.msoj-landing-display {
+  display: block;
+  font-family: var(--ms-font-display);
+  font-size: clamp(44px, 5.5vw, 80px);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--land-accent);
+  margin-bottom: 20px;
+}
+@keyframes msoj-entrance {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .msoj-landing-intro, .msoj-landing-explore {
+    animation: msoj-entrance 600ms var(--ms-ease) both;
   }
-}
-body[data-theme="dark"]:has(.msoj-landing) {
-  --land-ink: #e9edf2;
-  --land-muted: #a9b5c2;
-  --land-line: #35414e;
-  --land-paper: #1b222b;
-  --land-page: #11151b;
-  --land-accent: #80acf2;
-  --land-accent-dark: #a1c3fa;
-}
-body[data-theme="dark"]:has(.msoj-landing) .msoj-landing-primary,
-body[data-theme="auto"]:has(.msoj-landing) .msoj-landing-primary {
-  color: #fff;
-}
-body[data-theme="dark"]:has(.msoj-landing) .msoj-landing-primary,
-body[data-theme="dark"]:has(.msoj-landing) .msoj-landing-primary:hover {
-  background: #2457a7;
-}
-body[data-theme="dark"]:has(.msoj-landing) .msoj-landing-aside-footer,
-body[data-theme="dark"]:has(.msoj-landing) footer {
-  background: #202b37;
-}
-@media (prefers-color-scheme: dark) {
-  body[data-theme="auto"]:has(.msoj-landing) .msoj-landing-primary,
-  body[data-theme="auto"]:has(.msoj-landing) .msoj-landing-primary:hover {
-    background: #2457a7;
-  }
-  body[data-theme="auto"]:has(.msoj-landing) .msoj-landing-aside-footer,
-  body[data-theme="auto"]:has(.msoj-landing) footer {
-    background: #202b37;
+  .msoj-landing-explore { animation-delay: 100ms; }
+  .msoj-landing a {
+    transition: color var(--ms-duration-fast) var(--ms-ease), background-color var(--ms-duration-fast) var(--ms-ease), box-shadow var(--ms-duration-fast) var(--ms-ease);
   }
 }

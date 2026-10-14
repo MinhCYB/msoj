@@ -29,7 +29,12 @@
 {% block media %}
     {% include "comments/media-css.html" %}
     {% compress css %}
-        {{ select_css_theme('blog-post.css', 'dark/blog-post.css') }}
+        {% if SITE_THEME_NAME == 'dark' %}
+            <link rel="stylesheet" href="{{ static('dark/blog-post.css') }}?v=visual-refresh-1">
+        {% else %}
+            <link rel="stylesheet" href="{{ static('blog-post.css') }}?v=visual-refresh-1">
+            {% if SITE_THEME_NAME == 'auto' %}<link rel="stylesheet" href="{{ static('dark/blog-post.css') }}?v=visual-refresh-1" media="(prefers-color-scheme: dark)">{% endif %}
+        {% endif %}
     {% endcompress %}
 {% endblock %}
 

@@ -1,0 +1,206 @@
+{
+  "project": "MSOJ Autonomous Visual Refresh",
+  "status": "engineering_complete_owner_visual_acceptance_pending",
+  "recovery": {
+    "continued_existing_session": true,
+    "existing_progress_files_found": false,
+    "uncommitted_changes_preserved": true,
+    "provider_configuration_changed": false
+  },
+  "phases": [
+    {
+      "name": "Audit",
+      "tasks": [
+        {
+          "name": "Đọc reference, phân tích Design DNA và phân loại ADOPT / ADAPT / REJECT.",
+          "status": "completed",
+          "evidence": ["PROGRESS.md#reference-and-design-dna", "docs/design/references/motionsites-screenshot.png"],
+          "limitation": "motionsites-original.md is empty; no prompt-derived claims made."
+        },
+        {
+          "name": "Audit kiến trúc styles/components, trạng thái migration và runtime; chụp baseline light/dark desktop/mobile.",
+          "status": "completed",
+          "evidence": ["docs/msoj-academic-ink.md", "/tmp/msoj-visual-refresh/baseline.json", "/tmp/msoj-visual-refresh/before/"]
+        }
+      ]
+    },
+    {
+      "name": "Implement",
+      "tasks": [
+        {
+          "name": "Lập kế hoạch dependency và nâng cấp design tokens, typography, navigation, shared controls/surfaces/motion.",
+          "status": "completed",
+          "evidence": ["resources/academic-ink.scss", "resources/msoj-fonts.css", "resources/navbar.scss", "resources/base.scss", "resources/widgets.scss"]
+        },
+        {
+          "name": "Áp dụng phong cách cho Landing, Problems, Roadmap, Workspace, Submissions, Contests và các màn hình công khai liên quan; giữ nguyên chức năng.",
+          "status": "completed",
+          "evidence": ["PROGRESS.md#completed-areas", "/tmp/msoj-visual-refresh/final.json", "/tmp/msoj-visual-refresh/interactions.json"],
+          "limitation": "Runtime contract evidence is anonymous/local dataset coverage, not all authenticated conditional branches."
+        }
+      ]
+    },
+    {
+      "name": "Verify",
+      "tasks": [
+        {
+          "name": "Chạy build và Playwright Visual QA; kiểm tra themes, responsive, keyboard, reduced motion, MathJax/editor; tinh chỉnh lỗi phát hiện.",
+          "status": "completed",
+          "evidence": [
+            "sh make_style.sh: successful light/dark build after final reader repair",
+            "venv/bin/python manage.py check: no issues, 99 silenced",
+            "/tmp/msoj-visual-refresh/final.json",
+            "/tmp/msoj-visual-refresh/axe-final.json",
+            "/tmp/msoj-visual-refresh/breakpoints.json",
+            "/tmp/msoj-visual-refresh/editor-smoke.json",
+            "/tmp/msoj-visual-refresh/modern-reader-final.json",
+            "/tmp/msoj-visual-refresh/theme-assets.json"
+          ],
+          "limitation": "No suite, authenticated form flow, screen-reader speech, production deployment or performance profiling claimed."
+        },
+        {
+          "name": "Bàn giao Design DNA, phạm vi hoàn thành, thay đổi shared components, kết quả kiểm thử và screenshots trước/sau; nêu giới hạn acceptance.",
+          "status": "completed",
+          "evidence": [
+            "PROGRESS.md",
+            "/tmp/msoj-visual-refresh/comparison-light-desktop.png",
+            "/tmp/msoj-visual-refresh/comparison-dark-desktop.png",
+            "/tmp/msoj-visual-refresh/comparison-light-mobile.png",
+            "/tmp/msoj-visual-refresh/comparison-dark-mobile.png"
+          ],
+          "limitation": "Owner Visual Acceptance remains pending; engineering handoff does not decide it."
+        }
+      ]
+    }
+  ],
+  "verification_counts": {
+    "matched_before_screenshots": 52,
+    "matched_final_screenshots": 52,
+    "retained_wcag_states_without_detected_violations": 44,
+    "expanded_roadmap_states_without_detected_violations": 4,
+    "modern_reader_final_states_without_detected_violations": 4,
+    "responsive_checks": 120,
+    "final_content_link_or_form_parity_issues": 0,
+    "captured_final_page_errors": 0
+  },
+  "navigation_refinement": {
+    "status": "engineering_complete_owner_visual_acceptance_pending",
+    "tasks": [
+      {"name": "Inspect current navigation and content offsets; keep floating navigation on Home and dock it on every other page.", "status": "completed"},
+      {"name": "Update navigation variant styling and dependent content/sticky offsets without changing page layouts or behavior.", "status": "completed"},
+      {"name": "Verify Home and functional pages in Playwright across themes, desktop/mobile, keyboard navigation and Workspace sticky/editor behavior.", "status": "completed"},
+      {"name": "Update TASKS.json and PROGRESS.md with implementation and exercised verification evidence.", "status": "completed"}
+    ],
+    "evidence_directory": "/tmp/msoj-nav-variants/",
+    "matched_before_states": 32,
+    "matched_after_states": 32,
+    "axe_states_without_detected_violations": 32,
+    "responsive_checks": 48,
+    "home_geometry_changes": 0,
+    "content_link_or_form_parity_issues": 0,
+    "captured_page_errors": 0,
+    "build": "light_and_dark_passed",
+    "django_check": "no_issues_99_silenced",
+    "limitations": ["Anonymous local dataset only", "Real Ace engine probe, not authenticated submission", "Visual Acceptance belongs to owner"]
+  },
+  "navigation_consistency_correction": {
+    "status": "completed_owner_visual_acceptance_pending",
+    "change": "All non-Home navigation uses the same full-width container and responsive gutters; removed Workspace-specific sizing exception",
+    "home_styles_unchanged": true,
+    "settled_browser_states": 72,
+    "functional_geometry_mismatches": 0,
+    "overflow_or_account_overlap": 0,
+    "axe_scans_without_detected_violations": 36,
+    "themes": ["light", "dark"],
+    "widths": [320, 390, 1100, 1101, 1568, 2352],
+    "build": "light_and_dark_passed",
+    "evidence_directory": "/tmp/msoj-nav-consistency/",
+    "limitations": ["Anonymous local browser session", "Submissions content height differed by 3px; position and width unchanged"]
+  },
+  "roadmap_staged_explorer": {
+    "status": "engineering_complete_owner_visual_acceptance_pending",
+    "modes": ["goal_prerequisite_stages", "taxonomy_catalog"],
+    "backend_tests_passed": 62,
+    "final_focused_page_tests_passed": 7,
+    "settled_browser_states": 18,
+    "detected_axe_violations": 0,
+    "overflow_states": 0,
+    "captured_page_errors": 0,
+    "themes": ["light", "dark", "auto"],
+    "widths": [320, 390, 1365],
+    "build": "light_and_dark_passed",
+    "javascript_syntax_check": "passed",
+    "no_javascript_navigation": "verified",
+    "keyboard_mobile_sheet": "verified",
+    "error_retry_and_latest_request_wins": "verified",
+    "evidence_directory": "/tmp/msoj-roadmap-staged/",
+    "limitations": ["Local curriculum has no available learning URLs; readiness covered by backend tests", "Anonymous browser session", "Owner Visual Acceptance pending"]
+  },
+  "roadmap_goal_first_refinement": {
+    "status": "engineering_complete_owner_visual_acceptance_pending",
+    "complete_path_on_one_page": true,
+    "settled_browser_states": 24,
+    "goal_picker_accessibility_scans": 12,
+    "detected_axe_violations": 0,
+    "overflow_states": 0,
+    "captured_page_errors": 0,
+    "build": "light_and_dark_passed",
+    "javascript_syntax_check": "passed",
+    "keyboard_and_no_javascript": "verified",
+    "evidence_directory": "/tmp/msoj-roadmap-redesign/",
+    "limitations": ["Anonymous Chromium session", "No real screen-reader speech test", "Local curriculum has no available learning URLs", "Owner Visual Acceptance pending"]
+  },
+  "roadmap_macro_journey": {
+    "status": "engineering_complete_owner_visual_acceptance_pending",
+    "milestones": 4,
+    "public_root_groups": 13,
+    "completion_or_unlock_state": "not_invented",
+    "browser_states": 24,
+    "detected_axe_violations": 0,
+    "overflow_states": 0,
+    "captured_page_errors": 0,
+    "focused_regression": "passed_without_database_setup",
+    "build": "light_and_dark_passed",
+    "keyboard_and_no_javascript_anchor_navigation": "verified",
+    "evidence_directory": "/tmp/msoj-roadmap-macro/"
+  },
+  "roadmap_topic_finder": {
+    "status": "engineering_complete_owner_visual_acceptance_pending",
+    "search": "accent_insensitive_titles_english_and_curated_aliases",
+    "browse": "root_group_filter_with_all_groups_recovery",
+    "explicit_result_navigation": true,
+    "browser_states": 18,
+    "ranked_query_cases": 10,
+    "detected_axe_violations": 0,
+    "overflow_states": 0,
+    "captured_page_errors": 0,
+    "focused_regressions_passed": 2,
+    "build": "light_and_dark_passed",
+    "keyboard_modal_and_no_javascript_form": "verified",
+    "evidence_directory": "/tmp/msoj-roadmap-finder/"
+  },
+  "native_lectures_phase_1": {
+    "status": "engineering_complete_activation_requires_runtime_migration_and_gateway_routes",
+    "native_slide_placeholder_only": true,
+    "authored_summary": true,
+    "reviewed_lesson_context_qa": true,
+    "revision_scoped_private_history_and_resume": true,
+    "mastery_not_written_by_reading": true,
+    "migration": "mentor.0009_lecture_content_state_qa",
+    "existing_runtime_migration_applied": false,
+    "gateway_roles": ["lesson_tutor_generate", "lesson_tutor_review"],
+    "live_provider_completion_exercised": false,
+    "focused_tests_passed": 26,
+    "existing_roadmap_integration_tests_passed": 23,
+    "browser_states": 22,
+    "detected_axe_violations": 0,
+    "overflow_states": 0,
+    "captured_page_errors": 0,
+    "smoke_approved_and_rejected_http_pipeline": "controlled_gateway_results",
+    "build": "light_and_dark_passed",
+    "evidence_directory": "/tmp/msoj-lecture/",
+    "database_writes": "disposable_local_qa_only"
+  },
+  "owner_visual_acceptance": "not_claimed",
+  "no_commit_deploy_production_migration": true
+}

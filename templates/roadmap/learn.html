@@ -3,9 +3,10 @@
 <section class="rm-learning-section" aria-labelledby="rm-intro-heading"><h2 id="rm-intro-heading">Giới thiệu</h2>
     {% if learning.topic and learning.topic.introduction %}{{ prose(learning.topic.introduction) }}{% else %}<p class="rm-help">Chuyên đề chưa có phần giới thiệu.</p>{% endif %}
 </section>
-<section class="rm-learning-section" aria-labelledby="rm-lessons-heading"><h2 id="rm-lessons-heading">Bài học lý thuyết</h2>
+<section class="rm-learning-section" aria-labelledby="rm-lessons-heading"><h2 id="rm-lessons-heading">Bài giảng</h2>
+    {% if resume_lesson_url %}<p><a class="button" href="{{ resume_lesson_url }}">Tiếp tục bài giảng đang đọc</a></p>{% endif %}
     {% if learning.lessons %}<ol class="rm-lesson-list">{% for lesson in learning.lessons %}<li><a href="{{ lesson.lesson_url }}">{{ lesson.title }}</a></li>{% endfor %}</ol>
-    {% else %}<p class="rm-help">Chưa có bài học lý thuyết được công bố. Bạn vẫn có thể luyện các bài tập bên dưới.</p>{% endif %}
+    {% else %}<p class="rm-help">Chưa có bài giảng được công bố. Bạn vẫn có thể luyện các bài tập bên dưới.</p>{% endif %}
 </section>
 {% include 'roadmap/exercises.html' %}
 {% endblock %}

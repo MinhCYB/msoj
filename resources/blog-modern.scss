@@ -581,7 +581,7 @@
 // Magazine Card
 .magazine-card {
     background: $color_blog_card_bg;
-    border-radius: 8px;
+    border-radius: var(--ms-radius-panel);
     border: 1px solid $color_blog_border;
     padding: 20px;
     transition: all 0.15s ease;

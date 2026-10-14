@@ -1,12 +1,44 @@
 {% extends "base.html" %}
+{% block shell_class %}msoj-shell-floating{% endblock %}
+{% block navigation_class %}ms-nav-floating{% endblock %}
+{% block title_row %}{% endblock %}
+{% block title_ruler %}{% endblock %}
 
 {% block body %}
-    <div class="auth-flow-form">
-        <form action="" method="post" class="form-area">
+    <section class="ms-login" aria-labelledby="login-title">
+        <div class="ms-login-story">
+            <span class="ms-login-mark" aria-hidden="true">MSOJ / CP</span>
+            <svg class="ms-login-graph" viewBox="0 0 480 340" fill="none" aria-hidden="true" focusable="false">
+                <g class="ms-login-edges" stroke="currentColor" stroke-width="1.5">
+                    <path d="M70 180 160 70 290 95 410 160 320 280 160 265 70 180 290 95 320 280M160 70 160 265 410 160M70 180 320 280"/>
+                </g>
+                <path class="ms-login-path" d="M70 180 160 70 290 95 410 160" stroke="currentColor" stroke-width="3"/>
+                <g class="ms-login-nodes" stroke="currentColor" stroke-width="2">
+                    <circle cx="70" cy="180" r="13"/><circle cx="160" cy="70" r="13"/>
+                    <circle cx="290" cy="95" r="13"/><circle cx="410" cy="160" r="13"/>
+                    <circle cx="320" cy="280" r="13"/><circle cx="160" cy="265" r="13"/>
+                </g>
+                <g fill="currentColor">
+                    <circle cx="70" cy="180" r="4"/><circle cx="160" cy="70" r="4"/>
+                    <circle cx="290" cy="95" r="4"/><circle cx="410" cy="160" r="4"/>
+                </g>
+            </svg>
+            <div class="ms-login-story-copy">
+                <p class="ms-login-eyebrow">{{ _('Competitive programming') }}</p>
+                <h2>{{ _('Every solution starts with an idea.') }}</h2>
+                <p>{{ _('Learn, practise, and find your own approach.') }}</p>
+            </div>
+        </div>
+        <div class="ms-login-panel">
+            <div class="ms-login-content">
+                <header class="ms-login-heading">
+                    <h1 id="login-title">{{ _('Login') }}</h1>
+                    <p>{{ _('Welcome back to MSOJ.') }}</p>
+                </header>
+        <form action="" method="post" class="ms-login-form">
             {% csrf_token %}
-            {% if form.errors %}
-                <div id="form-errors" style="max-width: fit-content;">
-                    <p class="error">{{ _('Invalid username or password.') }}</p>
+            {% if form.non_field_errors() %}
+                <div id="form-errors" class="ms-login-errors" role="alert">
                     {% for error in form.non_field_errors() %}
                         <p class="error">{{error}}</p>
                     {% endfor %}
@@ -19,30 +51,28 @@
                         </ul>
                     {% endif %}
                     {% if form.errors and misc_config.discord_invite_link and misc_config.discord_invite_shieldio %}
-                    {{ _('If you have problems with your account, feel free to shoot us a message at: ') }}<a href="{{ misc_config.discord_invite_link }}"><img src="{{ misc_config.discord_invite_shieldio }}"></a>
+                    {{ _('If you have problems with your account, feel free to shoot us a message at: ') }}<a href="{{ misc_config.discord_invite_link }}"><img src="{{ misc_config.discord_invite_shieldio }}" alt="Discord"></a>
                     {% endif %}
                 </div>
             {% endif %}
-            <table border="0" style="text-align:left">
-                <tr>
-                    <th><i class="fa fa-user fa-fw"></i>
-                    </th>
-                    <td>{{ form.username }}
-                    </td>
-                </tr>
-                <tr>
-                    <th><i class="fa fa-key fa-fw"></i>
-                    </th>
-                    <td>{{ form.password }}
-                    </td>
-                </tr>
-            </table>
-            <hr>
-            <button style="float:right;" type="submit">{{ _('Login!') }}</button>
+            <div class="ms-login-field">
+                <label for="{{ form.username.id_for_label }}">{{ _('Username') }}</label>
+                {{ form.username.as_widget(attrs={'autocomplete': 'username', 'aria-invalid': 'true' if form.username.errors else 'false', 'aria-describedby': 'login-username-errors' if form.username.errors else ('form-errors' if form.non_field_errors() else '')}) }}
+                {% if form.username.errors %}<div id="login-username-errors">{% for error in form.username.errors %}<p class="error">{{ error }}</p>{% endfor %}</div>{% endif %}
+            </div>
+            <div class="ms-login-field">
+                <label for="{{ form.password.id_for_label }}">{{ _('Password') }}</label>
+                {{ form.password.as_widget(attrs={'autocomplete': 'current-password', 'aria-invalid': 'true' if form.password.errors else 'false', 'aria-describedby': 'login-password-errors' if form.password.errors else ('form-errors' if form.non_field_errors() else '')}) }}
+                {% if form.password.errors %}<div id="login-password-errors">{% for error in form.password.errors %}<p class="error">{{ error }}</p>{% endfor %}</div>{% endif %}
+            </div>
+            <a class="ms-login-recover" href="{{ url('password_reset') }}">{{ _('Forgot your password?') }}</a>
+            <button class="full ms-login-submit" type="submit">{{ _('Log in') }} <i class="fa fa-arrow-right" aria-hidden="true"></i></button>
             <input type="hidden" name="next" value="{{ next }}">
         </form>
-        <a href="{{ url('password_reset') }}">{{ _('Forgot your password?') }}</a>
 
         {% include "registration/oauth.html" %}
-    </div>
+                <p class="ms-login-register">{{ _('New to MSOJ?') }} <a href="{{ url('registration_register') }}">{{ _('Sign up') }}</a></p>
+            </div>
+        </div>
+    </section>
 {% endblock %}

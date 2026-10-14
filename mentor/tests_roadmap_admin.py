@@ -16,6 +16,28 @@ class RoadmapAdminTests(RoadmapFixture, TestCase):
                 'type': node.type, 'position': node.position, 'difficulty': node.difficulty or '',
                 'status': node.status, '_save': 'Save', **self.inline_management, **changes}
 
+    def test_node_icon_can_be_created_changed_removed_and_invalid_values_rejected(self):
+        self.client.force_login(self.staff)
+        payload = {'roadmap': self.roadmap.pk, 'parent': '', 'type': 'GROUP',
+                   'title': 'Icon group', 'slug': 'icon-group', 'position': 0,
+                   'status': 'PUBLISHED', 'icon': 'fa-code', '_save': 'Save',
+                   **self.inline_management}
+        response = self.client.post(reverse('admin:mentor_roadmapnode_add'), payload)
+        self.assertEqual(response.status_code, 302)
+        node = RoadmapNode.objects.get(slug='icon-group')
+        self.assertEqual(node.icon, 'fa-code')
+        change = reverse('admin:mentor_roadmapnode_change', args=[node.pk])
+        for icon in ('fa-database', 'none', ''):
+            with self.subTest(icon=icon):
+                response = self.client.post(change, self.node_payload(node, icon=icon))
+                self.assertEqual(response.status_code, 302)
+                node.refresh_from_db()
+                self.assertEqual(node.icon, icon)
+        response = self.client.post(change, self.node_payload(node, icon='fa-code" onclick="alert(1)'))
+        self.assertEqual(response.status_code, 200)
+        node.refresh_from_db()
+        self.assertEqual(node.icon, '')
+
     def test_admin_http_create_move_invalid_cycle_and_protect(self):
         self.client.force_login(self.staff)
         add = reverse('admin:mentor_roadmapnode_add')

@@ -24,11 +24,11 @@
 }
 
 // Bootstrap-y buttons
-// Flat Academic Ink buttons
+// Shared pill actions; editor and navigation controls retain their owners.
 .button,
 button:not(.profile-disclosure):not(#prev-year-action):not(#next-year-action):not(.nav-seg-btn):not(
     .search-icon
-  ):not(:where(.ms-workspace *, .ms-mentor *, .ms-annotation-toolbar *, #navigation *)),
+  ):not(:where(.ms-workspace *, .ms-mentor *, .ms-annotation-toolbar *, #navigation *, .rm-finder-group, .rm-lecture-tabs *)),
 input[type="submit"]:not(:where(.ms-workspace *, #navigation *)) {
   color: var(--ms-btn-text, #ffffff) !important;
   text-decoration: none !important;
@@ -39,7 +39,7 @@ input[type="submit"]:not(:where(.ms-workspace *, #navigation *)) {
   line-height: 1.4;
   background: var(--ms-btn-bg);
   border: 1px solid transparent;
-  border-radius: var(--ms-radius-sm);
+  border-radius: var(--ms-radius-pill);
   padding: 6px 14px;
   display: inline-block;
   border: 0;
@@ -48,9 +48,9 @@ input[type="submit"]:not(:where(.ms-workspace *, #navigation *)) {
   font-family: inherit;
   box-shadow: var(--ms-shadow-sm);
   transition:
-    background-color 0.15s ease,
-    border-color 0.15s ease,
-    box-shadow 0.15s ease;
+    background-color var(--ms-duration-fast) var(--ms-ease),
+    border-color var(--ms-duration-fast) var(--ms-ease),
+    box-shadow var(--ms-duration-fast) var(--ms-ease);
 
   &:hover {
     background: var(--ms-btn-bg-hover);
@@ -312,7 +312,7 @@ textarea {
         line-height: 1.4;
         border: 1px solid transparent;
         border-bottom: 2px solid transparent;
-        border-radius: var(--ms-radius-sm) var(--ms-radius-sm) 0 0;
+        border-radius: var(--ms-radius-pill);
         position: relative;
         display: inline-flex;
         align-items: center;
@@ -436,6 +436,8 @@ ul.pagination {
   border-radius: $widget_border_radius;
 }
 
+.alert a { text-decoration: underline; text-underline-offset: 3px; }
+
 .alert-info {
   color: $color_info100;
   background-color: $color_info25;
@@ -525,7 +527,7 @@ a.close {
   background: var(--ms-surface-subtle);
   border: 1px solid var(--ms-border);
   border-bottom: none;
-  border-radius: var(--ms-radius-sm) var(--ms-radius-sm) 0 0;
+  border-radius: var(--ms-radius-panel) var(--ms-radius-panel) 0 0;
   color: var(--ms-text);
   padding: 8px 12px;
   font-size: 1.05rem;
@@ -541,7 +543,8 @@ a.close {
 .sidebox-content {
   background: var(--ms-surface);
   border: 1px solid var(--ms-border);
-  border-radius: 0 0 var(--ms-radius-sm) var(--ms-radius-sm);
+  border-radius: 0 0 var(--ms-radius-panel) var(--ms-radius-panel);
+  box-shadow: var(--ms-shadow-sm);
   margin: 0 -5px;
   padding: 10px 12px;
   color: var(--ms-text);

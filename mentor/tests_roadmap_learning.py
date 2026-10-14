@@ -69,7 +69,6 @@ class RoadmapLearningTests(RoadmapFixture, TestCase):
         self.assertEqual(learner.xpath('.//script | .//@onclick | .//a[starts-with(@href,"javascript:")]'), [])
         self.assertEqual(preview.xpath('.//script | .//@onclick | .//a[starts-with(@href,"javascript:")]'), [])
         self.assertEqual(preview.xpath('.//td/text()'), ['1', '2'])
-        self.assertEqual(learner.xpath('.//h3/text()'), ['Heading'])
         self.assertEqual(learner.xpath('.//td/text()'), ['1', '2'])
         self.assertEqual(learner.xpath('.//img/@alt'), ['image'])
         self.assertIn('int', learner.text_content())

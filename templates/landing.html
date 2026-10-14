@@ -1,5 +1,7 @@
 {% extends 'base.html' %} {% block title %}MSOJ — Học và luyện tập lập trình thi đấu{% endblock %}
-{% block media %}{{ super() }}<link rel="stylesheet" href="{{ static('landing.css') }}?v=2" />{%
+{% block shell_class %}msoj-shell-floating{% endblock %}
+{% block navigation_class %}ms-nav-floating{% endblock %}
+{% block media %}{{ super() }}<link rel="stylesheet" href="{{ static('landing.css') }}?v=4" />{%
 endblock %} {% block title_row %}{% endblock %} {% block title_ruler %}{% endblock %} {% block body
 %}
 <div class="msoj-landing">
@@ -8,6 +10,7 @@ endblock %} {% block title_row %}{% endblock %} {% block title_ruler %}{% endblo
       <p class="msoj-landing-eyebrow">
         <span class="msoj-landing-mark" aria-hidden="true"></span> KHÔNG GIAN LUYỆN TẬP · MSOJ
       </p>
+      <span class="msoj-landing-display" aria-hidden="true">MSOJ / CP</span>
       <h1 id="landing-title">Học và luyện tập lập trình thi đấu</h1>
       <p class="msoj-landing-lead">
         Một không gian rõ ràng để đọc đề, thử sức với bài tập và theo dõi hành trình giải thuật của

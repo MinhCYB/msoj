@@ -1,7 +1,7 @@
 /**
- * Scoped Roadmap interaction for Mentor Roadmap v2.
- * Handles lazy disclosure, recursive branches, error recovery and inline retry,
- * keyset pagination, history state preservation, and accessible keyboard navigation.
+ * Scoped Roadmap interaction for Mentor Roadmap.
+ * Handles goal paths + catalog mode, progressive enhancement via authorized HTML requests,
+ * latest-request-wins cancellation, loading/error/retry states, safe history URLs, and accessible mobile sheet.
  */
 (function () {
   'use strict';
@@ -9,651 +9,490 @@
   var root = document.querySelector('.ms-roadmap');
   if (!root) return;
 
-  var apiRoot = root.dataset.apiRoot || '';
-  if (apiRoot && apiRoot.charAt(apiRoot.length - 1) !== '/') {
-    apiRoot += '/';
-  }
-  var rootRevision = root.dataset.revision;
-
-  // Signal enhancement to CSS (hides SSR fallback pagination links)
+  // Signal enhancement to CSS
   root.classList.add('rm-enhanced');
 
-  var nodeTemplate = document.getElementById('rm-node-template');
+  var currentAbortController = null;
+  var lastFocusedNodeId = null;
+  var isNavigatingRelation = false;
+  var inertElements = [];
 
-  // Track per-element fetch/retry states without leaking memory
-  var pageStates = new WeakMap();
-  var restoringHistory = false;
-
-  function getPageState(element) {
-    var state = pageStates.get(element);
-    if (!state) {
-      state = { pending: false, request: null, pages: 1 };
-      pageStates.set(element, state);
-    }
-    return state;
+  function isMobileViewport() {
+    return window.matchMedia('(max-width: 959px)').matches;
   }
 
-  /**
-   * Format progress according to roadmap specification:
-   * direct 'Bài tập: AC x/y', subtree 'Cả nhánh: AC x/y' when children;
-   * anonymous 'Đăng nhập để xem AC', empty 'Chưa có bài tập', unavailable 'Tiến độ tạm không khả dụng'.
-   */
-  function formatProgress(val, label) {
-    if (!val || typeof val !== 'object') {
-      return 'Tiến độ tạm không khả dụng';
-    }
-    if (val.state === 'available') {
-      var solved = val.solved != null ? val.solved : 0;
-      var total = val.total != null ? val.total : 0;
-      return label + ': AC ' + solved + '/' + total;
-    }
-    if (val.state === 'anonymous') {
-      return 'Đăng nhập để xem AC';
-    }
-    if (val.state === 'empty') {
-      return 'Chưa có bài tập';
-    }
-    return 'Tiến độ tạm không khả dụng';
+  function getMapBaseUrl() {
+    return root.dataset.apiRoot || window.location.pathname;
   }
 
-  /**
-   * Populate/update common node fields safely using DOM textContent.
-   */
-  function populateNodeFields(nodeEl, item) {
-    nodeEl.dataset.title = item.title || '';
-    nodeEl.dataset.type = item.type || '';
-    nodeEl.dataset.contentState = item.content_state || '';
-    var contentStatus = nodeEl.querySelector(':scope > .rm-row .rm-content-status');
-    if (contentStatus) contentStatus.hidden = item.content_state !== 'UPCOMING';
+  function isInternalRoadmapLink(link) {
+    if (!link || !link.href) return false;
+    if (link.target && link.target !== '_self') return false;
+    if (link.hasAttribute('download')) return false;
 
-    var titleEl = nodeEl.querySelector(':scope > .rm-row .rm-title');
-    if (titleEl) {
-      titleEl.textContent = item.title;
-      if (item.focus_url) titleEl.href = item.focus_url;
+    var targetUrl;
+    try {
+      targetUrl = new URL(link.href, window.location.origin);
+    } catch (e) {
+      return false;
     }
 
-    var focusLink = nodeEl.querySelector(':scope > .rm-row .rm-focus-link');
-    if (focusLink) {
-      if (item.focus_url) focusLink.href = item.focus_url;
-      focusLink.textContent = 'Xem nhánh';
-      focusLink.hidden = !item.has_children;
-      var sr = document.createElement('span');
-      sr.className = 'rm-sr';
-      sr.textContent = ' ' + item.title;
-      focusLink.appendChild(sr);
+    if (targetUrl.origin !== window.location.origin) return false;
+
+    var path = targetUrl.pathname;
+    // Do NOT intercept learn links, login links, or other sections
+    if (path.indexOf('/learn') !== -1 || path.indexOf('/login') !== -1 || path.indexOf('/accounts/') !== -1) {
+      return false;
     }
 
-    var learnLink = nodeEl.querySelector(':scope > .rm-row .rm-learn');
-    if (learnLink) {
-      if (item.learn_url) {
-        learnLink.href = item.learn_url;
-        learnLink.textContent = 'Vào học';
-        var srL = document.createElement('span');
-        srL.className = 'rm-sr';
-        srL.textContent = ' ' + item.title;
-        learnLink.appendChild(srL);
-        learnLink.hidden = false;
-      } else {
-        learnLink.hidden = true;
-        learnLink.removeAttribute('href');
-      }
+    var base = getMapBaseUrl();
+    var basePath = new URL(base, window.location.origin).pathname;
+
+    // Must be the roadmap map page
+    if (path === basePath || path === basePath + '/') {
+      return true;
     }
 
-    var directProg = nodeEl.querySelector(':scope > .rm-row .rm-progress-direct');
-    if (directProg) {
-      directProg.textContent = formatProgress(item.progress, 'Bài tập');
-      directProg.dataset.state = item.progress ? item.progress.state : 'unavailable';
-      directProg.dataset.complete = String(Boolean(item.progress && item.progress.state === 'available' &&
-        item.progress.total > 0 && item.progress.solved === item.progress.total));
-    }
-
-    var subtreeProg = nodeEl.querySelector(':scope > .rm-row .rm-progress-subtree');
-    if (subtreeProg) {
-      if (!item.has_children || !item.subtree_progress || item.subtree_progress.state === 'anonymous') {
-        subtreeProg.hidden = true;
-        subtreeProg.textContent = '';
-      } else {
-        subtreeProg.hidden = false;
-        subtreeProg.textContent = formatProgress(item.subtree_progress, 'Cả nhánh');
-      }
-    }
-    var depthHint = nodeEl.querySelector(':scope > .rm-row .rm-depth-hint');
-    if (depthHint) depthHint.hidden = !item.has_children;
+    return false;
   }
 
-  /**
-   * Render a roadmap node safely using DOM textContent.
-   */
-  function renderNode(item) {
-    if (!nodeTemplate) return document.createElement('li');
-    var clone = nodeTemplate.content.firstElementChild.cloneNode(true);
-    clone.dataset.nodeId = String(item.id);
-    var parentLabel = clone.querySelector('.rm-parent');
-    var parentNode = item.parent_id ? root.querySelector('.rm-node[data-node-id="' + item.parent_id + '"]') : null;
-    if (parentLabel && parentNode) {
-      parentLabel.textContent = 'Thuộc: ' + parentNode.dataset.title;
-      parentLabel.hidden = false;
-    }
-
-    var kindEl = clone.querySelector('.rm-kind');
-    if (kindEl) kindEl.textContent = item.type === 'GROUP' ? 'Nhóm kiến thức' : 'Chuyên đề';
-
-    var diffEl = clone.querySelector('.rm-difficulty');
-    if (diffEl) {
-      var diffMap = { BASIC: 'Cơ bản', INTERMEDIATE: 'Trung cấp', ADVANCED: 'Nâng cao' };
-      diffEl.textContent = diffMap[item.difficulty] || '';
-    }
-
-    populateNodeFields(clone, item);
-
-    var disclosureBtn = clone.querySelector('.rm-disclosure');
-    var branchEl = clone.querySelector('.rm-branch');
-
-    if (item.has_children) {
-      var branchId = 'rm-children-' + item.id;
-      if (disclosureBtn) {
-        disclosureBtn.hidden = false;
-        disclosureBtn.setAttribute('aria-expanded', 'false');
-        disclosureBtn.setAttribute('aria-controls', branchId);
-        disclosureBtn.setAttribute('aria-label', 'Mở nhánh ' + item.title);
-        disclosureBtn.textContent = 'Mở nhánh';
-      }
-      if (branchEl) {
-        branchEl.id = branchId;
-        branchEl.dataset.parentId = String(item.id);
-        branchEl.dataset.endpoint = apiRoot + 'nodes/' + item.id + '/children/';
-        branchEl.hidden = true;
-        branchEl.dataset.nextCursor = '';
-        delete branchEl.dataset.loaded;
-      }
-    } else {
-      if (disclosureBtn) disclosureBtn.hidden = true;
-      if (branchEl) branchEl.remove();
-    }
-
-    return clone;
+  function hideError() {
+    var errEl = root.querySelector('.rm-network-error');
+    if (errEl) errEl.hidden = true;
   }
 
-
-  function buildUrl(endpoint, cursor) {
-    var sep = endpoint.indexOf('?') === -1 ? '?' : '&';
-    var url = endpoint;
-    if (cursor) {
-      url += sep + 'cursor=' + encodeURIComponent(cursor) + '&limit=50';
-    } else {
-      url += sep + 'limit=50';
+  function showError(message, retryUrl, pushToHistory) {
+    var errEl = root.querySelector('.rm-network-error');
+    if (!errEl) return;
+    var msgEl = errEl.querySelector('.rm-error-text');
+    if (msgEl) {
+      msgEl.textContent = message || 'Không thể tải dữ liệu lộ trình. Vui lòng thử lại.';
     }
-    return url;
-  }
-
-  /**
-   * Fetch JSON with explicit Accept header and error classification.
-   */
-  function fetchJson(url) {
-    return fetch(url, {
-      headers: { 'Accept': 'application/json' },
-      credentials: 'same-origin',
-    }).then(function (response) {
-      if (response.redirected) {
-        var err = new Error('Redirected');
-        err.kind = 'redirect';
-        throw err;
-      }
-      var contentType = response.headers.get('content-type') || '';
-      if (!contentType.includes('application/json')) {
-        var err = new Error('Non-JSON response');
-        err.kind = 'non-json';
-        throw err;
-      }
-      if (response.status === 404) {
-        var err = new Error('Not found');
-        err.kind = '404';
-        throw err;
-      }
-      if (response.status === 409) {
-        return response.json().then(function (data) {
-          var err = new Error((data && data.error) ? data.error : 'Stale revision');
-          err.kind = '409';
-          err.data = data;
-          throw err;
-        });
-      }
-      if (!response.ok) {
-        var err = new Error('HTTP ' + response.status);
-        err.kind = 'http';
-        err.status = response.status;
-        throw err;
-      }
-      return response.json();
-    });
-  }
-
-  function checkRevision(data) {
-    if (data && data.tree_revision !== undefined && rootRevision !== undefined) {
-      if (String(data.tree_revision) !== String(rootRevision)) {
-        var err = new Error('Stale revision');
-        err.kind = 'stale';
-        throw err;
-      }
-    }
-  }
-
-  /**
-   * Render inline error states and actions.
-   */
-  function handleError(err, statusEl, retryBtn, retryFn) {
-    if (!statusEl || !retryBtn) return;
-    if (err.kind === '404') {
-      statusEl.textContent = 'Nội dung không tồn tại hoặc đã thay đổi. Vui lòng tải lại trang.';
-      retryBtn.textContent = 'Tải lại trang';
-      retryBtn.hidden = false;
-      retryBtn.onclick = function () { window.location.reload(); };
-    } else if (err.kind === '409' || err.kind === 'stale') {
-      statusEl.textContent = 'Lộ trình đã được cập nhật phiên bản mới. Vui lòng tải lại trang.';
-      retryBtn.textContent = 'Tải lại trang';
-      retryBtn.hidden = false;
-      retryBtn.onclick = function () { window.location.reload(); };
-    } else if (err.kind === 'redirect' || err.kind === 'non-json') {
-      statusEl.textContent = 'Phiên làm việc đã thay đổi hoặc máy chủ chuyển hướng. Vui lòng tải lại trang.';
-      retryBtn.textContent = 'Tải lại trang';
-      retryBtn.hidden = false;
-      retryBtn.onclick = function () { window.location.reload(); };
-    } else {
-      statusEl.textContent = 'Không thể kết nối máy chủ. Vui lòng thử lại.';
-      retryBtn.textContent = 'Thử lại';
-      retryBtn.hidden = false;
+    errEl.hidden = false;
+    var retryBtn = errEl.querySelector('.rm-error-retry');
+    if (retryBtn) {
       retryBtn.onclick = function () {
-        retryBtn.hidden = true;
-        statusEl.textContent = '';
-        if (typeof retryFn === 'function') retryFn();
+        hideError();
+        fetchAndSwap(retryUrl, Boolean(pushToHistory));
       };
+      retryBtn.focus();
     }
   }
 
-  /**
-   * Fetch immediate children for a branch (first load or revalidate).
-   * Guarantees: collapse-during-load must not reopen; re-expand fresh revalidates without dupes.
-   */
-  function loadBranch(branch, nodeEl, btn) {
-    var state = getPageState(branch);
-    if (state.pending) {
-      var cachedList = branch.querySelector(':scope > .rm-list');
-      if (cachedList) cachedList.hidden = true;
-      return state.request.then(function () {
-        if (!branch.hidden && branch.isConnected) return loadBranch(branch, nodeEl, btn);
-      });
+  function clearInertBackground() {
+    for (var i = 0; i < inertElements.length; i++) {
+      inertElements[i].removeAttribute('inert');
     }
-    state.pending = true;
+    inertElements = [];
+  }
 
-    var statusEl = branch.querySelector(':scope > .rm-status') || branch.querySelector('.rm-status');
-    var retryBtn = branch.querySelector(':scope > .rm-retry') || branch.querySelector('.rm-retry');
-    var moreBtn = branch.querySelector(':scope > .rm-more') || branch.querySelector('.rm-more');
-    var listEl = branch.querySelector(':scope > .rm-list') || branch.querySelector('.rm-list');
+  function setInertBackground(panel, enabled) {
+    clearInertBackground();
+    if (!enabled || !panel) return;
 
-    if (statusEl) statusEl.textContent = 'Đang tải nhánh...';
-    if (retryBtn) retryBtn.hidden = true;
-    if (moreBtn) moreBtn.hidden = true;
-    // Cached descendants must not remain visible across an authorization refresh.
-    if (listEl) listEl.hidden = true;
-
-    var endpoint = branch.dataset.endpoint || (apiRoot + 'nodes/' + nodeEl.dataset.nodeId + '/children/');
-    branch.dataset.endpoint = endpoint;
-    var url = buildUrl(endpoint, null);
-
-    state.request = fetchJson(url)
-      .then(function (data) {
-        checkRevision(data);
-        branch.dataset.loaded = 'true';
-        state.pages = 1;
-
-        // Collapse-during-load must NOT reopen
-        var isStillExpanded = btn.getAttribute('aria-expanded') === 'true' && !branch.hidden;
-        if (!isStillExpanded) {
-          branch.hidden = true;
-          btn.setAttribute('aria-expanded', 'false');
-          btn.textContent = 'Mở nhánh';
-          btn.setAttribute('aria-label', 'Mở nhánh ' + (nodeEl.dataset.title || ''));
-        }
-
-        if (statusEl) statusEl.textContent = '';
-
-        var items = data.items || [];
-        if (items.length === 0) {
-          if (document.activeElement === btn || branch.contains(document.activeElement)) {
-            nodeEl.querySelector('.rm-title').focus();
+    var parent = panel.parentElement;
+    while (parent && parent !== document.documentElement) {
+      for (var i = 0; i < parent.children.length; i++) {
+        var child = parent.children[i];
+        if (child !== panel && !child.contains(panel) && !child.classList.contains('rm-sheet-backdrop')) {
+          if (!child.hasAttribute('inert')) {
+            child.setAttribute('inert', '');
+            inertElements.push(child);
           }
-          btn.hidden = true;
-          btn.setAttribute('aria-expanded', 'false');
-          branch.hidden = true;
-          if (listEl) listEl.replaceChildren();
-          return;
         }
-
-        if (listEl) {
-          listEl.replaceChildren();
-          var seen = new Set();
-          items.forEach(function (item) {
-            if (!seen.has(item.id)) listEl.appendChild(renderNode(item));
-            seen.add(item.id);
-          });
-          listEl.hidden = false;
-        }
-
-        var hasCursor = Boolean(data.next_cursor && data.next_cursor.trim());
-        branch.dataset.nextCursor = hasCursor ? data.next_cursor : '';
-        if (moreBtn) moreBtn.hidden = !(hasCursor && isStillExpanded);
-
-        saveHistoryState();
-      })
-      .catch(function (err) {
-        if (statusEl && retryBtn) {
-          handleError(err, statusEl, retryBtn, function () {
-            loadBranch(branch, nodeEl, btn);
-          });
-        }
-      }).finally(function () {
-        state.pending = false;
-      });
-    return state.request;
+      }
+      parent = parent.parentElement;
+    }
   }
 
-  /**
-   * Keyset pagination: load more items and append with deterministic distinct IDs.
-   * Retains prior successful items on network failure.
-   */
-  function loadMore(pageEl, moreBtn) {
-    var state = getPageState(pageEl);
-    if (state.pending) return state.request;
+  function setupSheetDialog(panel) {
+    if (!panel) return;
+    panel.setAttribute('role', 'dialog');
+    panel.setAttribute('aria-modal', 'true');
+    setInertBackground(panel, true);
 
-    var cursor = pageEl.dataset.nextCursor;
-    if (!cursor || !cursor.trim()) {
-      moreBtn.hidden = true;
+    var backdrop = root.querySelector('.rm-sheet-backdrop');
+    if (backdrop) backdrop.hidden = false;
+
+    var closeBtn = panel.querySelector('.rm-detail-close');
+    var heading = panel.querySelector('#rm-detail-heading');
+    if (closeBtn) {
+      closeBtn.focus();
+    } else if (heading) {
+      heading.focus();
+    }
+  }
+
+  function tearDownSheetDialog(panel) {
+    var backdrop = root.querySelector('.rm-sheet-backdrop');
+    if (backdrop) backdrop.hidden = true;
+
+    clearInertBackground();
+
+    if (panel) {
+      panel.removeAttribute('role');
+      panel.removeAttribute('aria-modal');
+    }
+  }
+
+  function fetchAndSwap(targetUrl, pushToHistory, triggerNodeId) {
+    var parsedUrl;
+    try {
+      parsedUrl = new URL(targetUrl, window.location.origin);
+    } catch (e) {
+      window.location.href = targetUrl;
       return;
     }
 
-    state.pending = true;
-
-    var statusEl = pageEl.querySelector(':scope > .rm-status') || pageEl.querySelector('.rm-status');
-    var retryBtn = pageEl.querySelector(':scope > .rm-retry') || pageEl.querySelector('.rm-retry');
-    var listEl = pageEl.querySelector(':scope > .rm-list') || pageEl.querySelector('.rm-list');
-
-    moreBtn.hidden = true;
-    if (retryBtn) retryBtn.hidden = true;
-    if (statusEl) statusEl.textContent = 'Đang tải thêm node...';
-
-    var endpoint = pageEl.dataset.endpoint;
-    if (!endpoint) {
-      if (pageEl.dataset.parentId) {
-        endpoint = apiRoot + 'nodes/' + pageEl.dataset.parentId + '/children/';
-      } else if (pageEl.id === 'rm-roots') {
-        endpoint = apiRoot + '?format=json';
-      }
+    // Cancel in-flight request: latest request wins
+    if (currentAbortController) {
+      currentAbortController.abort();
     }
-    var url = buildUrl(endpoint, cursor);
+    var controller = new AbortController();
+    currentAbortController = controller;
 
-    state.request = fetchJson(url)
-      .then(function (data) {
-        checkRevision(data);
-        state.pages += 1;
-        if (statusEl) statusEl.textContent = '';
+    if (triggerNodeId) {
+      lastFocusedNodeId = triggerNodeId;
+    }
 
-        var items = data.items || [];
-        if (listEl) {
-          items.forEach(function (item) {
-            var existing = listEl.querySelector(':scope > .rm-node[data-node-id="' + item.id + '"]');
-            if (!existing) {
-              listEl.appendChild(renderNode(item));
-            }
-          });
+    root.classList.add('is-loading');
+    var loadingBar = root.querySelector('.rm-loading-bar');
+    if (loadingBar) loadingBar.hidden = false;
+    hideError();
+
+    fetch(parsedUrl.href, {
+      method: 'GET',
+      headers: {
+        'Accept': 'text/html',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      signal: controller.signal
+    })
+      .then(function (res) {
+        if (controller !== currentAbortController) return null;
+        if (!res.ok) {
+          throw new Error('Yêu cầu không thành công (mã trạng thái: ' + res.status + ')');
+        }
+        return res.text();
+      })
+      .then(function (htmlText) {
+        if (!htmlText || controller !== currentAbortController) return;
+
+        var parser = new DOMParser();
+        var doc = parser.parseFromString(htmlText, 'text/html');
+        var newRoot = doc.querySelector('.ms-roadmap');
+        if (!newRoot) {
+          throw new Error('Dữ liệu máy chủ trả về không hợp lệ.');
         }
 
-        var hasCursor = Boolean(data.next_cursor && data.next_cursor.trim());
-        pageEl.dataset.nextCursor = hasCursor ? data.next_cursor : '';
-        moreBtn.hidden = !hasCursor;
+        if (doc.title) {
+          document.title = doc.title;
+        }
 
-        saveHistoryState();
+        var finder = root.querySelector('.rm-finder[open]');
+        if (finder) finder.close();
+        clearInertBackground();
+
+        root.innerHTML = newRoot.innerHTML;
+        if (newRoot.dataset.mode) {
+          root.dataset.mode = newRoot.dataset.mode;
+        }
+        if (newRoot.dataset.revision) {
+          root.dataset.revision = newRoot.dataset.revision;
+        }
+
+        root.classList.remove('is-loading');
+        var bar = root.querySelector('.rm-loading-bar');
+        if (bar) bar.hidden = true;
+        currentAbortController = null;
+
+        // Safe history: null state, only clean URL
+        if (pushToHistory) {
+          history.pushState(null, '', parsedUrl.href);
+        }
+
+        afterSwap(parsedUrl);
       })
       .catch(function (err) {
-        // Keep prior successful pages if pagination fails!
-        if (listEl && ['404', '409', 'stale', 'redirect', 'non-json'].includes(err.kind)) {
-          listEl.hidden = true;
+        if (controller !== currentAbortController) return;
+        if (err.name === 'AbortError') {
+          return;
         }
-        if (statusEl && retryBtn) {
-          handleError(err, statusEl, retryBtn, function () {
-            loadMore(pageEl, moreBtn);
-          });
-        }
-      }).finally(function () {
-        state.pending = false;
+        root.classList.remove('is-loading');
+        var bar = root.querySelector('.rm-loading-bar');
+        if (bar) bar.hidden = true;
+        currentAbortController = null;
+        showError(err.message, targetUrl, pushToHistory);
       });
-    return state.request;
   }
 
-  /**
-   * Handle disclosure toggle.
-   * If collapse happens while subtree is focused, returns focus to the disclosure button.
-   */
-  function handleDisclosureClick(btn) {
-    var nodeEl = btn.closest('.rm-node');
-    if (!nodeEl) return;
-    var branch = nodeEl.querySelector(':scope > .rm-branch') ||
-                 document.getElementById(btn.getAttribute('aria-controls'));
-    if (!branch) return;
-
-    var isExpanded = btn.getAttribute('aria-expanded') === 'true' && !branch.hidden;
-
-    if (isExpanded) {
-      branch.hidden = true;
-      btn.setAttribute('aria-expanded', 'false');
-      btn.textContent = 'Mở nhánh';
-      btn.setAttribute('aria-label', 'Mở nhánh ' + (nodeEl.dataset.title || ''));
-
-      // Return focus from subtree if activeElement was inside
-      if (branch.contains(document.activeElement)) {
-        btn.focus();
-      }
-      saveHistoryState();
-    } else {
-      branch.hidden = false;
-      btn.setAttribute('aria-expanded', 'true');
-      btn.textContent = 'Thu nhánh';
-      btn.setAttribute('aria-label', 'Thu nhánh ' + (nodeEl.dataset.title || ''));
-
-      loadBranch(branch, nodeEl, btn);
-      saveHistoryState();
-    }
+  function normalizeSearch(value) {
+    return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
   }
 
-  /**
-   * History metadata only: save expanded node IDs, focused control, and scroll position.
-   * Never stores private payload.
-   */
-  function getHistoryMetadata() {
-    var expandedIds = [];
-    var pageCounts = {};
-    root.querySelectorAll('.rm-page').forEach(function (page) {
-      var owner = page.closest('.rm-node');
-      pageCounts[owner ? owner.dataset.nodeId : 'roots'] = getPageState(page).pages;
+  function initTopicFinder() {
+    var dialog = root.querySelector('.rm-finder');
+    if (!dialog || typeof dialog.showModal !== 'function') return;
+    var opener = root.querySelector('.rm-finder-open');
+    var fallback = root.querySelector('.rm-goal-change');
+    opener.hidden = false;
+    fallback.hidden = true;
+    var query = dialog.querySelector('#rm-finder-query');
+    var results = dialog.querySelector('.rm-finder-results');
+    var groups = dialog.querySelector('.rm-finder-groups');
+    var filter = dialog.querySelector('.rm-finder-filter');
+    var groupName = dialog.querySelector('.rm-finder-group-name');
+    var entries = Array.from(results.children).map(function (row, index) {
+      var title = normalizeSearch(row.dataset.title);
+      var names = [title].concat((row.dataset.aliases || '').split('|').filter(Boolean).map(normalizeSearch));
+      var english = row.dataset.title.match(/\(([^)]+)\)/);
+      if (english) names.push(normalizeSearch(english[1]));
+      return { row: row, index: index, names: names, text: names.join(' ') };
     });
-    root.querySelectorAll('.rm-node').forEach(function (node) {
-      var btn = node.querySelector(':scope > .rm-row .rm-disclosure');
-      if (btn && btn.getAttribute('aria-expanded') === 'true') {
-        expandedIds.push(node.dataset.nodeId);
-      }
-    });
+    var group = null;
 
-    var activeEl = document.activeElement;
-    var focusedControl = null;
-    if (activeEl && root.contains(activeEl)) {
-      if (activeEl.id) {
-        focusedControl = '#' + activeEl.id;
-      } else {
-        var n = activeEl.closest('.rm-node');
-        if (n) {
-          if (activeEl.classList.contains('rm-disclosure')) {
-            focusedControl = '[data-node-id="' + n.dataset.nodeId + '"] .rm-disclosure';
-          } else if (activeEl.classList.contains('rm-focus')) {
-            focusedControl = '[data-node-id="' + n.dataset.nodeId + '"] .rm-focus';
-          } else if (activeEl.classList.contains('rm-learn')) {
-            focusedControl = '[data-node-id="' + n.dataset.nodeId + '"] .rm-learn';
-          }
+    function update() {
+      var term = normalizeSearch(query.value);
+      var tokens = term.split(' ').filter(Boolean);
+      var browsing = group !== null || term.length > 0;
+      groups.hidden = browsing;
+      results.hidden = !browsing;
+      filter.hidden = !browsing;
+      var matches = [];
+      entries.forEach(function (entry) {
+        var inGroup = group === null || group === 'all' || entry.row.dataset.group === group;
+        var matchesQuery = tokens.every(function (token) { return entry.text.indexOf(token) !== -1; });
+        entry.row.hidden = !inGroup || !matchesQuery;
+        if (!entry.row.hidden) {
+          var rank = !term ? 3 : entry.names.indexOf(term) !== -1 ? 0 : entry.names.some(function (name) { return name.startsWith(term); }) ? 1 : 2;
+          matches.push({ entry: entry, rank: rank });
         }
-      }
+      });
+      matches.sort(function (a, b) { return a.rank - b.rank || a.entry.index - b.entry.index; });
+      matches.forEach(function (match) { results.appendChild(match.entry.row); });
+      dialog.querySelector('.rm-finder-empty').hidden = !browsing || matches.length > 0;
+      dialog.querySelector('.rm-finder-status').textContent = browsing ? matches.length + ' chuyên đề phù hợp' : 'Chọn nhóm hoặc nhập tên chuyên đề.';
+      dialog.querySelector('.rm-finder-all').textContent = term || group !== null ? 'Tất cả nhóm' : 'Khám phá nhóm';
     }
 
-    return {
-      msRoadmap: true,
-      expandedIds: expandedIds,
-      pageCounts: pageCounts,
-      focusedControl: focusedControl,
-      scrollY: window.scrollY,
+    opener.onclick = function () {
+      group = null;
+      query.value = '';
+      groupName.textContent = '';
+      update();
+      dialog.showModal();
+      query.focus();
+    };
+    dialog.querySelector('.rm-finder-close').onclick = function () { dialog.close(); };
+    dialog.addEventListener('close', function () { opener.focus(); });
+    dialog.addEventListener('keydown', function (event) {
+      if (event.key !== 'Tab') return;
+      var controls = Array.from(dialog.querySelectorAll('button, input, a[href]')).filter(function (element) {
+        return !element.disabled && !element.closest('[hidden]') && element.getClientRects().length > 0;
+      });
+      var first = controls[0];
+      var last = controls[controls.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault(); last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault(); first.focus();
+      }
+    });
+    query.addEventListener('input', update);
+    query.addEventListener('keydown', function (event) {
+      if (event.key === 'ArrowDown') {
+        var first = results.querySelector('li:not([hidden]) a');
+        if (!results.hidden && first) { event.preventDefault(); first.focus(); }
+      }
+    });
+    results.addEventListener('keydown', function (event) {
+      if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+      var links = Array.from(results.querySelectorAll('li:not([hidden]) a'));
+      var index = links.indexOf(document.activeElement);
+      var next = index + (event.key === 'ArrowDown' ? 1 : -1);
+      event.preventDefault();
+      if (next < 0) query.focus();
+      else if (links[next]) links[next].focus();
+    });
+    groups.addEventListener('click', function (event) {
+      var button = event.target.closest('[data-group-id]');
+      if (!button) return;
+      group = button.dataset.groupId;
+      groupName.textContent = group === 'all' ? '' : button.textContent;
+      update();
+      query.focus();
+    });
+    dialog.querySelector('.rm-finder-all').onclick = function () {
+      group = null;
+      groupName.textContent = '';
+      update();
+      query.focus();
     };
   }
 
-  function saveHistoryState() {
-    if (restoringHistory) return;
-    try {
-      history.replaceState(getHistoryMetadata(), '');
-    } catch (e) {}
-  }
-
-  /**
-   * Browser Back restoration: restore expanded branches with FRESH reads before using prior data.
-   */
-  async function restoreFromHistory(state) {
-    if (!state || !state.msRoadmap) return;
-    restoringHistory = true;
-    try {
-      async function restorePages(page, key) {
-        var count = (state.pageCounts || {})[key] || 1;
-        var more = page.querySelector(':scope > .rm-more');
-        while (more && getPageState(page).pages < count && page.dataset.nextCursor) {
-          var before = getPageState(page).pages;
-          await loadMore(page, more);
-          if (getPageState(page).pages === before) break;
-        }
-      }
-      await restorePages(document.getElementById('rm-roots'), 'roots');
-      // Reconstruct parents and their authorized pages before locating descendants.
-      for (var nodeId of state.expandedIds || []) {
-        var node = root.querySelector('.rm-node[data-node-id="' + nodeId + '"]');
-        if (!node) continue;
-        var btn = node.querySelector(':scope > .rm-row .rm-disclosure');
-        var branch = node.querySelector(':scope > .rm-branch');
-        if (!btn || !branch) continue;
-        branch.hidden = false;
-        btn.setAttribute('aria-expanded', 'true');
-        btn.textContent = 'Thu nhánh';
-        btn.setAttribute('aria-label', 'Thu nhánh ' + node.dataset.title);
-        await loadBranch(branch, node, btn);
-        await restorePages(branch, nodeId);
-      }
-      if (state.focusedControl) {
-        var el = root.querySelector(state.focusedControl);
-        if (el && el.getClientRects().length) el.focus({ preventScroll: true });
-      }
-      window.scrollTo(0, state.scrollY || 0);
-    } finally {
-      restoringHistory = false;
-      saveHistoryState();
-    }
-  }
-
-
-  function init() {
-    // Heading focus when ?focus is present in URL
-    var params = new URLSearchParams(window.location.search);
-    if (params.has('focus')) {
-      var heading = document.getElementById('rm-heading');
-      if (heading) {
-        heading.focus();
+  function afterSwap(parsedUrl) {
+    initTopicFinder();
+    if (parsedUrl.hash) {
+      var milestone = document.getElementById(parsedUrl.hash.slice(1));
+      if (milestone && root.contains(milestone)) {
+        tearDownSheetDialog(root.querySelector('.rm-detail-panel'));
+        milestone.tabIndex = -1;
+        milestone.focus({ preventScroll: true });
+        milestone.scrollIntoView({ block: 'start' });
+        isNavigatingRelation = false;
+        return;
       }
     }
 
-    // Reveal disclosure buttons for nodes with valid children
-    root.querySelectorAll('.rm-node').forEach(function (nodeEl) {
-      var btn = nodeEl.querySelector(':scope > .rm-row .rm-disclosure');
-      var branch = nodeEl.querySelector(':scope > .rm-branch') ||
-                   (btn ? document.getElementById(btn.getAttribute('aria-controls')) : null);
-      if (btn && branch) {
-        btn.hidden = false;
-        var isOpened = !branch.hidden;
-        btn.setAttribute('aria-expanded', isOpened ? 'true' : 'false');
-        btn.textContent = isOpened ? 'Thu nhánh' : 'Mở nhánh';
-        btn.setAttribute('aria-label', (isOpened ? 'Thu' : 'Mở') + ' nhánh ' + (nodeEl.dataset.title || ''));
-      } else if (btn) {
-        btn.hidden = true;
-      }
-    });
+    var panel = root.querySelector('.rm-detail-panel');
+    var isPanelOpen = panel && panel.classList.contains('is-open');
+    var isMobile = isMobileViewport();
 
-    // Initialize pagination more-buttons on .rm-page elements
-    root.querySelectorAll('.rm-page').forEach(function (pageEl) {
-      var moreBtn = pageEl.querySelector(':scope > .rm-more') || pageEl.querySelector('.rm-more');
-      if (moreBtn) {
-        if (pageEl.dataset.nextCursor && pageEl.dataset.nextCursor.trim() !== '') {
-          moreBtn.hidden = false;
+    if (isPanelOpen) {
+      lastFocusedNodeId = parsedUrl.searchParams.get('selected') || lastFocusedNodeId;
+      panel.scrollTop = 0;
+      if (isMobile) {
+        setupSheetDialog(panel);
+      } else {
+        tearDownSheetDialog(panel);
+        var activeCard = root.querySelector('.rm-node-card.is-selected');
+        if (activeCard && !isNavigatingRelation) {
+          activeCard.focus();
         } else {
-          moreBtn.hidden = true;
+          var heading = panel.querySelector('#rm-detail-heading');
+          if (heading) heading.focus();
         }
       }
-    });
-
-    if (history.state && history.state.msRoadmap) {
-      restoreFromHistory(history.state);
     } else {
-      saveHistoryState();
+      tearDownSheetDialog(panel);
+      var focused = false;
+      if (lastFocusedNodeId) {
+        var targetCard = root.querySelector('.rm-node-card[data-node-id="' + lastFocusedNodeId + '"]');
+        if (targetCard) {
+          targetCard.focus();
+          focused = true;
+        }
+      }
+      if (!focused) {
+        var rmHeading = root.querySelector('#rm-heading');
+        if (rmHeading) rmHeading.focus();
+      }
     }
+
+    isNavigatingRelation = false;
   }
 
-  // Event delegation on root
-  root.addEventListener('click', function (event) {
-    var disclosureBtn = event.target.closest('.rm-disclosure');
-    if (disclosureBtn && root.contains(disclosureBtn)) {
-      event.preventDefault();
-      handleDisclosureClick(disclosureBtn);
+  // Delegated click handler on root
+  root.addEventListener('click', function (e) {
+    // Early return for modified clicks (cmd, ctrl, shift, alt) or non-primary button
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
       return;
     }
 
-    var moreBtn = event.target.closest('.rm-more');
-    if (moreBtn && root.contains(moreBtn)) {
-      event.preventDefault();
-      var pageEl = moreBtn.closest('.rm-page');
-      if (pageEl) {
-        loadMore(pageEl, moreBtn);
+    var link = e.target.closest('a');
+    if (!link) {
+      // Check backdrop click to close mobile sheet
+      if (e.target.classList.contains('rm-sheet-backdrop')) {
+        var panel = root.querySelector('.rm-detail-panel.is-open');
+        var closeBtn = panel ? panel.querySelector('.rm-detail-close') : null;
+        if (closeBtn && isInternalRoadmapLink(closeBtn)) {
+          e.preventDefault();
+          fetchAndSwap(closeBtn.href, true);
+        }
       }
       return;
     }
-    if (event.target.closest('a')) saveHistoryState();
+
+    if (!isInternalRoadmapLink(link)) {
+      return;
+    }
+
+    e.preventDefault();
+    if (link.classList.contains('rm-finder-result')) {
+      lastFocusedNodeId = null;
+      root.querySelector('.rm-finder').close();
+    }
+
+    var isRelation = Boolean(link.closest('.rm-relations-list'));
+    if (isRelation) {
+      isNavigatingRelation = true;
+    }
+
+    var card = link.closest('.rm-node-card');
+    var nodeId = card ? card.dataset.nodeId : null;
+
+    fetchAndSwap(link.href, true, nodeId);
   });
 
-  // bfcache restoration
-  window.addEventListener('pageshow', function (event) {
-    if (!event.persisted) return;
-    // A restored document may belong to a previous account or publication state.
-    root.hidden = true;
-    window.location.reload();
-  });
+  // Keyboard navigation & accessibility (Escape + Tab trapping)
+  document.addEventListener('keydown', function (e) {
+    if (root.querySelector('.rm-finder[open]')) return;
+    var panel = root.querySelector('.rm-detail-panel.is-open');
+    if (!panel) return;
 
-  // Browser Back/Forward navigation
-  window.addEventListener('popstate', function (event) {
-    if (event.state && event.state.msRoadmap) {
-      restoreFromHistory(event.state);
+    var isMobile = isMobileViewport();
+
+    if (e.key === 'Escape') {
+      if (isMobile) {
+        var closeBtn = panel.querySelector('.rm-detail-close');
+        if (closeBtn && isInternalRoadmapLink(closeBtn)) {
+          e.preventDefault();
+          fetchAndSwap(closeBtn.href, true);
+        }
+      }
+      return;
+    }
+
+    if (e.key === 'Tab' && isMobile) {
+      var focusables = Array.from(panel.querySelectorAll('a[href], button:not([disabled]), select, input, summary, [tabindex="0"]')).filter(function (element) {
+        var closedDetails = element.closest('details:not([open])');
+        return element.getClientRects().length > 0 && (!closedDetails || element === closedDetails.querySelector('summary'));
+      });
+      if (!focusables.length) return;
+
+      var first = focusables[0];
+      var last = focusables[focusables.length - 1];
+
+      if (e.shiftKey) {
+        if (document.activeElement === first || !panel.contains(document.activeElement)) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last || !panel.contains(document.activeElement)) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
     }
   });
 
-  // Save scroll position with passive listener
-  var scrollDebounce = null;
-  window.addEventListener('scroll', function () {
-    if (scrollDebounce) return;
-    scrollDebounce = setTimeout(function () {
-      scrollDebounce = null;
-      saveHistoryState();
-    }, 250);
-  }, { passive: true });
+  // Update dialog state and inert background on viewport resize
+  window.addEventListener('resize', function () {
+    var panel = root.querySelector('.rm-detail-panel');
+    var isPanelOpen = panel && panel.classList.contains('is-open');
+    if (!isPanelOpen) return;
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
+    if (isMobileViewport()) {
+      setupSheetDialog(panel);
+    } else {
+      tearDownSheetDialog(panel);
+    }
+  });
+
+  // Browser Back / Forward navigation
+  window.addEventListener('popstate', function () {
+    // Fresh request to current URL, no history push
+    fetchAndSwap(window.location.href, false);
+  });
+
+  // Initial setup on page load
+  initTopicFinder();
+  var initialPanel = root.querySelector('.rm-detail-panel.is-open');
+  if (initialPanel) {
+    lastFocusedNodeId = new URL(window.location.href).searchParams.get('selected');
+  }
+  if (initialPanel && isMobileViewport()) {
+    setupSheetDialog(initialPanel);
   }
 })();

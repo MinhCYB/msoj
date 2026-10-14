@@ -1,35 +1,15 @@
 /* Academic Ink workspace: preserve the existing routes, form and permissions. */
 body:has(.ms-workspace) {
-  --ws-page: #f8f9fb;
-  --ws-bg: #fff;
-  --ws-ink: #18212d;
-  --ws-muted: #566474;
-  --ws-border: #dce2e9;
-  --ws-accent: #2457a7;
-  --ws-accent-hover: #194584;
+  --ws-page: var(--ms-page);
+  --ws-bg: var(--ms-surface);
+  --ws-ink: var(--ms-text);
+  --ws-muted: var(--ms-muted);
+  --ws-border: var(--ms-border);
+  --ws-accent: var(--ms-accent);
+  --ws-accent-hover: var(--ms-accent-hover);
   background: var(--ws-page);
   color: var(--ws-ink);
-  font-family: "Segoe UI", "Source Sans Pro", Arial, sans-serif;
-}
-body[data-theme="dark"]:has(.ms-workspace) {
-  --ws-page: #11151b;
-  --ws-bg: #1b222b;
-  --ws-ink: #e9edf2;
-  --ws-muted: #a9b5c2;
-  --ws-border: #35414e;
-  --ws-accent: #80acf2;
-  --ws-accent-hover: #a1c3fa;
-}
-@media (prefers-color-scheme: dark) {
-  body[data-theme="auto"]:has(.ms-workspace) {
-    --ws-page: #11151b;
-    --ws-bg: #1b222b;
-    --ws-ink: #e9edf2;
-    --ws-muted: #a9b5c2;
-    --ws-border: #35414e;
-    --ws-accent: #80acf2;
-    --ws-accent-hover: #a1c3fa;
-  }
+  font-family: var(--ms-font-ui);
 }
 body:has(.ms-workspace) #page-container {
   max-width: none;
@@ -41,20 +21,12 @@ body:has(.ms-workspace) #content {
   max-width: none;
   height: auto;
   min-height: 0;
-  margin: 68px 0 0;
+  margin: var(--ms-nav-height) 0 0;
   padding: 26px clamp(20px, 2.4vw, 48px) 80px;
 }
 body:has(.ms-workspace) #content-body {
   min-width: 0;
   padding-bottom: 0;
-}
-body:has(.ms-workspace) footer {
-  box-sizing: border-box;
-  height: auto;
-  padding: 20px;
-  background: var(--ws-bg);
-  border-top: 1px solid var(--ws-border);
-  color: var(--ws-muted);
 }
 body:has(.ms-workspace) .problem-title {
   display: flex;
@@ -80,7 +52,7 @@ body:has(.ms-workspace) .problem-title .view-pdf {
   margin-left: auto;
   padding: 8px 13px;
   border: 1px solid var(--ws-border);
-  border-radius: 6px;
+  border-radius: var(--ms-radius-pill);
   font-size: 13px;
   font-weight: 650;
   color: var(--ws-accent);
@@ -106,7 +78,7 @@ body:has(.ms-workspace) .problem-title .view-pdf:hover {
   display: inline-flex;
   padding: 8px 13px;
   border: 1px solid var(--ws-border);
-  border-radius: 6px;
+  border-radius: var(--ms-radius-pill);
   color: var(--ws-muted);
   font-weight: 650;
   background: var(--ws-bg);
@@ -126,7 +98,8 @@ body:has(.ms-workspace) .problem-title .view-pdf:hover {
   min-width: 0;
   border: 1px solid var(--ws-border);
   background: var(--ws-bg);
-  border-radius: 8px;
+  border-radius: var(--ms-radius-panel);
+  box-shadow: var(--ms-shadow-sm);
   padding: clamp(20px, 2vw, 34px);
 }
 .ms-workspace-statement {
@@ -232,7 +205,7 @@ body:has(.ms-workspace) .problem-title .view-pdf:hover {
   width: auto;
   padding: 8px 17px;
   border: 1px solid #2457a7;
-  border-radius: 6px;
+  border-radius: var(--ms-radius-pill);
   background: #2457a7;
   background-image: none;
   box-shadow: none;
@@ -663,7 +636,7 @@ body:has(.ms-workspace) .problem-title .view-pdf:hover {
   display: inline-grid;
   place-items: center;
   border: 1px solid #2457a7;
-  border-radius: 6px;
+  border-radius: var(--ms-radius-pill);
   background: #2457a7;
   color: #fff !important;
   box-shadow: none;
@@ -727,7 +700,7 @@ body:has(.ms-workspace) .problem-title .view-pdf:hover {
 }
 @media (max-width: 850px) {
   body:has(.ms-workspace) #content {
-    margin-top: 56px;
+    margin-top: var(--ms-nav-height);
     padding: 18px 16px 75px;
   }
   .ms-workspace-grid {
@@ -878,7 +851,7 @@ body:has(.ms-workspace) #content {
 }
 body:has(.ms-workspace) .problem-title {
   position: sticky;
-  top: 68px;
+  top: var(--ms-nav-height);
   z-index: 210;
   min-height: 66px;
   margin: 0 calc(-1 * clamp(20px, 2.4vw, 48px));
@@ -1065,7 +1038,7 @@ body:has(.ms-workspace) .problem-title .view-pdf {
 
 @media (max-width: 850px) {
   body:has(.ms-workspace) .problem-title {
-    top: 56px;
+    top: var(--ms-nav-height);
     margin: 0 -16px;
     padding: 10px 16px;
   }
@@ -1730,7 +1703,7 @@ body:has(.ms-workspace) .problem-title .view-pdf {
 
 /* Compact context bar and edge-to-edge working surfaces. */
 body:has(.ms-workspace) .problem-title {
-  top: 68px;
+  top: var(--ms-nav-height);
   min-height: 48px;
   padding: 4px clamp(12px, 1.5vw, 24px);
   gap: 6px 10px;
@@ -1762,7 +1735,7 @@ body:has(.ms-workspace) .problem-title .ms-problem-action {
   margin: 0;
   padding: 5px 10px;
   border: 1px solid var(--ws-border);
-  border-radius: 5px;
+  border-radius: var(--ms-radius-pill);
   background: var(--ws-bg);
   color: var(--ws-accent);
   font-size: 12px;
@@ -1881,7 +1854,11 @@ body:has(.ms-workspace) .problem-title .title-state {
     background: var(--ws-page);
     border-inline: 1px solid var(--ws-border);
   }
-  .ms-workspace-divider:focus-visible {
+  .ms-workspace-resize {
+    position: absolute;
+    inset: 0;
+  }
+  .ms-workspace-resize:focus-visible {
     outline: 2px solid var(--ws-accent);
     outline-offset: -2px;
   }
@@ -1910,9 +1887,6 @@ body:has(.ms-workspace) .problem-title .title-state {
   }
 }
 @media (max-width: 850px) {
-  body:has(.ms-workspace) .problem-title {
-    top: 54px;
-  }
   .ms-workspace-rail button {
     flex: 0 0 40px;
     min-height: 40px;

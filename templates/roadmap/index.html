@@ -2,9 +2,13 @@
 {% block title_row %}{% endblock %}{% block title_ruler %}{% endblock %}
 {% block body %}
 <section class="ms-roadmap">
-    <header class="rm-header"><p class="rm-eyebrow">BẢN ĐỒ KIẾN THỨC</p><h1>Lộ trình</h1><p class="rm-help">Khám phá các nhóm kiến thức và chuyên đề, rồi chọn bài tập trong Problem Pool hiện có.</p></header>
+    <header class="rm-header"><h1>Lộ trình</h1><p class="rm-help">Chọn lộ trình để khám phá các chuyên đề và bài tập.</p></header>
     <ul class="rm-index">
-        {% for roadmap in roadmaps %}<li><h2><a href="{{ url('roadmap_detail', roadmap.slug) }}">{{ roadmap.title }}</a></h2><p>{{ roadmap.introduction }}</p><a class="button" href="{{ url('roadmap_detail', roadmap.slug) }}">Khám phá lộ trình</a></li>
+        {% for roadmap in roadmaps %}
+        <li><a class="rm-node-card" href="{{ url('roadmap_detail', roadmap.slug) }}" aria-labelledby="rm-roadmap-{{ loop.index }}">
+            <h2 id="rm-roadmap-{{ loop.index }}" class="rm-node-title">{{ roadmap.title }}</h2>
+            {% if roadmap.introduction %}<p class="rm-help">{{ roadmap.introduction }}</p>{% endif %}
+        </a></li>
         {% else %}<li class="rm-empty">Chưa có lộ trình được công bố. <a href="{{ url('problem_list') }}">Luyện bài trong Problems</a>.</li>{% endfor %}
     </ul>
 </section>

@@ -11,6 +11,7 @@ from django.utils import timezone
 
 from judge.models import ContestProblem, Problem, Submission
 
+from .roadmap_icons import resolve_node_icon
 from .roadmap_models import (
     LearningTopic,
     NodeProblem,
@@ -18,6 +19,8 @@ from .roadmap_models import (
     Roadmap,
     RoadmapNode,
     TopicLesson,
+    TopicLessonQAMessage,
+    TopicLessonState,
     Visibility,
 )
 
@@ -459,6 +462,7 @@ def serialize_node_list(roadmap, nodes, user):
             'type': node.type,
             'title': node.title,
             'slug': node.slug,
+            'icon_class': resolve_node_icon(node.icon, node.slug, node.type),
             'depth': node.level,
             'position': node.position,
             'difficulty': node.difficulty,
@@ -605,6 +609,7 @@ def get_node_learn_data(roadmap, node_id, user):
                 'title': lesson.title,
                 'slug': lesson.slug,
                 'position': lesson.position,
+                'summary': lesson.summary,
                 'lesson_url': reverse('roadmap_node_lesson', args=[roadmap.slug, node.id, lesson.id]),
             }
             for lesson in published_lessons
@@ -619,6 +624,20 @@ def get_node_learn_data(roadmap, node_id, user):
     else:
         lessons_data = []
         topic_data = None
+    resume_lesson_url = None
+    if published_lessons:
+        if user.is_authenticated:
+            last_state = (
+                TopicLessonState.objects.filter(
+                    user=user,
+                    lesson_id__in=[l.id for l in published_lessons],
+                )
+                .order_by('-last_accessed_at')
+                .first()
+            )
+            if last_state:
+                resume_lesson_url = reverse('roadmap_node_lesson', args=[roadmap.slug, node.id, last_state.lesson_id])
+
     problems_data = []
     direct_pids = set()
     for link in problem_links:
@@ -665,6 +684,7 @@ def get_node_learn_data(roadmap, node_id, user):
         },
         'topic': topic_data,
         'lessons': lessons_data,
+        'resume_lesson_url': resume_lesson_url,
         'problems': problems_data,
         'progress': progress_data,
     }
@@ -714,10 +734,44 @@ def get_node_lesson_data(roadmap, node_id, lesson_id, user):
             'title': lesson.title,
             'slug': lesson.slug,
             'position': lesson.position,
+            'summary': lesson.summary,
             'body': lesson.body,
             'content_revision': lesson.content_revision,
         },
         'navigation': {'prev_lesson_url': prev_url, 'next_lesson_url': next_url},
+        'lecture_state': (
+            {
+                'position_version': TopicLessonState.objects.filter(user=user, lesson=lesson).values_list('position_version', flat=True).first() or 0,
+                'resume_offset': (
+                    TopicLessonState.objects.filter(
+                        user=user,
+                        lesson=lesson,
+                        content_revision=lesson.content_revision,
+                    ).values_list('offset', flat=True).first()
+                    or 0
+                ),
+                'messages': [
+                    {
+                        'role': m.role,
+                        'content': m.content,
+                        'created_at': m.created_at.isoformat(),
+                    }
+                    for m in reversed(
+                        list(
+                            TopicLessonQAMessage.objects.filter(
+                                user=user,
+                                lesson=lesson,
+                                content_revision=lesson.content_revision,
+                            ).order_by('-created_at', '-pk')[:40]
+                        )
+                    )
+                ],
+                'qa_url': reverse('roadmap_node_lesson_questions', args=[roadmap.slug, node.id, lesson.id]),
+                'state_url': reverse('roadmap_node_lesson_state', args=[roadmap.slug, node.id, lesson.id]),
+            }
+            if user.is_authenticated
+            else None
+        ),
     }
 
 

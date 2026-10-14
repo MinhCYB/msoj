@@ -15,6 +15,7 @@ from judge.utils.views import NoBatchDeleteMixin
 from judge.widgets import AdminHeavySelect2Widget, AdminMartorWidget
 from mentor.models import (
     LearningTopic, NodeProblem, Roadmap, RoadmapNode, RoadmapPrerequisite, TopicLesson,
+    TopicLessonQAAttempt, TopicLessonQAMessage, TopicLessonState,
 )
 from mentor.roadmap_models import Publication, lock_roadmap_forest
 from mentor.roadmap_services import (
@@ -66,14 +67,17 @@ class LearningTopicForm(PublicationControlFormMixin, forms.ModelForm):
 class TopicLessonForm(PublicationControlFormMixin, forms.ModelForm):
     class Meta:
         model = TopicLesson
-        fields = ('topic', 'title', 'slug', 'position', 'status', 'body')
-        widgets = {'body': AdminMartorWidget(attrs={'data-markdownfy-url': reverse_lazy('roadmap_markdown_preview')})}
+        fields = ('topic', 'title', 'slug', 'position', 'status', 'summary', 'body')
+        widgets = {
+            'summary': AdminMartorWidget(attrs={'data-markdownfy-url': reverse_lazy('roadmap_markdown_preview')}),
+            'body': AdminMartorWidget(attrs={'data-markdownfy-url': reverse_lazy('roadmap_markdown_preview')}),
+        }
 
 
 class RoadmapNodeForm(PublicationControlFormMixin, forms.ModelForm):
     class Meta:
         model = RoadmapNode
-        fields = ('roadmap', 'parent', 'type', 'title', 'slug', 'position',
+        fields = ('roadmap', 'parent', 'type', 'title', 'slug', 'icon', 'position',
                   'difficulty', 'status', 'learning_topic', 'is_optional_review')
 
     def __init__(self, *args, **kwargs):
@@ -181,7 +185,7 @@ class TopicLessonInline(admin.StackedInline):
     model = TopicLesson
     form = TopicLessonForm
     extra = 0
-    fields = ('title', 'slug', 'position', 'status', 'body')
+    fields = ('title', 'slug', 'position', 'status', 'summary', 'body')
     prepopulated_fields = {'slug': ('title',)}
 
     def get_formset(self, request, obj=None, **kwargs):
@@ -321,6 +325,30 @@ class TopicLessonAdmin(RoadmapStaffAdmin):
     def save_model(self, request, obj, form, change):
         save_content(request.user, obj)
 
+
+
+@admin.register(TopicLessonState)
+class TopicLessonStateAdmin(RoadmapStaffAdmin):
+    list_display = ('user', 'lesson', 'content_revision', 'offset', 'last_accessed_at')
+    list_filter = ('content_revision',)
+    search_fields = ('user__username', 'lesson__title')
+    readonly_fields = ('last_accessed_at',)
+
+
+@admin.register(TopicLessonQAMessage)
+class TopicLessonQAMessageAdmin(RoadmapStaffAdmin):
+    list_display = ('user', 'lesson', 'content_revision', 'role', 'section', 'created_at')
+    list_filter = ('role', 'content_revision')
+    search_fields = ('user__username', 'lesson__title', 'content')
+    readonly_fields = ('created_at',)
+
+
+@admin.register(TopicLessonQAAttempt)
+class TopicLessonQAAttemptAdmin(RoadmapStaffAdmin):
+    list_display = ('user', 'lesson', 'content_revision', 'status', 'claim_token', 'created_at', 'completed_at')
+    list_filter = ('status', 'content_revision')
+    search_fields = ('user__username', 'lesson__title', 'claim_token')
+    readonly_fields = ('created_at', 'completed_at')
 
 @admin.register(RoadmapNode)
 class RoadmapNodeAdmin(RoadmapStaffAdmin, MPTTModelAdmin):

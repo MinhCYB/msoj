@@ -8,6 +8,8 @@ from .roadmap_views import (
     roadmap_node_children_view,
     roadmap_node_learn_view,
     roadmap_node_lesson_view,
+    roadmap_node_lesson_questions_view,
+    roadmap_node_lesson_state_view,
     roadmap_progress_view,
 )
 
@@ -18,5 +20,7 @@ urlpatterns = [
     path('roadmap/<slug:slug>/nodes/<int:node_id>/children/', roadmap_node_children_view, name='roadmap_node_children'),
     path('roadmap/<slug:slug>/nodes/<int:node_id>/learn/', roadmap_node_learn_view, name='roadmap_node_learn'),
     path('roadmap/<slug:slug>/nodes/<int:node_id>/lessons/<int:lesson_id>/', roadmap_node_lesson_view, name='roadmap_node_lesson'),
+    path('roadmap/<slug:slug>/nodes/<int:node_id>/lessons/<int:lesson_id>/questions/', roadmap_node_lesson_questions_view, name='roadmap_node_lesson_questions'),
+    path('roadmap/<slug:slug>/nodes/<int:node_id>/lessons/<int:lesson_id>/state/', roadmap_node_lesson_state_view, name='roadmap_node_lesson_state'),
     path('roadmap/<slug:slug>/progress/', roadmap_progress_view, name='roadmap_progress'),
 ]

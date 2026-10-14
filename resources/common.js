@@ -110,17 +110,12 @@ window.fix_div = function (div, height) {
 };
 
 $(function () {
-    if (typeof window.orientation !== 'undefined') {
-        $(window).resize(function () {
-            var width = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
-            $('#viewport').attr('content', width > 480 ? 'initial-scale=1' : 'width=480');
-        });
-    }
 
     var $nav_list = $('#nav-list');
     $('#navicon').click(function (event) {
         event.stopPropagation();
         $nav_list.toggleClass('show-list');
+        $(this).attr('aria-expanded', $nav_list.hasClass('show-list') ? 'true' : 'false');
         if ($nav_list.is(':hidden'))
             $(this).blur().removeClass('hover');
         else {
@@ -130,6 +125,11 @@ $(function () {
         $(this).addClass('hover');
     }, function () {
         $(this).removeClass('hover');
+    }).on('keydown', function (event) {
+        if (event.key === ' ') {
+            event.preventDefault();
+            $(this).click();
+        }
     });
 
     $nav_list.find('li a .nav-expand').click(function (event) {
@@ -153,6 +153,14 @@ $(function () {
 
     $('html').click(function () {
         $nav_list.removeClass('show-list');
+        $('#navicon').attr('aria-expanded', 'false').removeClass('hover');
+    });
+
+    $('#navigation').on('keydown', function (event) {
+        if (event.key === 'Escape' && $nav_list.hasClass('show-list')) {
+            $nav_list.removeClass('show-list').find('ul').removeClass('show-list');
+            $('#navicon').attr('aria-expanded', 'false').removeClass('hover').focus();
+        }
     });
 
     $.ajaxSetup({

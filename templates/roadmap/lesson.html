@@ -1,11 +1,56 @@
 {% extends 'roadmap/learning-base.html' %}
 {% block learning_content %}
-<article aria-labelledby="rm-theory-heading"><h2 id="rm-theory-heading">Nội dung bài học</h2>{{ prose(lesson_data.lesson.body) }}</article>
+<div class="rm-lecture-layout" data-revision="{{ lesson_data.lesson.content_revision }}" {% if lecture_state and request.user.is_authenticated %}data-state-url="{{ lecture_state.state_url }}" data-resume-offset="{{ lecture_state.resume_offset }}" data-position-version="{{ lecture_state.position_version }}"{% endif %}>
+    <div class="rm-lecture-main">
+        <div class="rm-lecture-tabs" role="tablist" aria-label="Cách học bài giảng" hidden>
+            <button type="button" role="tab" id="rm-reading-tab" aria-controls="rm-reading-panel" aria-selected="true">Bài giảng</button>
+            <button type="button" role="tab" id="rm-summary-tab" aria-controls="rm-summary-panel" aria-selected="false" tabindex="-1">Tóm tắt</button>
+            <button type="button" role="tab" id="rm-slides-tab" aria-controls="rm-slides-panel" aria-selected="false" tabindex="-1">Slide</button>
+            <button type="button" role="tab" id="rm-tutor-tab" aria-controls="rm-tutor-panel" aria-selected="false" tabindex="-1">Hỏi AI</button>
+        </div>
+        <details class="rm-lecture-contents" hidden><summary>Mục lục bài giảng</summary><ol></ol></details>
+        <div class="rm-reading-tools" hidden>
+            <button type="button" class="button rm-resume-reading" hidden>Đọc tiếp vị trí đã lưu</button>
+            <span class="rm-resume-status rm-help" role="status"></span>
+        </div>
+        <article id="rm-reading-panel" class="rm-lecture-panel rm-reading-pane" aria-labelledby="rm-theory-heading" tabindex="0">
+            <h2 id="rm-theory-heading">Nội dung bài giảng</h2>{{ prose(lesson_data.lesson.body) }}
+        </article>
+        <section id="rm-summary-panel" class="rm-lecture-panel" aria-labelledby="rm-summary-heading" tabindex="0">
+            <h2 id="rm-summary-heading">Tóm tắt kiến thức</h2>
+            {% if lesson_data.lesson.summary %}{{ prose(lesson_data.lesson.summary) }}{% else %}<p class="rm-help">Bài giảng này chưa có bản tóm tắt được công bố. Bạn vẫn có thể đọc nội dung đầy đủ.</p>{% endif %}
+        </section>
+        <section id="rm-slides-panel" class="rm-lecture-panel rm-slide-placeholder" aria-labelledby="rm-slides-heading" tabindex="0">
+            <p class="rm-context">SLIDE NATIVE · PHASE 2</p><h2 id="rm-slides-heading">Không gian slide của MSOJ</h2>
+            <p>Slide và công cụ trực quan tương tác chưa được triển khai. Nội dung bài giảng hiện có nằm ở phần Bài giảng.</p>
+            <p class="rm-help">Đây là vùng giữ chỗ, không phải slide đã xuất bản.</p>
+        </section>
+        <noscript><p class="rm-help">Bật JavaScript để chuyển vùng học, hỏi AI và lưu vị trí đọc. Nội dung bài giảng và tóm tắt vẫn đọc được bên dưới.</p></noscript>
+    </div>
+    <aside id="rm-tutor-panel" class="rm-lecture-tutor" aria-labelledby="rm-tutor-heading">
+        <h2 id="rm-tutor-heading">Hỏi AI về bài giảng</h2>
+        <p class="rm-help">AI hỗ trợ giải thích nội dung đã công bố, không thay thế bài giảng chính thức. Câu trả lời có thể sai; hãy đối chiếu với nội dung bài học.</p>
+        {% if request.user.is_authenticated and lecture_state %}
+        <div class="rm-tutor-messages" role="log" aria-label="Lịch sử hỏi đáp" aria-live="polite">
+            {% for message in lecture_state.messages %}<div class="rm-tutor-message"><strong>{{ 'Bạn' if message.role == 'user' else 'AI' }}</strong><p>{{ message.content }}</p></div>{% endfor %}
+        </div>
+        <form class="rm-tutor-form" data-url="{{ lecture_state.qa_url }}">
+            {% csrf_token %}
+            <label for="rm-tutor-question">Câu hỏi của bạn</label>
+            <textarea id="rm-tutor-question" name="question" rows="4" maxlength="2000" required aria-describedby="rm-tutor-context rm-tutor-status" placeholder="VD: Vì sao thao tác này có độ phức tạp O(log n)?"></textarea>
+            <p id="rm-tutor-context" class="rm-tutor-context rm-help">Ngữ cảnh: {{ lesson_data.lesson.title }}. Lịch sử hỏi đáp chỉ hiển thị cho tài khoản của bạn.</p>
+            <button type="submit" class="button rm-tutor-send" disabled>Gửi câu hỏi</button>
+            <p id="rm-tutor-status" class="rm-tutor-status rm-help" role="status"></p>
+            <noscript><p class="rm-help">Hỏi đáp AI cần JavaScript; không gửi biểu mẫu khi JavaScript đang tắt.</p></noscript>
+        </form>
+        {% else %}<p><a href="{{ url('auth_login') }}?next={{ request.get_full_path()|urlencode }}">Đăng nhập</a> để hỏi AI và lưu vị trí đọc.</p>{% endif %}
+    </aside>
+</div>
 <nav class="rm-lesson-navigation" aria-label="Điều hướng bài học">
     {% if lesson_data.navigation.prev_lesson_url %}<a class="button" href="{{ lesson_data.navigation.prev_lesson_url }}">Bài trước</a>{% endif %}
-    <a href="{{ learn_url }}">Danh sách bài học</a>
+    <a href="{{ learn_url }}">Danh sách bài giảng</a>
     {% if lesson_data.navigation.next_lesson_url %}<a class="button" href="{{ lesson_data.navigation.next_lesson_url }}">Bài tiếp theo</a>{% endif %}
 </nav>
-<details class="rm-lesson-directory"><summary>Danh sách bài học của chuyên đề</summary><ol class="rm-lesson-list">{% for lesson in learning.lessons %}<li><a href="{{ lesson.lesson_url }}" {% if lesson.id == lesson_data.lesson.id %}aria-current="page"{% endif %}>{{ lesson.title }}</a></li>{% endfor %}</ol></details>
+<details class="rm-lesson-directory"><summary>Danh sách bài giảng của chuyên đề</summary><ol class="rm-lesson-list">{% for lesson in learning.lessons %}<li><a href="{{ lesson.lesson_url }}" {% if lesson.id == lesson_data.lesson.id %}aria-current="page"{% endif %}>{{ lesson.title }}</a></li>{% endfor %}</ol></details>
 {% include 'roadmap/exercises.html' %}
 {% endblock %}
