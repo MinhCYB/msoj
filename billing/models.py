@@ -1,6 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
+from django.utils import timezone
 
 from .constants import ALL_FEATURES
 
@@ -119,3 +120,21 @@ class Subscription(models.Model):
     def __str__(self):
         owner = self.profile or self.organization
         return f'{self.plan.name} - {owner} - {self.end_date}'
+
+    @classmethod
+    def in_force_q(cls, now=None):
+        """The single rule that decides whether a subscription grants access right now."""
+        return Q(status=cls.STATUS_ACTIVE, end_date__gte=now or timezone.now())
+
+    @classmethod
+    def lapsed_q(cls, now=None):
+        """Stored as active, or already expired, but past its end date: no longer grants access."""
+        return Q(status=cls.STATUS_EXPIRED) | Q(status=cls.STATUS_ACTIVE, end_date__lt=now or timezone.now())
+
+    def effective_status(self, now=None):
+        """Status as it actually applies now. `status` alone can lag behind `end_date`."""
+        if self.status == self.STATUS_CANCELLED:
+            return self.STATUS_CANCELLED
+        if self.status == self.STATUS_EXPIRED or self.end_date < (now or timezone.now()):
+            return self.STATUS_EXPIRED
+        return self.STATUS_ACTIVE

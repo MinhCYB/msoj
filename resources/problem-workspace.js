@@ -120,7 +120,8 @@
       var loadComments = $comments.data("load-comments");
       if (loadComments) loadComments();
     }
-    if (isSubmissions) loadWorkspaceFragment(tab);
+    var detailOpen = window.MSOJWorkspaceSubmissions && window.MSOJWorkspaceSubmissions.navigate(tab);
+    if (isSubmissions && !detailOpen) loadWorkspaceFragment(tab);
     if (isEditorial) loadWorkspaceFragment(tab);
     if (isStatement && window.ace) {
       var aceNode = editor.querySelector(".ace_editor");
@@ -143,17 +144,24 @@
     if (!value) return null;
     var url = new URL(value, window.location.href);
     if (tab !== "editorial") url.searchParams.set("workspace", "1");
+    if (tab !== 'editorial') {
+      var state = new URL(location.href).searchParams;
+      ['status','language','organization','page'].forEach(function (key) {
+        state.getAll('list_' + key).forEach(function (value) { url.searchParams.append(key, value); });
+      });
+    }
     return url.toString();
   }
 
   function loadWorkspaceFragment(tab, requestedUrl) {
     var target = tab === "editorial" ? editorial : submissionsContent;
-    var url = requestedUrl || activeFragmentUrls[tab] || fragmentUrl(tab);
+    var url = requestedUrl || fragmentUrl(tab);
     var requestKind = tab === "editorial" ? null : activeSubmissionKind;
     if (!url) {
       target.textContent = main.dataset.workspaceError;
       return;
     }
+    activeFragmentUrls[tab] = url;
     if (loadedFragments[url]) {
       target.innerHTML = loadedFragments[url];
       initializeWorkspaceFragment(target);
@@ -162,11 +170,10 @@
     if (pendingRequests[url]) return;
 
     target.textContent = main.dataset.workspaceLoading;
-    activeFragmentUrls[tab] = url;
     pendingRequests[url] = true;
     fetch(url, { credentials: "same-origin", headers: { "X-Requested-With": "XMLHttpRequest" } })
       .then(function (response) {
-        if (!response.ok) throw new Error("Workspace fragment request failed");
+        if (!response.ok || response.redirected) throw new Error("Workspace fragment request failed");
         return response.text();
       })
       .then(function (html) {
@@ -175,6 +182,7 @@
         // A response may finish after the user selected another view. Keep it
         // cached, but don't replace the content of the now-active view.
         var activeHash = window.location.hash.slice(1) || "statement";
+        if (activeFragmentUrls[activeHash] !== url || (tab !== 'editorial' && new URL(location.href).searchParams.has('submission'))) return;
         if (
           (tab === "editorial" && activeHash !== "editorial") ||
           (tab !== "editorial" &&
@@ -190,17 +198,24 @@
       .catch(function () {
         delete pendingRequests[url];
         var activeHash = window.location.hash.slice(1) || "statement";
+        if (activeFragmentUrls[activeHash] !== url) return;
         if (
           (tab === "editorial" && activeHash === "editorial") ||
           (tab !== "editorial" &&
             isSubmissionTab(activeHash) &&
             activeSubmissionKind === requestKind)
         )
-          target.textContent = main.dataset.workspaceError;
+          {
+            target.textContent = main.dataset.workspaceError;
+            var retry = document.createElement('button');retry.type='button';retry.className='button';retry.textContent='Thử lại';
+            retry.addEventListener('click', function () { loadWorkspaceFragment(tab,url); });target.appendChild(retry);
+          }
       });
   }
 
   function initializeWorkspaceFragment(target) {
+    if (target === submissionsContent && window.MSOJWorkspaceSubmissions)
+      window.MSOJWorkspaceSubmissions.listLoaded();
     target.querySelectorAll(".ms-workspace-submission-filter-form").forEach(function (form) {
       form.addEventListener("submit", function (event) {
         event.preventDefault();
@@ -208,16 +223,44 @@
         var url = new URL(fragmentUrl(currentTab), window.location.href);
         url.search = new URLSearchParams(new FormData(form)).toString();
         url.searchParams.set("workspace", "1");
+        rememberListUrl(url);
         loadWorkspaceFragment(currentTab, url.toString());
       });
     });
     target.querySelectorAll(".pagination a").forEach(function (link) {
       link.addEventListener("click", function (event) {
         event.preventDefault();
+        rememberListUrl(new URL(link.href));
         loadWorkspaceFragment(window.location.hash.slice(1) || "submission", link.href);
       });
     });
   }
+  function rememberListUrl(url) {
+    var next = new URL(location.href);
+    ['status','language','organization','page'].forEach(function (key) {
+      next.searchParams.delete('list_' + key);
+      url.searchParams.getAll(key).forEach(function (value) {next.searchParams.append('list_' + key,value);});
+    });
+    window.history.pushState(window.history.state,'',next);
+  }
+  document.addEventListener('msoj:submissions-changed', function () {
+    Object.keys(loadedFragments).forEach(function (url) {
+      if (new URL(url).searchParams.get('workspace') === '1') delete loadedFragments[url];
+    });
+    var tab = currentTabFromHash();
+    if (isSubmissionTab(tab) && !new URL(location.href).searchParams.has('submission')) loadWorkspaceFragment(tab);
+  });
+  window.rejudge_submission = async function (id, event) {
+    if (event) event.preventDefault();
+    if (!confirm('Chấm lại bài nộp #' + id + '?')) return;
+    var csrf = document.querySelector('[name=csrfmiddlewaretoken]');
+    var data = new FormData();data.set('id',id);if(csrf)data.set('csrfmiddlewaretoken',csrf.value);
+    try {
+      var response = await fetch('/widgets/rejudge',{method:'POST',body:data,credentials:'same-origin'});
+      if(!response.ok || response.redirected)throw new Error();
+      document.dispatchEvent(new CustomEvent('msoj:submissions-changed'));
+    } catch(error) { alert('Không thể chấm lại bài nộp. Kiểm tra quyền truy cập hoặc thử lại.'); }
+  };
 
   function currentTabFromHash() {
     var hash = location.hash.replace(/^#/, "");
@@ -239,8 +282,8 @@
     if (isSubmissionTab(tab)) activeSubmissionKind = submissionKindForTab(tab);
     var hash = "#" + tab;
     if (location.hash !== hash) {
-      if (replace) history.replaceState(null, "", hash);
-      else history.pushState(null, "", hash);
+      if (replace) window.history.replaceState(window.history.state, "", hash);
+      else window.history.pushState(window.history.state, "", hash);
     }
     setCurrentTab(tab);
   }

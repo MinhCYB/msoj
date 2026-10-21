@@ -12,7 +12,7 @@ from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.db import transaction
 from django.db.models import BooleanField, Case, Prefetch, Q, When
 from django.db.utils import ProgrammingError
-from django.http import Http404, HttpResponse, HttpResponseForbidden, HttpResponseRedirect
+from django.http import Http404, HttpResponse, HttpResponseForbidden, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.template.loader import get_template
 from django.urls import reverse
@@ -361,21 +361,31 @@ class ProblemSubmitMixin:
             Submission.objects.filter(user=request.profile, rejudged_date__isnull=True)
                               .exclude(status__in=['D', 'IE', 'CE', 'AB']).count() >= settings.DMOJ_SUBMISSION_LIMIT
         ):
+            if request.POST.get('workspace_submission') == '1':
+                return JsonResponse({'error': _('You submitted too many submissions.')}, status=429), None
             return HttpResponse(format_html('<h1>{0}</h1>', _('You submitted too many submissions.')), status=429), None
 
         if not self.object.allowed_languages.filter(id=form.cleaned_data['language'].id).exists():
+            if request.POST.get('workspace_submission') == '1':
+                return JsonResponse({'error': _('The specified language is not allowed for this problem.')}, status=400), None
             raise PermissionDenied()
 
         if not request.user.is_superuser and self.object.banned_users.filter(id=request.profile.id).exists():
+            if request.POST.get('workspace_submission') == '1':
+                return JsonResponse({
+                    'error': _('You have been declared persona non grata for this problem. '
+                               'You are permanently barred from submitting to this problem.')
+                }, status=403), None
             return generic_message(request, _('Banned from submitting'),
                                    _('You have been declared persona non grata for this problem. '
                                      'You are permanently barred from submitting to this problem.')), None
 
         # Must check for zero and not None. None means infinite submissions remaining.
         if self.remaining_submission_count == 0:
+            if request.POST.get('workspace_submission') == '1':
+                return JsonResponse({'error': _('You have exceeded the submission limit for this problem.')}, status=400), None
             return generic_message(request, _('Too many submissions'),
                                    _('You have exceeded the submission limit for this problem.')), None
-
         # Organization credit check
         if settings.VNOJ_ENABLE_ORGANIZATION_CREDIT_LIMITATION:
             # check if the problem belongs to any organization
@@ -395,14 +405,16 @@ class ProblemSubmitMixin:
             if organization is not None:
                 if not organization.has_credit_left():
                     org_name = organization.name
+                    msg = _(
+                        'The organization %s has no credit left to execute this submission. '
+                        'Ask the organization to buy more credit.',
+                    ) % org_name
+                    if request.POST.get('workspace_submission') == '1':
+                        return JsonResponse({'error': msg}, status=400), None
                     return generic_message(
                         request,
                         _('No credit'),
-                        _(
-                            'The organization %s has no credit left to execute this submission. '
-                            'Ask the organization to buy more credit.',
-                        )
-                        % org_name,
+                        msg,
                     ), None
 
         # Create submission
@@ -450,6 +462,13 @@ class ProblemSubmitMixin:
                 ip,
                 new_submission.problem.code,
             )
+
+        if request.POST.get('workspace_submission') == '1':
+            return JsonResponse({
+                'id': new_submission.id,
+                'problem_code': new_submission.problem.code,
+                'status_url': reverse('submission_status', args=(new_submission.id,)),
+            }), None
 
         return HttpResponseRedirect(reverse('submission_status', args=(new_submission.id,))), None
 
@@ -533,6 +552,8 @@ class ProblemDetail(ProblemMixin, ProblemClarificationsMixin, SolvedProblemMixin
 
             response, failed_form = self.handle_submission_post(request)
             if failed_form:
+                if request.POST.get('workspace_submission') == '1':
+                    return JsonResponse({'errors': failed_form.errors.get_json_data()}, status=400)
                 # Re-render with form errors
                 return self.render_to_response(self.get_context_data(
                     object=self.object,
@@ -860,6 +881,8 @@ class ProblemSubmit(LoginRequiredMixin, ProblemMixin, TitleMixin, ProblemSubmitM
     def form_valid(self, form):
         response, failed_form = self.handle_submission_post(self.request)
         if failed_form:
+            if self.request.POST.get('workspace_submission') == '1':
+                return JsonResponse({'errors': failed_form.errors.get_json_data()}, status=400)
             return self.form_invalid(failed_form)
         return response
 

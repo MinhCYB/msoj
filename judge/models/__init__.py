@@ -6,6 +6,7 @@ from judge.models.contest import Contest, ContestAnnouncement, ContestMoss, Cont
     ContestSubmission, ContestTag, Rating
 from judge.models.interface import BlogPost, BlogPostTag, BlogVote, MiscConfig, NavigationBar, validate_regex
 from judge.models.notification import Notification, make_notification
+from judge.models.polygon import PolygonProblem, PolygonTagMapping
 from judge.models.problem import LanguageLimit, License, OrganizationProblemTag, Problem, ProblemClarification, \
     ProblemGroup, ProblemTranslation, ProblemType, Solution, SubmissionSourceAccess, TranslatedProblemQuerySet
 from judge.models.problem_data import CHECKERS, ProblemData, ProblemTestCase, problem_data_storage, \

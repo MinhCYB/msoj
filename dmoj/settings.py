@@ -267,6 +267,21 @@ DMOJ_PROBLEM_DATA_ROOT = None
 # Path to YAML storage config file
 DMOJ_STORAGE_CONFIG_PATH = None
 
+# Polygon synchronisation. API credentials come from the POLYGON_API_KEY / POLYGON_API_SECRET
+# environment variables and are never stored in settings.
+# Tags that are never copied to MSOJ taxonomy (the problem itself is still synced).
+POLYGON_IGNORED_TAGS = ('cyb-boclot',)
+# Problems carrying any of these Polygon tags (case-insensitive) belong to someone else and are never synced.
+POLYGON_SKIP_TAGS = ('yb-boclot',)
+# Problems owned by these Polygon users (case-insensitive) are never synced.
+POLYGON_SKIP_OWNERS = ('dang', 'longvu1305')
+# When several Polygon problems normalise to the same MSOJ code, the one owned by this Polygon user wins.
+POLYGON_PREFERRED_OWNER = 'ms24'
+# MSOJ username set as author of newly synced problems.
+POLYGON_SYNC_AUTHOR = 'admin'
+# Minimum delay between Polygon API requests, in seconds (Polygon answers 429 when called faster).
+POLYGON_API_MIN_INTERVAL = 3.0
+
 DMOJ_PROBLEM_MIN_TIME_LIMIT = 0.01  # seconds
 DMOJ_PROBLEM_MAX_TIME_LIMIT = 60  # seconds
 DMOJ_PROBLEM_MIN_MEMORY_LIMIT = 0  # kilobytes
@@ -414,6 +429,8 @@ else:
                         'judge.ProblemGroup',
                         'judge.ProblemType',
                         'judge.License',
+                        'judge.PolygonProblem',
+                        'judge.PolygonTagMapping',
                     ],
                 },
                 {

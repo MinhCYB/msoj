@@ -1,0 +1,54 @@
+<div class="ms-submission-summary" role="region" aria-label="{{ _('Submission summary') }}">
+    <div class="ms-summary-item ms-summary-verdict" title="{{ _('Verdict') }}">
+        <span class="ms-summary-label">{{ _('Verdict') }}</span>
+        <span class="ms-summary-value sub-result {{ submission.result_class }}">
+            {{ submission.long_status }}
+            {% if not submission.is_graded %}
+                <span class="fa fa-spinner fa-pulse" aria-hidden="true"></span>
+            {% endif %}
+        </span>
+    </div>
+    <div class="ms-summary-item ms-summary-score" title="{{ _('Final pretest score:') if submission.is_pretested else (_('Final score:') if submission.is_graded else _('Score')) }}">
+        <span class="ms-summary-label">{{ _('Final pretest score:') if submission.is_pretested else (_('Final score:') if submission.is_graded else _('Score')) }}</span>
+        <i class="fa fa-trophy ms-summary-icon" aria-hidden="true"></i>
+        <span class="ms-summary-value ms-submission-score">
+            {{ submission.case_points|floatformat(-3) }} / {{ submission.case_total|floatformat(0) }}
+        </span>
+    </div>
+    <div class="ms-summary-item ms-summary-resources">
+        <span class="ms-summary-resource" title="{{ _('Time') }}">
+            <span class="ms-summary-label">{{ _('Time') }}:</span>
+            <i class="fa fa-clock-o ms-summary-icon" aria-hidden="true"></i>
+            <span class="ms-summary-value">
+            {% if submission.result == "TLE" %}
+                &gt;{{ time_limit|floatformat(3) }}s
+            {% elif submission.time is not none %}
+                <span title="{{ submission.time }}s">{{ submission.time|floatformat(3) }}s</span>
+            {% else %}
+                ---
+            {% endif %}
+            </span>
+        </span>
+        <span class="ms-summary-resource" title="{{ _('Memory') }}">
+            <span class="ms-summary-label">{{ _('Memory') }}:</span>
+            <i class="fa fa-server ms-summary-icon" aria-hidden="true"></i>
+            <span class="ms-summary-value">
+            {% if submission.memory is not none %}
+                {{ submission.memory|kbdetailformat }}
+            {% else %}
+                ---
+            {% endif %}
+            </span>
+        </span>
+    </div>
+    <div class="ms-summary-item ms-summary-lang" title="{{ _('Language') }}">
+        <span class="ms-summary-label">{{ _('Language') }}</span>
+        <i class="fa fa-code ms-summary-icon" aria-hidden="true"></i>
+        <span class="ms-summary-value">{{ submission.language.name }}</span>
+    </div>
+    <div class="ms-summary-item ms-summary-date" title="{{ _('Date') }}">
+        <span class="ms-summary-label">{{ _('Date') }}</span>
+        <i class="fa fa-calendar-o ms-summary-icon" aria-hidden="true"></i>
+        <span class="ms-summary-value">{{ submission.date|date(_('N j, Y, g:i a')) }}</span>
+    </div>
+</div>

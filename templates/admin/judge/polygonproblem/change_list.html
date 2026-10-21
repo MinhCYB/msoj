@@ -1,0 +1,18 @@
+{% extends "admin/change_list.html" %}
+{% load i18n %}
+
+{% block object-tools-items %}
+    {% if perms.judge.import_polygon_package %}
+        <li>
+            <a href="{% url 'admin:judge_polygonproblem_refresh' %}" class="action-link">
+                <i class="fa fa-refresh"></i> {% trans "Refresh from Polygon" %}
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'admin:judge_polygonproblem_sync_all' %}" class="action-link">
+                <i class="fa fa-cloud-download"></i> {% trans "Sync all" %}
+            </a>
+        </li>
+    {% endif %}
+    {{ block.super }}
+{% endblock %}

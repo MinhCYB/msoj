@@ -9628,3 +9628,8 @@ msgstr "Tiếp tục với GitHub"
 #: templates/registration/logout.html
 msgid "Back to home"
 msgstr "Về trang chủ"
+
+
+#: templates/submission/status-testcases.html
+msgid "Test score"
+msgstr "Điểm test"

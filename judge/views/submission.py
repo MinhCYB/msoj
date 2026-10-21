@@ -107,9 +107,33 @@ class SubmissionDetailBase(LoginRequiredMixin, TitleMixin, SubmissionMixin, Deta
                                 submission.user.display_name),
         })
 
+    def populate_ai_review_context(self, context):
+        submission = self.object
+        if (self.request.user == submission.user.user and
+                submission.problem.is_accessible_by(self.request.user)):
+            from billing.constants import FEATURE_AI_REVIEW
+            from billing.services import is_active_for
+            from mentor.models import AIReview
+            from mentor.review_context import review_eligibility
+
+            review_unavailable_reason = review_eligibility(submission)
+            # Owners may still read an existing review after entitlement expires;
+            # GET decides whether its revision is current and safe to display.
+            if review_unavailable_reason is None or AIReview.objects.filter(submission=submission).exists():
+                context['ai_review_panel'] = True
+                context['ai_review_unavailable_reason'] = review_unavailable_reason
+                context['ai_review_can_request'] = (review_unavailable_reason is None and
+                                                    is_active_for(submission.user, FEATURE_AI_REVIEW))
+
+
 
 class SubmissionSource(SubmissionDetailBase):
     template_name = 'submission/source.html'
+
+    def get_template_names(self):
+        if self.request.GET.get('workspace') == '1':
+            return ['submission/detail-fragment.html']
+        return super().get_template_names()
 
     def get_queryset(self):
         return super().get_queryset().select_related('source')
@@ -123,8 +147,12 @@ class SubmissionSource(SubmissionDetailBase):
     def get_context_data(self, **kwargs):
         context = super(SubmissionSource, self).get_context_data(**kwargs)
         submission = self.object
-        context['raw_source'] = submission.source.source.rstrip('\n')
+        context['raw_source'] = submission.source.source
         context['highlighted_source'] = highlight_code(submission.source.source, submission.language.pygments)
+        context['panel'] = 'source'
+        context['can_view_source'] = True
+        context['is_workspace'] = self.request.GET.get('workspace') == '1'
+        self.populate_ai_review_context(context)
         return context
 
     def get(self, request, *args, **kwargs):
@@ -237,26 +265,26 @@ class SubmissionStatus(SubmissionDetailBase):
     def get_queryset(self):
         return super().get_queryset().select_related('contest', 'contest_object', 'contest__problem')
 
+    def get_template_names(self):
+        if self.request.GET.get('workspace') == '1':
+            return ['submission/detail-fragment.html']
+        return super().get_template_names()
+
     def get_context_data(self, **kwargs):
         context = super(SubmissionStatus, self).get_context_data(**kwargs)
         submission = self.object
 
-        if (self.request.user == submission.user.user and
-                submission.problem.is_accessible_by(self.request.user)):
-            from billing.constants import FEATURE_AI_REVIEW
-            from billing.services import is_active_for
-            from mentor.models import AIReview
-            from mentor.review_context import review_eligibility
+        self.populate_ai_review_context(context)
 
-            review_unavailable_reason = review_eligibility(submission)
-            # Owners may still read an existing review after entitlement expires;
-            # GET decides whether its revision is current and safe to display.
-            if review_unavailable_reason is None or AIReview.objects.filter(submission=submission).exists():
-                context['ai_review_panel'] = True
-                context['ai_review_unavailable_reason'] = review_unavailable_reason
-                context['ai_review_can_request'] = (review_unavailable_reason is None and
-                                                    is_active_for(submission.user, FEATURE_AI_REVIEW))
+        panel = self.request.GET.get('panel', 'result')
+        if panel not in ('result', 'review'):
+            panel = 'result'
+        if panel == 'review' and not context.get('ai_review_panel'):
+            panel = 'result'
+        context['panel'] = panel
 
+        context['can_view_source'] = not submission.language.file_only or self.request.user.is_superuser
+        context['is_workspace'] = self.request.GET.get('workspace') == '1'
         context['batches'], statuses, test_case_count = group_test_cases(submission.test_cases.all())
 
         context['feedback_limit'] = min(3, test_case_count - 1)
@@ -295,6 +323,9 @@ class SubmissionStatus(SubmissionDetailBase):
 
 class SubmissionTestCaseQuery(SubmissionStatus):
     template_name = 'submission/status-testcases.html'
+    def get_template_names(self):
+        return [self.template_name]
+
 
     def get(self, request, *args, **kwargs):
         if 'id' not in request.GET or not request.GET['id'].isdigit():

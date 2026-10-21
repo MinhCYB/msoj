@@ -7,6 +7,7 @@
         {{ form.media.css }}
     {% endif %}
     <link rel="stylesheet" href="{{ static('problem-workspace.css') }}?v=22">
+    <link rel="stylesheet" href="{{ static('submission-detail.css') }}?v=6">
     <style>
         .title-state {
             font-size: 2em;
@@ -68,7 +69,10 @@
     {% if request.user.is_authenticated and form %}
         {% include "problem/submit-js.html" %}
     {% endif %}
-    <script defer src="{{ static('problem-workspace.js') }}?v=11"></script>
+    <script defer src="{{ static('ai-review.js') }}?v=3"></script>
+    <script defer src="{{ static('submission-detail.js') }}?v=4"></script>
+    <script defer src="{{ static('workspace-submissions.js') }}?v=2"></script>
+    <script defer src="{{ static('problem-workspace.js') }}?v=13"></script>
     <script defer src="{{ static('brainstorm.js') }}?v=3"></script>
     <script type="text/javascript">
         $(function() {
@@ -260,7 +264,7 @@
 {% endblock %}
 
 {% block body %}
-    <div class="ms-workspace" data-problem-code="{{ problem.code }}"{% if comment_form and comment_form.errors %} data-comment-errors="true"{% endif %}>
+    <div class="ms-workspace" data-problem-code="{{ problem.code }}" data-user-id="{{ request.user.id if request.user.is_authenticated else 0 }}"{% if comment_form and comment_form.errors %} data-comment-errors="true"{% endif %}>
         {% if can_edit_problem or (request.user.is_authenticated and has_tickets) or perms.judge.edit_type_group_all_problem or problem.is_subs_manageable_by(request.user) or (perms.judge.clone_problem and can_edit_problem) %}
             <div class="ms-workspace-admin" aria-label="Công cụ quản lý bài tập">
                 <span class="ms-workspace-kicker">CÔNG CỤ QUẢN LÝ</span>
@@ -340,6 +344,7 @@
                 {% endif %}
             </nav>
             <div class="ms-workspace-submissions-content" aria-live="polite" data-empty-message="{{ _('No submissions found.') }}"></div>
+            <div class="ms-workspace-submission-detail" hidden></div>
         </section>
         <section class="ms-workspace-editorial" aria-label="Lời giải" hidden></section>
         </div>

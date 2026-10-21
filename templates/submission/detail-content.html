@@ -1,0 +1,99 @@
+{% set can_resubmit = (request.user == submission.user.user or perms.judge.resubmit_other) and not submission.language.file_only %}
+<div class="ms-submission-detail"
+     data-id="{{ submission.id }}"
+     data-problem-code="{{ submission.problem.code }}"
+     data-language-id="{{ submission.language.id }}"
+     data-status-url="{{ url('submission_status', submission.id) }}"
+     {% if can_view_source %}data-source-url="{{ url('submission_source', submission.id) }}"{% endif %}
+     data-graded="{{ 'true' if submission.is_graded else 'false' }}"
+     data-can-resubmit="{{ 'true' if can_resubmit else 'false' }}">
+
+    <nav class="ms-submission-detail-tabs" aria-label="{{ _('Submission panels') }}">
+        <a href="{{ url('submission_status', submission.id) }}"
+           class="ms-submission-tab{% if panel == 'result' %} is-active{% endif %}"
+           data-submission-panel="result">{{ _('Result') }}</a>
+        {% if can_view_source %}
+            <a href="{{ url('submission_source', submission.id) }}"
+               class="ms-submission-tab{% if panel == 'source' %} is-active{% endif %}"
+               data-submission-panel="source">{{ _('Source') }}</a>
+        {% endif %}
+        {% if ai_review_panel %}
+            <a href="{{ url('submission_status', submission.id) }}?panel=review"
+               class="ms-submission-tab{% if panel == 'review' %} is-active{% endif %}"
+               data-submission-panel="review">{{ _('AI Review') }}</a>
+        {% endif %}
+    </nav>
+
+    <div class="ms-submission-actions">
+        {% set can_edit = submission.problem.is_editable_by(request.user) %}
+        {% if can_resubmit %}
+            <a href="{{ url('problem_submit', submission.problem.code, submission.id) }}"
+               class="ms-submission-action ms-submission-resubmit"
+               data-submission-resubmit>{{ _('Resubmit') }}</a>
+        {% endif %}
+        {% if perms.judge.rejudge_submission and can_edit and not submission.is_locked %}
+            <form class="ms-submission-action-form" action="{{ url('submission_rejudge') }}" method="post" data-submission-action="rejudge">
+                {% csrf_token %}
+                <input type="hidden" name="id" value="{{ submission.id }}">
+                <input type="hidden" name="path" value="{{ url('submission_status', submission.id) }}">
+                <button type="submit" class="button ms-action-btn">{{ _('Rejudge') }}</button>
+            </form>
+        {% endif %}
+        {% if not submission.is_graded and ((request.user == submission.user.user and not request.official_contest_mode) or perms.judge.abort_any_submission) %}
+            <form class="ms-submission-action-form" action="{{ url('submission_abort', submission.id) }}" method="post" data-submission-action="abort">
+                {% csrf_token %}
+                <button type="submit" class="button ms-action-btn ms-action-abort">{{ _('Abort') }}</button>
+            </form>
+        {% endif %}
+        {% if can_edit and not submission.language.file_only %}
+            <a href="{{ url('problem_submission_diff', submission.problem.code) }}?username={{ submission.user.user.username }}&amp;highlight={{ submission.id }}"
+               class="ms-submission-action ms-submission-diff">{{ _('Diff this submission') }}</a>
+        {% endif %}
+        {% if submission.language.file_only %}
+            <a href="{{ url('submission_source_download', submission.id) }}"
+               class="ms-submission-action ms-submission-download">{{ _('Download') }}</a>
+        {% endif %}
+        {% if can_view_source and not submission.language.file_only %}
+            <a href="{{ url('submission_source_raw', submission.id) }}"
+               class="ms-submission-action ms-submission-raw" target="_blank">{{ _('Raw') }}</a>
+        {% endif %}
+        {% if panel == 'source' %}
+            <button type="button" class="button ms-submission-action ms-copy-source" data-copy-source>{{ _('Copy') }}</button>
+        {% endif %}
+    </div>
+
+    {% if panel == 'result' %}
+        <div class="ms-submission-result">
+            {% include "submission/detail-summary.html" %}
+            <div id="test-cases">
+                {% include "submission/status-testcases.html" %}
+            </div>
+        </div>
+    {% elif panel == 'review' %}
+        <div class="ms-submission-review">
+            {% if ai_review_panel %}
+                {% include "submission/ai-review.html" %}
+            {% endif %}
+        </div>
+    {% elif panel == 'source' %}
+        <div class="ms-submission-source">
+            <pre class="ms-source-raw" data-source-code hidden><span>{{ raw_source }}</span></pre>
+            <div class="source-wrap submission-source" tabindex="0" role="region" aria-label="{{ _('Source code') }}">
+                <table>
+                    <tr>
+                        <td class="source-ln">
+                            <div>
+                                {% for line in raw_source.split('\n') %}
+                                    <a href="#line-{{ loop.index }}" name="line-{{ loop.index }}">
+                                        <pre class="line">{{ loop.index }}</pre>
+                                    </a>
+                                {% endfor %}
+                            </div>
+                        </td>
+                        <td class="source-code">{{ highlighted_source }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+</div>

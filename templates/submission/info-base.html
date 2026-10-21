@@ -1,4 +1,17 @@
 {% extends "base.html" %}
+{% block media %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ static('submission-detail.css') }}?v=6">
+{% endblock %}
+
+{% block js_media %}
+    {{ super() }}
+    {% if ai_review_panel %}
+        <script src="{{ static('ai-review.js') }}?v=3" defer></script>
+    {% endif %}
+    <script src="{{ static('submission-detail.js') }}?v=4" defer></script>
+{% endblock %}
+
 
 {% block header %}
     <span class="submission-info submission-detail-metadata">

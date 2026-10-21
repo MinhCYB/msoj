@@ -275,49 +275,49 @@ class ReviewPipelineTests(TestCase):
             self.assertEqual(caught.exception.code, 'judge_result_unsupported')
 
     def test_submission_page_panel_is_owner_only_and_eligibility_aware(self):
-        url = reverse('submission_status', args=[self.submission.pk])
+        url = reverse('submission_status', args=[self.submission.pk]) + '?panel=review'
         self.client.force_login(self.user)
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'id="ai-review"')
-        self.assertContains(response, 'data-can-request="true"')
-        self.assertContains(response, 'ai-review.js')
-        self.assertContains(response, 'csrfmiddlewaretoken')
+        self.assertTrue(response.context_data['ai_review_can_request'])
+        self.assertEqual(response.context_data['panel'], 'review')
         self.client.force_login(self.other)
         response = self.client.get(url)
-        self.assertNotContains(response, 'id="ai-review"', status_code=403)
+        self.assertEqual(response.status_code, 403)
         self.client.force_login(self.user)
         self.submission.status, self.submission.result = 'D', 'IE'
         self.submission.save(update_fields=['status', 'result'])
-        self.assertNotContains(self.client.get(url), 'id="ai-review"')
+        response = self.client.get(url)
+        self.assertEqual(response.context_data['panel'], 'result')
+        self.assertFalse(response.context_data.get('ai_review_can_request', False))
 
     def test_submission_panel_pretest_unavailable_and_existing_review_after_expiry(self):
-        url = reverse('submission_status', args=[self.submission.pk])
+        url = reverse('submission_status', args=[self.submission.pk]) + '?panel=review'
         self.client.force_login(self.user)
         self.submission.is_pretested = True
         self.submission.save(update_fields=['is_pretested'])
         response = self.client.get(url)
-        self.assertContains(response, 'ai-review-is-pretest')
-        self.assertContains(response, 'ai-review-pretest')
+        self.assertTrue(response.context_data['submission'].is_pretested)
+        self.assertEqual(response.context_data['panel'], 'review')
         review, _, _, _ = self.claim()
         self.subscription.end_date = timezone.now() - timedelta(seconds=1)
         self.subscription.save(update_fields=['end_date'])
         response = self.client.get(url)
-        self.assertContains(response, 'id="ai-review"')
-        self.assertContains(response, 'data-can-request="false"')
+        self.assertEqual(response.context_data['panel'], 'review')
+        self.assertFalse(response.context_data['ai_review_can_request'])
         self.assertEqual(review.status, 'pending')
 
     def test_submission_panel_hides_unsupported_new_review(self):
-        url = reverse('submission_status', args=[self.submission.pk])
+        url = reverse('submission_status', args=[self.submission.pk]) + '?panel=review'
         self.client.force_login(self.user)
         self.language.file_only = True
         self.language.save(update_fields=['file_only'])
-        self.assertNotContains(self.client.get(url), 'id="ai-review"')
+        self.assertEqual(self.client.get(url).context_data['panel'], 'result')
         self.language.file_only = False
         self.language.save(update_fields=['file_only'])
         self.problem.description = ''
         self.problem.save(update_fields=['description'])
-        self.assertNotContains(self.client.get(url), 'id="ai-review"')
+        self.assertEqual(self.client.get(url).context_data['panel'], 'result')
 
 
 class ConcurrentReviewClaimTests(TransactionTestCase):

@@ -43,28 +43,8 @@
         {% else %}
             <h3>{{ _('Execution Results') }}</h3>
         {% endif %}
-        <br>
         {% if can_view_testcase_status or can_view_batch_status %}
-        {% if statuses or not submission.is_graded %}
-            {% for case in statuses %}
-                {% if case.status in ("AC", "PAC") %}
-                    <span class="fa fa-check case-{{ case.result_class }}"></span>
-                {% elif case.status == "SC" %}
-                    <span class="case-SC">&ndash;</span>
-                {% else %}
-                    <a href="#{{ case.id }}">
-                        <span class="fa fa-times case-{{ case.status }} case-bad"></span>
-                    </a>
-                {% endif %}
-                {% if case.num_combined > 1 %}
-                    <sup class="case-{{ case.status }}">&times;{{ case.num_combined }}</sup>
-                {% endif %}
-            {% endfor %}
-            {% if not submission.is_graded %}
-                <span class="fa fa-spinner fa-pulse"></span>
-            {% endif %}
-            <br><br>
-        {% else %}
+        {% if not statuses and submission.is_graded %}
             <div>
                 <div class="alert alert-warning comment-lock">
                     {{ _('Your submission is successfully stored. Currently, there are no tests available, or this is an offline task, so please consider waiting for further evaluation.') }}
@@ -122,7 +102,7 @@
                 <td>{% if case.status != 'SC' %}{{ case.memory|kbdetailformat }}]{% endif %}</td>
 
                 {% if not batch.id %}
-                    <td>({{ case.points|floatformat(-3) }}/{{ case.total|floatformat(0) }})</td>
+                    <td title="{{ _('Test score') }}">({{ case.points|floatformat(-3) }}/{{ case.total|floatformat(0) }})</td>
                 {% endif %}
             </tr>
 
@@ -160,44 +140,8 @@
         {% if batch.id %}</div>{% endif %}
             <br>
         {% endfor %}
-        {% if statuses and submission.is_graded %}
-            <br>
-            {% if submission.result != "AB" %}
-                {% if can_view_testcase_status %}
-                    <b>{{ _('Resources:') }}</b>
-                    {% if submission.result == "TLE" %}
-                        <span>---,</span>
-                    {% else %}
-                        <span title="{{ submission.time }}s">{{ submission.time|floatformat(3) }}s,</span>
-                    {% endif %}
-                    {{ submission.memory|kbdetailformat }}
-                    <br>
-                {% endif %}
-                {% if is_pretest %}
-                    <b>{{ _('Final pretest score:') }}</b>
-                {% else %}
-                    <b>{{ _('Final score:') }}</b>
-                {% endif %}
-                {{ submission.case_points|floatformat(-3) }}/{{ submission.case_total|floatformat(0) }}
-                {% if request.in_contest and submission.contest_or_none %}
-                    {% with contest=submission.contest_or_none %}
-                        {% set points=contest.points|roundfloat(3) %}
-                        {% set total=contest.problem.points|floatformat(-1) %}
-                        ({{ _('%(points)s/%(total)s points', points=points, total=total) }})
-                    {% endwith %}
-                {% else %}
-                    {% with points=submission.points|floatformat(3), total=submission.problem.points|floatformat(3) %}
-                        ({{ _('%(points)s/%(total)s points', points=points, total=total) }})
-                    {% endwith %}
-                {% endif %}
-                {% if is_pretest and submission.result in ("AC", "PAC") %}
-                    <br>
-                    <i>{{ _('Passing pretests does not guarantee a full score on system tests.') }}</i>
-                {% endif %}
-            {% else %}
-                <b>{{ _('Submission aborted!') }}</b>
-            {% endif %}
-            <br>
+        {% if statuses and submission.is_graded and is_pretest and submission.result in ("AC", "PAC") %}
+            <p>{{ _('Passing pretests does not guarantee a full score on system tests.') }}</p>
         {% endif %}
         {% else %}
         {% if not submission.is_graded %}

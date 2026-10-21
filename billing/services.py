@@ -21,9 +21,8 @@ def is_active_for(profile, feature):
         raise ValueError(f'Unsupported billing feature: {feature}')
 
     active_subs = Subscription.objects.filter(
+        Subscription.in_force_q(timezone.now()),
         profile=profile,
-        status=Subscription.STATUS_ACTIVE,
-        end_date__gte=timezone.now(),
     ).select_related('plan')
 
     return any(feature in sub.plan.features for sub in active_subs)

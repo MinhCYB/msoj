@@ -8,7 +8,7 @@ import subprocess
 import tempfile
 import zipfile
 from operator import itemgetter
-from typing import BinaryIO, List, Union
+from typing import BinaryIO, List, Optional, Union
 
 from django.conf import settings
 from django.core.files import File
@@ -245,11 +245,14 @@ def pandoc_tex_to_markdown(tex):
         with open(os.path.join(tmp_dir, 'filter.lua'), 'w', encoding='utf-8') as f:
             f.write(PANDOC_FILTER)
 
-        subprocess.run(
+        result = subprocess.run(
             ['pandoc', '--lua-filter=filter.lua', '-t', 'gfm', '-o', 'temp.md', 'temp.tex'],
             cwd=tmp_dir,
-            check=True,
+            capture_output=True,
+            text=True,
         )
+        if result.returncode != 0:
+            raise ImportPolygonError(f'pandoc could not convert the statement: {result.stderr.strip()}')
 
         with open(os.path.join(tmp_dir, 'temp.md'), 'r', encoding='utf-8') as f:
             md = f.read()
@@ -276,6 +279,8 @@ class PolygonImporter:
             do_update: bool = False,
             interactive: bool = True,
             config=None,
+            group: Optional[ProblemGroup] = None,
+            types: Optional[List[ProblemType]] = None,
     ):
         # Check if pandoc is available
         if not shutil.which('pandoc'):
@@ -309,6 +314,8 @@ class PolygonImporter:
         self.meta['code'] = code
         self.meta['authors'] = authors or []
         self.meta['curators'] = curators or []
+        self.meta['group'] = group
+        self.meta['types'] = types
 
         self.validate()
 
@@ -851,14 +858,14 @@ class PolygonImporter:
             'memory_limit': self.meta['memory_limit'],
             'description': self.meta['description'],
             'partial': self.meta['partial'],
-            'group': ProblemGroup.objects.order_by('id').first(),  # Uncategorized
+            'group': self.meta['group'] or ProblemGroup.objects.order_by('id').first(),  # default: Uncategorized
             'points': 0.01,
         })
         problem.save()
         problem.allowed_languages.set(Language.objects.filter(include_in_problem=True))
         problem.authors.set(self.meta['authors'])
         problem.curators.set(self.meta['curators'])
-        problem.types.set([ProblemType.objects.order_by('id').first()])  # Uncategorized
+        problem.types.set(self.meta['types'] or [ProblemType.objects.order_by('id').first()])  # default: Uncategorized
         problem.save()
 
         ProblemTranslation.objects.filter(problem=problem).delete()

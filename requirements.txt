@@ -1,3 +1,5 @@
+# System dependency (not a pip package): pandoc >= 3.0.0 for Polygon imports.
+# Install the CLI separately and expose it on the web process PATH; see README.md.
 Django>=4.2,<5
 django-cleanup
 django_compressor>=3
