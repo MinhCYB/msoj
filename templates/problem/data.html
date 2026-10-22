@@ -1015,6 +1015,11 @@
             {% if quota_warning_suffix %}{{ quota_warning_suffix|safe }}{% endif %}
         </div>
     {% endif %}
+    {% if cloudflare_upload_warning %}
+        <div class="alert alert-warning">
+            {{ _('Cloudflare Free limits request bodies to 100 MB, including multipart form overhead. Large test-data ZIP files may fail to upload; use Polygon sync for large packages when available.') }}
+        </div>
+    {% endif %}
     <form action="" method="POST" enctype="multipart/form-data">
         {% csrf_token %}
         {{ cases_formset.management_form }}

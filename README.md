@@ -12,6 +12,15 @@ Check out its features [here](https://github.com/DMOJ/online-judge#features).
 
 Refer to the install documentation [here](https://vnoi-admin.github.io/vnoj-docs/#/site/installation). Almost all installation steps remain the same as the docs, but there are several minor differences, including cloning this repo instead of DMOJ's repo.
 
+### Docker Compose (MSOJ)
+
+Installation and configuration: [Docker installation guide (Vietnamese)](docs/docker-installation.md).
+Operational reference: [Docker runbook](docker/README.md).
+The stack keeps the judge on the host, bind-mounts database/media/problem data
+outside the repository, supports realtime events and optional Cloudflare Tunnel,
+and deploys prebuilt GHCR images without building on the production server.
+Use the isolated local setup in the runbook before connecting a production judge.
+
 ### Additional installation steps
 
 - You **have to** define `DMOJ_PROBLEM_DATA_ROOT` in `local_settings.py`, which should be the path to the directory that contains your problems' tests.
@@ -33,8 +42,8 @@ Detailed Vietnamese operations guide: [Polygon build and sync](docs/polygon-oper
 
 Automatic synchronisation (`manage.py sync_polygon` and the Polygon admin sync
 actions) skips problems matching `POLYGON_SKIP_TAGS` or `POLYGON_SKIP_OWNERS`,
-case-insensitively. Defaults exclude tag `yb-boclot` and owners `dang` and
-`longvu1305`. Force sync does not override these rules. Excluded problems remain
+case-insensitively. Defaults exclude tag `yb-boclot` and owners `dang`,
+`longvu1305`, `mmirzayanov` and `geranazavr555`. Force sync does not override these rules. Excluded problems remain
 in the Polygon tracking table with a skip reason and cannot win duplicate-code
 selection. Previously imported MSOJ problems are not deleted or hidden by a new
 exclusion rule. Manual ZIP imports are separate from automatic synchronisation.

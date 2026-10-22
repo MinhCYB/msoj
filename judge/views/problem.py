@@ -1031,6 +1031,7 @@ class ProblemImportPolygon(PermissionRequiredMixin, TitleMixin, FormView):
         context = super().get_context_data(**kwargs)
         context['formset'] = self.get_formset()
         context['site_languages_json'] = mark_safe(json.dumps({code: str(name) for code, name in settings.LANGUAGES}))
+        context['cloudflare_upload_warning'] = getattr(settings, 'MSOJ_CLOUDFLARE_UPLOAD_WARNING', False)
         return context
 
     def post(self, request, *args, **kwargs):

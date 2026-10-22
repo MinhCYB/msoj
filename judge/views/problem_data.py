@@ -278,6 +278,7 @@ class ProblemDataView(TitleMixin, ProblemManagerMixin):
             add_quota_context(problem.organization, context)
 
         context['quota_warning_suffix'] = settings.VNOJ_QUOTA_WARNING_SUFFIX
+        context['cloudflare_upload_warning'] = getattr(settings, 'MSOJ_CLOUDFLARE_UPLOAD_WARNING', False)
         return context
 
     def check_valid(self, data_form, cases_formset):

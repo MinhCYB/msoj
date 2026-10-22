@@ -1,0 +1,20 @@
+# Local/CI builds only. Production compose.yaml contains no build directives.
+services:
+  web:
+    build:
+      context: .
+      target: app
+      args:
+        APP_UID: ${APP_UID:-1000}
+        APP_GID: ${APP_GID:-1000}
+  proxy:
+    build:
+      context: .
+      target: proxy
+      args:
+        APP_UID: ${APP_UID:-1000}
+        APP_GID: ${APP_GID:-1000}
+  events:
+    build:
+      context: .
+      target: events

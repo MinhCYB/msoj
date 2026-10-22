@@ -122,6 +122,11 @@
             </div>
         {% endif %}
         {% csrf_token %}
+        {% if cloudflare_upload_warning %}
+            <div class="alert alert-warning">
+                {{ _('Cloudflare Free limits request bodies to 100 MB, including multipart form overhead. Large packages may fail to upload; use Polygon sync for large packages when available.') }}
+            </div>
+        {% endif %}
         {{ formset.management_form }}
         <table class="django-as-table">{{ form.as_table() }}</table>
         <table class="table" id="statements-table">

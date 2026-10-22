@@ -1,0 +1,232 @@
+name: ${COMPOSE_PROJECT_NAME:-msoj}
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+x-app: &app
+  image: ${MSOJ_APP_IMAGE:-msoj-app:local}
+  environment:
+    DJANGO_SETTINGS_MODULE: dmoj.settings
+    DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?Run setup}
+    DJANGO_DEBUG: ${DJANGO_DEBUG:-false}
+    DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1}
+    MSOJ_SITE_URL: ${MSOJ_SITE_URL:-http://localhost:8080}
+    MARIADB_DATABASE: ${MARIADB_DATABASE:-msoj}
+    MARIADB_USER: ${MARIADB_USER:-msoj}
+    MARIADB_PASSWORD: ${MARIADB_PASSWORD:?Run setup}
+    MSOJ_LANGUAGE: ${MSOJ_LANGUAGE:-vi}
+    MSOJ_ADMIN_EMAIL: ${MSOJ_ADMIN_EMAIL:-admin@localhost}
+    MSOJ_REQUIRE_STAFF_2FA: ${MSOJ_REQUIRE_STAFF_2FA:-true}
+    MSOJ_CLOUDFLARE_UPLOAD_WARNING: ${MSOJ_CLOUDFLARE_UPLOAD_WARNING:-true}
+    POLYGON_SYNC_AUTHOR: ${POLYGON_SYNC_AUTHOR:-admin}
+    POLYGON_API_KEY: ${POLYGON_API_KEY:-}
+    POLYGON_API_SECRET: ${POLYGON_API_SECRET:-}
+    AI_9ROUTER_API_KEY: ${AI_9ROUTER_API_KEY:-}
+    DJANGO_EMAIL_BACKEND: ${DJANGO_EMAIL_BACKEND:-django.core.mail.backends.console.EmailBackend}
+    EMAIL_HOST: ${EMAIL_HOST:-}
+    EMAIL_PORT: ${EMAIL_PORT:-587}
+    EMAIL_HOST_USER: ${EMAIL_HOST_USER:-}
+    EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD:-}
+    EMAIL_USE_TLS: ${EMAIL_USE_TLS:-true}
+    DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:-admin@localhost}
+    GOOGLE_OAUTH_CLIENT_ID: ${GOOGLE_OAUTH_CLIENT_ID:-}
+    GOOGLE_OAUTH_CLIENT_SECRET: ${GOOGLE_OAUTH_CLIENT_SECRET:-}
+  init: true
+  user: "${APP_UID:-1000}:${APP_GID:-1000}"
+  restart: unless-stopped
+  stop_grace_period: 60s
+  logging: *logging
+  networks: [backend, outbound]
+  volumes:
+    - type: bind
+      source: ${MSOJ_MEDIA_DIR:?Run python3 docker/setup.py first}
+      target: /data/media
+      bind:
+        create_host_path: false
+    - type: bind
+      source: ${MSOJ_PROBLEM_DIR:?Run python3 docker/setup.py first}
+      target: /data/problems
+      bind:
+        create_host_path: false
+
+services:
+  db:
+    image: mariadb:11.8.6@sha256:78a5047d3ba33975f183f183c2464cc7f1eab13ec8667e57cc9a5821d6da7577
+    environment:
+      MARIADB_DATABASE: ${MARIADB_DATABASE:-msoj}
+      MARIADB_USER: ${MARIADB_USER:-msoj}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD:?Run setup}
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:?Run setup}
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci", "--sql-mode=STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION"]
+    volumes:
+      - type: bind
+        source: ${MSOJ_DB_DIR:?Run setup}
+        target: /var/lib/mysql
+        bind:
+          create_host_path: false
+    networks: [backend]
+    restart: unless-stopped
+    logging: *logging
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  redis:
+    image: redis:7.4.7-alpine@sha256:02f2cc4882f8bf87c79a220ac958f58c700bdec0dfb9b9ea61b62fb0e8f1bfcf
+    command: ["redis-server", "--appendonly", "yes", "--appendfsync", "everysec", "--maxmemory-policy", "noeviction"]
+    volumes:
+      - type: bind
+        source: ${MSOJ_REDIS_DIR:?Run setup}
+        target: /data
+        bind:
+          create_host_path: false
+    networks: [backend]
+    restart: unless-stopped
+    logging: *logging
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  cache:
+    image: redis:7.4.7-alpine@sha256:02f2cc4882f8bf87c79a220ac958f58c700bdec0dfb9b9ea61b62fb0e8f1bfcf
+    command: ["redis-server", "--save", "", "--maxmemory", "128mb", "--maxmemory-policy", "allkeys-lru"]
+    networks: [backend]
+    restart: unless-stopped
+    logging: *logging
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  events:
+    image: ${MSOJ_EVENTS_IMAGE:-msoj-events:local}
+    init: true
+    networks: [backend]
+    restart: unless-stopped
+    logging: *logging
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:9995/channels/').then(r=>process.exit(r.status===400?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  migrate:
+    <<: *app
+    restart: "no"
+    command: ["python", "manage.py", "migrate", "--noinput"]
+    depends_on:
+      db: {condition: service_healthy}
+
+  web:
+    <<: *app
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      cache: {condition: service_healthy}
+      events: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "python", "docker/healthcheck.py", "web"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 20s
+
+  bridge:
+    <<: *app
+    command: ["python", "dmoj_bridge_async.py"]
+    ports:
+      - "127.0.0.1:${MSOJ_BRIDGE_PORT:-9999}:9999"
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      cache: {condition: service_healthy}
+      events: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "python", "docker/healthcheck.py", "bridge"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  worker:
+    <<: *app
+    command: ["celery", "-A", "dmoj_celery", "worker", "--loglevel=INFO", "--concurrency=2", "--hostname=worker@%h"]
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
+      cache: {condition: service_healthy}
+      events: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "python", "docker/healthcheck.py", "worker"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 30s
+
+  beat:
+    <<: *app
+    command: ["celery", "-A", "dmoj_celery", "beat", "--loglevel=INFO", "--schedule=/tmp/celerybeat-schedule"]
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
+    # Singleton. Schedules come from source; broker persists queued jobs.
+
+  proxy:
+    image: ${MSOJ_PROXY_IMAGE:-msoj-proxy:local}
+    ports:
+      - "127.0.0.1:${MSOJ_HTTP_PORT:-8080}:80"
+    volumes:
+      - type: bind
+        source: ${MSOJ_MEDIA_DIR:?Run setup}
+        target: /data/media
+        read_only: true
+        bind:
+          create_host_path: false
+    networks:
+      backend: {}
+      edge: {}
+      tunnel:
+        aliases: [proxy-tunnel]
+        ipv4_address: 172.30.42.3
+    depends_on:
+      web: {condition: service_healthy}
+      events: {condition: service_healthy}
+    restart: unless-stopped
+    logging: *logging
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/healthz"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  cloudflared:
+    image: cloudflare/cloudflared:2026.10.0@sha256:9b49eed8f62806d5d45ddf59ecefb5710429598ea6d3fcccd2af938f621b2b07
+    profiles: [cloudflare]
+    command: ["tunnel", "--no-autoupdate", "run"]
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:-}
+    networks:
+      edge: {}
+      tunnel:
+        ipv4_address: 172.30.42.2
+    depends_on:
+      proxy: {condition: service_healthy}
+    restart: unless-stopped
+    logging: *logging
+
+networks:
+  backend:
+    internal: true
+  outbound: {}
+  edge: {}
+  tunnel:
+    internal: true
+    ipam:
+      config:
+        - subnet: 172.30.42.0/29

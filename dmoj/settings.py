@@ -274,7 +274,7 @@ POLYGON_IGNORED_TAGS = ('cyb-boclot',)
 # Problems carrying any of these Polygon tags (case-insensitive) belong to someone else and are never synced.
 POLYGON_SKIP_TAGS = ('yb-boclot',)
 # Problems owned by these Polygon users (case-insensitive) are never synced.
-POLYGON_SKIP_OWNERS = ('dang', 'longvu1305')
+POLYGON_SKIP_OWNERS = ('dang', 'longvu1305', 'mmirzayanov', 'geranazavr555')
 # When several Polygon problems normalise to the same MSOJ code, the one owned by this Polygon user wins.
 POLYGON_PREFERRED_OWNER = 'ms24'
 # MSOJ username set as author of newly synced problems.

@@ -1,0 +1,5 @@
+ansi2html @ git+https://github.com/VNOI-Admin/ansi2html.git@4771e030bad0220dbf6bec4bb0cb00c31bb91062
+django-fernet-fields @ git+https://github.com/DMOJ/django-fernet-fields.git@eaea7e760472106c015f65535f4837a1189c4e7c
+dmoj-wpadmin @ git+https://github.com/DMOJ/dmoj-wpadmin.git@dfafe1b20d69e2e0f8cf625fecbb957414040b80
+jsonfield @ git+https://github.com/DMOJ/jsonfield.git@560bdca857a69b4a5b2773a79d7511ebc628f339
+markdown2 @ git+https://github.com/VNOI-Admin/python-markdown2.git@60ef5410777363d52ee8034e9481bd8cfd2e79bd
