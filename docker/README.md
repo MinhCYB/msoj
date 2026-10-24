@@ -73,10 +73,14 @@ judge host dùng `problem_storage_globs` trỏ vào **đường dẫn host** tro
 `MSOJ_PROBLEM_DIR`, không phải `/data/problems` của container:
 
 ```yaml
+judge_version: 2
 problem_storage_globs:
   - id: local
     glob: /srv/msoj/problems/**
 ```
+
+`judge_version: 2` là bắt buộc cho dạng storage có `{id, glob}` của judge MSOJ;
+không bỏ khóa này rồi dùng cấu hình protocol 1 mặc định.
 
 Giữ runtime/testlib.h/executor hiện có. Chạy judge với bridge `127.0.0.1` và port
 `MSOJ_BRIDGE_PORT` (local thử là 19999, prod mặc định 9999). Không chạy judge thử
@@ -94,8 +98,10 @@ scale bridge/beat/events thành nhiều replica.
 
 ## 3. Polygon và AI
 
-Thêm `POLYGON_API_KEY`/`POLYGON_API_SECRET` vào env riêng rồi recreate worker/web
-(không build lại image). `POLYGON_SYNC_AUTHOR` phải là user có Profile.
+Thêm riêng `POLYGON_API_KEY`/`POLYGON_API_SECRET` vào env server, không chép đè
+toàn bộ `.env` local. Recreate worker/web/beat (không build lại image), chờ web
+healthy rồi restart proxy để nginx resolve lại IP web; tránh 502 do upstream cũ.
+`POLYGON_SYNC_AUTHOR` phải là user có Profile.
 
 ```sh
 docker compose --env-file .env.docker exec web python manage.py sync_polygon --list
@@ -136,8 +142,10 @@ Trong env đặt `MSOJ_SITE_URL=https://oj.example.com`, `DJANGO_ALLOWED_HOSTS` 
 docker compose --env-file .env.docker --profile cloudflare up -d cloudflared
 ```
 
-Cloudflared chỉ outbound; không cần mở 80/443 inbound. Local listener
-`127.0.0.1:MSOJ_HTTP_PORT` vẫn có để chẩn đoán, không publish Internet.
+Cloudflared chỉ outbound; không cần mở 80/443 inbound. Web listener mặc định
+`127.0.0.1:MSOJ_HTTP_PORT`; có thể đặt `MSOJ_HTTP_BIND` thành IP Tailscale cụ thể
+để truy cập trong tailnet, đồng thời đổi site URL và allowed hosts theo hướng dẫn.
+Không dùng `0.0.0.0` để mở bản thử riêng ra tất cả card mạng.
 Nginx listener 8081 chỉ tin peer tunnel `172.30.42.2` trên network riêng
 `172.30.42.0/29`; listener 80 bỏ qua header HTTPS do client tự giả. Nếu subnet
 xung đột host/VPN, đổi cả Compose network và nginx trust rồi build proxy lại.
@@ -148,6 +156,24 @@ ngắn, purge khi phát hành nếu bật thêm Cache Rule ở Cloudflare.
 Realtime đi `wss://DOMAIN/event/`; `/channels/` là long-poll. Publisher 9997 chỉ
 nội bộ và không có auth command; tuyệt đối không publish port này. Events giữ
 buffer trong RAM, restart có thể mất thông báo trung gian; kết quả bài lưu DB.
+
+### Thử domain trên máy dev trước khi chuyển server
+
+Không trỏ tunnel thẳng vào Django `runserver` với `DEBUG=True`. Nếu kho bài nằm
+trong DB host còn Docker đang dùng DB thử riêng, dùng origin WSGI tách biệt với
+`DEBUG=False`, secret ổn định, allowed hosts/CSRF/cookie HTTPS đúng domain và
+proxy phục vụ static/media; không đổi DB chỉ để bật tunnel. Trên Docker Desktop,
+`network_mode: host` không đồng nghĩa loopback của WSL: kiểm tra đường proxy tới
+IP WSL và cập nhật lại khi IP thay đổi. Cổng origin, DB và bridge không public.
+
+Token connector chỉ dùng kết nối tunnel; hostname/DNS phải được tạo trong
+Cloudflare dashboard hoặc bằng quyền API quản lý riêng. Giữ token trong env
+git-ignored, quyền `0600`, không đặt token trên command line hay trong tài liệu.
+
+Sau khi lưu hostname, kiểm tra DNS/TLS thực qua domain, HTTP chuyển sang HTTPS,
+form đăng nhập qua CSRF, cookie Secure, static và WebSocket/long-poll. Connector
+đã kết nối không đồng nghĩa hostname/DNS hay toàn bộ ứng dụng đã hoạt động.
+
 
 ## 5. CI/GHCR và deploy không build server
 

@@ -105,7 +105,8 @@ docker compose --env-file .env.docker down
 | --- | --- |
 | `MSOJ_SITE_URL` | Origin chuẩn của site; local ví dụ `http://localhost:18080`, production dùng URL HTTPS thật |
 | `DJANGO_ALLOWED_HOSTS` | Hostname được Django chấp nhận, phân tách bằng dấu phẩy |
-| `MSOJ_HTTP_PORT` | Cổng host chỉ bind trên `127.0.0.1`; mặc định local theo lệnh setup là `18080` |
+| `MSOJ_HTTP_PORT` | Cổng web trên host; mặc định local theo lệnh setup là `18080` |
+| `MSOJ_HTTP_BIND` | IP host để publish web, mặc định `127.0.0.1`; dùng IP Tailscale cụ thể nếu muốn truy cập trực tiếp trong tailnet. Không dùng `0.0.0.0` cho bản thử riêng |
 | `MSOJ_BRIDGE_PORT` | Cổng bridge bind trên `127.0.0.1`; local `19999`, production mặc định `9999` |
 | `MSOJ_DB_DIR`, `MSOJ_REDIS_DIR`, `MSOJ_MEDIA_DIR`, `MSOJ_PROBLEM_DIR`, `MSOJ_BACKUP_DIR` | Đường dẫn host cho dữ liệu; phải ngoài repository và không dùng chung tùy tiện |
 | `APP_UID`, `APP_GID` | UID/GID mà app container chạy dưới đó; setup lấy UID/GID hiện tại |
@@ -130,8 +131,11 @@ Container không hot-reload source hoặc env của host. `restart` chỉ khởi
 - Đổi API key, SMTP hoặc cờ local: sửa `.env.docker`, rồi recreate service dùng giá trị đó. Với web/Celery:
 
 ```sh
-docker compose --env-file .env.docker up -d --no-deps --force-recreate web worker beat
+docker compose --env-file .env.docker up -d --no-deps --force-recreate --wait web worker beat
+docker compose --env-file .env.docker restart proxy
 ```
+
+Nginx resolve hostname `web` khi khởi động; recreate riêng web có thể đổi IP container và làm proxy còn giữ upstream cũ (502 dù web healthy). Restart proxy sau khi web healthy để nạp địa chỉ mới. Không cần restart bridge chỉ để đổi Polygon key.
 
 - Đổi `MSOJ_SITE_URL`/hostname: cập nhật cả `DJANGO_ALLOWED_HOSTS`, recreate web/worker/beat, rồi chạy lại `python3 docker/ops.py --env-file .env.docker bootstrap` để cập nhật bảng Site. Nếu còn dùng HTTP local, không đặt URL HTTPS vì secure cookie sẽ không được gửi qua HTTP.
 - Đổi source, luật Polygon hoặc static: build lại bằng hai file Compose như mục 2.2, rồi chạy `docker compose --env-file .env.docker up -d --wait`. Lệnh này có thể recreate cả bridge; tránh chạy khi đang chấm bài.
@@ -145,10 +149,13 @@ Judge giữ trên host, không cần privileged container. Tạo judge riêng tr
 ```yaml
 id: msoj-local
 key: 'REPLACE_WITH_JUDGE_KEY_FROM_ADMIN'
+judge_version: 2
 problem_storage_globs:
   - id: local
     glob: /home/your-user/msoj_docker_data/problems/**
 ```
+
+Với judge MSOJ hỗ trợ storage ID, phải đặt `judge_version: 2` khi dùng danh sách `{id, glob}` ở trên. Nếu bỏ khóa này, judge mặc định dùng protocol 1 và đòi `problem_storage_globs` là danh sách chuỗi; cấu hình sai dạng sẽ lỗi trước khi kết nối bridge.
 
 Host và port truyền qua CLI, không lấy từ hai khóa `host`/`port` trong YAML:
 
@@ -192,6 +199,21 @@ ssh -N -L 18080:127.0.0.1:18080 user@server-ip
 
 Sau khi SSH kết nối, mở `http://localhost:18080` trên máy cá nhân. Không mở cổng web hoặc bridge ra Internet chỉ để kiểm thử. Quick Tunnel là một lựa chọn tạm thời nhưng chưa được cấu hình/kiểm thử trong bộ Compose này.
 
+### Truy cập trực tiếp qua Tailscale, không cần SSH tunnel
+
+Đặt bốn biến cùng nhau trong env (ví dụ server có IP Tailscale `100.80.70.23`):
+
+```dotenv
+MSOJ_HTTP_BIND=100.80.70.23
+MSOJ_SITE_URL=http://100.80.70.23:18082
+MSOJ_HTTP_PORT=18082
+DJANGO_ALLOWED_HOSTS=100.80.70.23,localhost,127.0.0.1
+```
+
+Recreate các service app và proxy để nạp env/binding mới, cập nhật bảng Site bằng bootstrap. Bridge vẫn bind `127.0.0.1`; đổi web binding không mở cổng judge. Chờ hết submission nếu recreate bridge. Truy cập `http://100.80.70.23:18082` từ thiết bị đã kết nối Tailscale và được ACL cho phép. Không cần domain, Quick Tunnel hoặc Cloudflare.
+
+Chỉ dùng HTTP như trên qua mạng Tailscale tin cậy; Tailscale mã hóa lưu lượng giữa các node nhưng không biến HTTP thành HTTPS đối với trình duyệt. Không mở ra LAN/Internet hoặc cấu hình router port forwarding. Nếu IP Tailscale thay đổi, cập nhật đồng bộ bind, origin và allowed hosts. Khi chuyển lại loopback, URL site phải đổi về localhost tương ứng.
+
 ### Named Cloudflare Tunnel khi đã có domain
 
 Service `cloudflared` đã có sẵn nhưng chỉ chạy khi bật profile `cloudflare`; không bắt buộc cho local. Khi deploy:
@@ -203,7 +225,8 @@ Service `cloudflared` đã có sẵn nhưng chỉ chạy khi bật profile `clou
 5. Recreate app để nạp URL/hostname mới, cập nhật bảng Site rồi bật tunnel:
 
 ```sh
-docker compose --env-file .env.docker up -d --no-deps --force-recreate web worker beat
+docker compose --env-file .env.docker up -d --no-deps --force-recreate --wait web worker beat
+docker compose --env-file .env.docker restart proxy
 python3 docker/ops.py --env-file .env.docker bootstrap
 docker compose --env-file .env.docker --profile cloudflare up -d cloudflared
 ```
@@ -242,7 +265,7 @@ python3 docker/ops.py --env-file .env.docker bootstrap
 docker compose --env-file .env.docker up -d --wait
 ```
 
-Không build image trên production server. Listener web chỉ publish `127.0.0.1`; dùng Cloudflare Tunnel hoặc reverse proxy HTTPS đã được cấu hình đúng để public.
+Không build image trên production server. Listener web mặc định chỉ publish `127.0.0.1`; có thể chọn IP Tailscale cụ thể cho truy cập riêng. Khi public dùng Cloudflare Tunnel hoặc reverse proxy HTTPS đã được cấu hình đúng, không mở HTTP trực tiếp ra Internet.
 
 ### Nâng cấp release
 
@@ -309,3 +332,92 @@ Restore chỉ nạp SQL, không xóa bảng không có trong dump và không ph�
 - Không chỉnh riêng `.in` rồi cho rằng image đã đổi dependency: phải tái tạo lock và danh sách VCS cùng nhau, build và kiểm thử lại. Không dùng dòng command tự sinh trong header lock như một quy trình tái tạo đầy đủ vì các gói VCS đã được tách ra sau resolve.
 - Pin base image digest và hash package giúp kiểm soát đầu vào, nhưng các gói apt/build toolchain vẫn có thể thay đổi. Đây không phải cam kết image build lại giống từng byte.
 - Local đã được smoke trên Linux amd64; domain/tunnel thật, SMTP thật, OAuth và AI có phí cần kiểm tra riêng khi có credential. Không tuyên bố các tích hợp đó hoạt động chỉ từ kết quả CI hoặc healthcheck.
+
+## 12. Bản triển khai thử trên ms24server — 2026-10-22
+
+### Trạng thái và đường dẫn
+
+- Server Ubuntu 22.04.5 amd64, Docker 29.5.3, Compose v5.1.4.
+- MSOJ release `d62fc484a367c3f149ad89d7fbbc9287ea3b8378`, source xuất từ commit; ba image đã build ở workstation rồi chuyển bằng `docker save/load`. Image ID trên server đã đối chiếu đúng với artifact local; không build app trên server.
+- Judge source release `2044a3f96a5683d46419b1d1d362fd1de1274151`, build riêng trên server với Python 3.10 và libseccomp.
+- Project Compose `msoj-trial`, source: `/home/ms24/msoj-docker-trial/current` (symlink tới thư mục release).
+- Env riêng: `/home/ms24/msoj-docker-trial/private/.env.docker`, quyền `0600`; thư mục private quyền `0700`.
+- Dữ liệu mới: `/srv/msoj-trial-data`, không dùng lại DB/media/test data của VNOJ hoặc Catplus. Chưa nhập dữ liệu hệ thống cũ.
+- Web `100.80.70.23:18082` chỉ bind IP Tailscale; bridge `127.0.0.1:19999`. Web không bind LAN hoặc `0.0.0.0`, không public Internet.
+- Username ban đầu: `admin`. Mật khẩu ngẫu nhiên lưu ở `/home/ms24/msoj-docker-trial/private/admin.credentials` quyền `0600`; đọc riêng trên server rồi đổi sau lần đăng nhập đầu. Không đưa nội dung file vào Git/chat/log.
+- Tạm tắt yêu cầu staff 2FA và cảnh báo Cloudflare chỉ cho bản thử riêng trong tailnet. Đã chuyển riêng cặp Polygon API key/secret từ `.env` local vào env server; xác thực API đọc thành công, chưa chạy sync/import. AI credential, SMTP thật và OAuth chưa cấu hình/kiểm chứng trên server.
+- Service Cloudflare của bản thử không chạy. Service `cloudflared` có sẵn trên host và các dịch vụ Catplus/rewards được giữ nguyên.
+
+Judge host chạy bằng systemd service `msoj-judge-trial.service`, user hệ thống `msoj-judge-trial` không thuộc nhóm Docker/sudo:
+
+| Thành phần | Đường dẫn/cấu hình |
+| --- | --- |
+| Judge cài đặt | `/opt/msoj-judge-trial/venv` |
+| Cấu hình chứa key | `/etc/msoj-trial/judge.yml`, owner `root:msoj-judge-trial`, quyền `0640` |
+| Working directory | `/var/lib/msoj-judge-trial` |
+| Identity | `ms24server-trial`, protocol 2 |
+| Executor đã self-test/chấm thật | `CPP17`, `CPP20`, `PY3` |
+| Runtime | GCC/G++ 11.4.0, Python 3.10.12; `testlib.h` tại `/usr/local/include/testlib.h` đã compile thử với C++20 |
+
+Đã cài compiler toolchain, Python venv/development headers và libseccomp cần cho judge; không cài mọi executor có trong catalog ngôn ngữ. Các ngôn ngữ khác cần cài và kiểm chứng trước khi sử dụng.
+
+### Truy cập và vận hành
+
+Trên máy cá nhân đã kết nối Tailscale và được ACL cho phép, truy cập trực tiếp:
+
+```text
+http://100.80.70.23:18082
+http://100.80.70.23:18082/admin/
+```
+
+Không cần mở SSH tunnel. Env bản thử đặt `MSOJ_HTTP_BIND=100.80.70.23`, `MSOJ_SITE_URL=http://100.80.70.23:18082`, `DJANGO_ALLOWED_HOSTS=100.80.70.23,localhost,127.0.0.1`. Cấu hình mặc định trong source vẫn là loopback để các cài đặt khác không tự mở web.
+
+Các lệnh sau chạy **trên server**:
+
+```sh
+cd /home/ms24/msoj-docker-trial/current
+docker compose --env-file /home/ms24/msoj-docker-trial/private/.env.docker ps
+docker compose --env-file /home/ms24/msoj-docker-trial/private/.env.docker up -d --wait
+sudo systemctl status msoj-judge-trial.service --no-pager
+```
+
+Systemd judge được enable để chạy lại sau reboot; Compose services dùng restart policy trong source. Giữ identity judge riêng, không tái sử dụng judge/key đang chạy cho VNOJ/Catplus.
+
+### Bằng chứng kiểm chứng
+
+- Homepage HTTP 200; đăng nhập bằng mật khẩu qua form thực trên Chromium, truy cập trang admin và trang submission đã chấm.
+- Sau khi chuyển sang IP Tailscale: homepage HTTP 200, đăng nhập/CSRF/admin qua form thật và nhận event WebSocket/long-poll trực tiếp từ Chromium tại `100.80.70.23:18082`, không qua SSH tunnel. Port publish đã đối chiếu chỉ bind IP Tailscale; bridge vẫn loopback và judge online.
+- Import một package Polygon-format tự tạo, hai testcase qua Pandoc, ghi statement/database/problem storage thành công. Không gọi API Polygon thật.
+- Chấm thật: C++17 AC (2/2), C++20 WA (2/2 sai), Python 3 AC (2/2), cùng identity `ms24server-trial`.
+- Django event publisher → event daemon → nginx WebSocket và HTTP long-poll nhận đúng payload.
+- Task `queue_time_stats` gửi qua Redis và thực thi bởi worker thật, trạng thái `SUCCESS`.
+- Toàn bộ Compose `down` rồi `up -d --wait`: DB, ba kết quả submission, test data và phiên đăng nhập admin còn nguyên; host judge tự reconnect.
+- Sau smoke đã xóa bài `deploy_sum`, ba submission và package tạm; chỉ giữ admin và judge thật. Manifest không chứa secret nằm tại `/home/ms24/msoj-docker-trial/deployment.json`.
+- Đã chạy `manage.py check`, nginx `-t` và tạo DB backup gzip trong `/srv/msoj-trial-data/backups`. Chưa thử restore trên DB độc lập và chưa có backup off-server; không coi riêng việc dump thành công là bằng chứng restore.
+- Sau khi cấu hình Polygon: web/worker/beat có đủ cặp key, `PolygonClient.list_problems()` xác thực thành công và thấy 595 bài tại thời điểm kiểm tra. Lệnh chỉ đọc remote API, không refresh index hay import; bảng Problem và PolygonProblem vẫn rỗng. Không sao chép DB secret hoặc AI key từ local.
+
+### VNOJ đã dừng và cách bật lại
+
+Đã chặn nhận request mới, dừng Celery VNOJ và xác nhận không còn submission `QU/P/G` trước khi dừng judge/bridge. Các container `vnoj_nginx`, `vnoj_site`, `vnoj_bridged`, `vnoj_celery`, `vnoj_wsevent`, `vnoj_redis`, `vnoj_mysql` và container riêng `judge` hiện dừng, không bị xóa. Dữ liệu tại `/home/ms24/vnoj-docker/dmoj/{database,media,problems}` giữ nguyên. Riêng container `judge` đã đổi restart policy từ `always` sang `no` để không tự bật lại sau daemon restart.
+
+Rollback dưới đây **dừng bản MSOJ thử và bật lại VNOJ**, không nhập DB giữa hai hệ thống. Chờ hết submission MSOJ trước khi chạy:
+
+```sh
+sudo systemctl disable --now msoj-judge-trial.service
+cd /home/ms24/msoj-docker-trial/current
+docker compose --env-file /home/ms24/msoj-docker-trial/private/.env.docker down
+
+cd /home/ms24/vnoj-docker/dmoj
+docker compose -f docker-compose.yml up -d
+docker update --restart=always judge
+docker start judge
+```
+
+Các lệnh rollback được ghi theo container/project hiện có; chưa thực thi rollback vì sẽ dừng bản thử vừa triển khai. Khi quay lại MSOJ sau đó, khởi động Compose và `sudo systemctl enable --now msoj-judge-trial.service`.
+
+### Cảnh báo hiện có
+
+- `migrate` hoàn tất nhưng báo model `judge` có thay đổi chưa có migration. Chạy dry-run chỉ liệt kê metadata của các ManyToMany trên Contest và timezone Profile; chưa tạo hay sửa migration trong lúc deploy. Cần xử lý riêng trước production.
+- Nginx `-t` hợp lệ nhưng cảnh báo `worker_connections 2048` cao hơn soft open-file limit `1024` của server. Bản thử tải thấp đã hoạt động; cần cấu hình nofile phù hợp trước khi tải lớn.
+- Host báo kernel/microcode mới đang chờ reboot sau các cập nhật hiện có. Không reboot hoặc restart Docker toàn server trong phiên này vì còn Catplus và các dịch vụ khác.
+- Sau triển khai còn khoảng 24 GiB đĩa và 2,8 GiB RAM available lúc kiểm tra; đây không phải kết quả load test.

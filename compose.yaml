@@ -180,7 +180,7 @@ services:
   proxy:
     image: ${MSOJ_PROXY_IMAGE:-msoj-proxy:local}
     ports:
-      - "127.0.0.1:${MSOJ_HTTP_PORT:-8080}:80"
+      - "${MSOJ_HTTP_BIND:-127.0.0.1}:${MSOJ_HTTP_PORT:-8080}:80"
     volumes:
       - type: bind
         source: ${MSOJ_MEDIA_DIR:?Run setup}

@@ -21,6 +21,53 @@ outside the repository, supports realtime events and optional Cloudflare Tunnel,
 and deploys prebuilt GHCR images without building on the production server.
 Use the isolated local setup in the runbook before connecting a production judge.
 
+### MSOJ beginner problem pack
+
+The original Vietnamese pack in `judge/fixtures/beginner/` contains 45 exercises:
+five each for arithmetic/I/O, conditions, loops, digits, arrays, frequency tables,
+strings, matrices and elementary number theory. Function practice reuses four
+exercises; it does not duplicate statements or claim output grading enforces functions.
+Each authored exercise is worth 100 points, with partial scoring disabled.
+The catalog also selects 11 existing exercises without changing their statements,
+test data or publication status. No skipped Polygon sources are included.
+
+```sh
+# Read-only inventory; export creates a private authoring directory, not DB rows.
+venv/bin/python manage.py seed_beginner_problems --export /private/beginner-pack
+# Upload only this authored pack, with algorithm/skill tags, to Polygon.
+venv/bin/python manage.py seed_beginner_problems --upload --user admin \
+  --report /private/beginner-pack/polygon-report.json
+# Confirm every selected ID has a current-revision linux/READY full package.
+venv/bin/python manage.py build_polygon_packages POLYGON_IDS
+# Import ready packages, retain skill-tag mappings, and attach roadmap practice.
+venv/bin/python manage.py seed_beginner_problems --apply --user admin
+```
+
+The upload needs the existing Polygon API environment credentials and Pandoc.
+It creates only `msb-*` problems; resuming requires the pack's Polygon note marker
+and matching test inputs. Source/test collisions stop rather than overwrite other
+work. Mutating requests are not retried automatically. Keep the report: after an
+interrupted request, inspect the marked problem before resuming. Large manual
+tests use a 120-second connection/write timeout; a timeout still stops the upload
+without replaying the mutation. All imported exercises/editorials remain private;
+the ten practice guides are drafts. Staff
+must review and publish explicitly. `--apply` also requires the existing CP roadmap
+and its learning topics. On a server, use this command rather than plain
+`sync_polygon` when fine-grained skill tags and roadmap placements are needed.
+Import refuses uncommitted sources and packages older than the current Polygon
+revision. A newer revision may replace a previously imported pack exercise only
+when its local statement and editorial still match the authored catalog; edited
+local content stops the import for review. Whitespace-sensitive test lines use a
+small Polygon generator, so blank lines and leading/trailing spaces are retained.
+Re-running `--apply` after a catalog expansion appends missing exercise links to
+existing draft practice guides without replacing authored text. Published guides
+requiring new links stop for explicit editorial review instead.
+
+Reference C++17 solutions, independent Python answer oracles, strict testlib
+validators, deterministic input cases, Markdown statements and editorials are
+kept together. Export includes sources, test archives and checksum metadata.
+These fixtures do not call Polygon or modify runtime data merely by importing.
+
 ### Additional installation steps
 
 - You **have to** define `DMOJ_PROBLEM_DATA_ROOT` in `local_settings.py`, which should be the path to the directory that contains your problems' tests.
