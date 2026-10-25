@@ -186,11 +186,22 @@ class ClassificationTests(TestCase):
         sync = PolygonSync(client=client)
         return sync, client, {pp.polygon_id: pp for pp in sync.refresh_index()}
 
+    @override_settings(POLYGON_SKIP_TAGS=('yb-boclot', 'cyb-boclot'))
     def test_skip_tags_are_case_insensitive_and_win_over_everything(self):
         for tag in ('YB-BoClot', 'CYB-BoClot'):
             with self.subTest(tag=tag):
                 _, _, rows = self.sync([remote(1, 'a', owner='ms24')], {1: ['Dp', tag]})
                 self.assertEqual(rows[1].status, PolygonProblem.SKIPPED)
+
+    def test_former_exclusions_remain_eligible_and_can_win_duplicate_codes(self):
+        for owner in ('ms24', 'legend0fhell', 'linhdieu', 'mmirzayanov', 'geranazavr555'):
+            with self.subTest(owner=owner):
+                _, _, rows = self.sync(
+                    [remote(1, 'same', owner=owner), remote(2, 'same', owner='longvu1305')],
+                    {1: ['yb-boclot', 'CYB-BoClot']},
+                )
+                self.assertEqual(rows[1].status, PolygonProblem.NEW)
+                self.assertEqual(rows[2].status, PolygonProblem.SKIPPED)
 
     @override_settings(POLYGON_SKIP_OWNERS=('dang', 'longvu1305'))
     def test_blocked_owners_are_skipped_even_with_unreadable_tags(self):
@@ -218,6 +229,7 @@ class ClassificationTests(TestCase):
         self.assertEqual(rows[20].status, PolygonProblem.NEW)
         self.assertEqual(rows[10].status, PolygonProblem.DUPLICATE)
 
+    @override_settings(POLYGON_SKIP_TAGS=('yb-boclot',))
     def test_skipped_problem_does_not_win_a_duplicate_code(self):
         _, _, rows = self.sync(
             [remote(1, 'dup', owner='ms24'), remote(2, 'dup', owner='other')],
@@ -256,7 +268,7 @@ class ClassificationTests(TestCase):
 
         sync.client.view_tags = lambda problem_id: ['yb-boclot']
         rows = {pp.polygon_id: pp for pp in sync.refresh_index()}
-        self.assertEqual(rows[1].status, PolygonProblem.SKIPPED)
+        self.assertEqual(rows[1].status, PolygonProblem.NEW)
 
     def test_tags_are_refetched_only_when_revision_changes(self):
         sync, client, _ = self.sync([remote(1, 'a', revision=3)], {1: ['dp']})
@@ -324,6 +336,7 @@ class SyncProblemTests(TestCase):
         self.assertEqual(pp.status, PolygonProblem.FAILED)
         self.assertIn('full', pp.message)
 
+    @override_settings(POLYGON_SKIP_TAGS=('yb-boclot', 'cyb-boclot'))
     def test_skip_tags_block_bulk_and_forced_sync_without_downloads(self):
         for tag in ('yb-boclot', 'CYB-BoClot'):
             with self.subTest(tag=tag):

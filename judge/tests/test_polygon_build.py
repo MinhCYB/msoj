@@ -46,6 +46,7 @@ class PackageBuildTests(SimpleTestCase):
         self.assertIn('would_build=1', self.run_command(client, dry_run=True))
         client.call.assert_not_called()
 
+    @override_settings(POLYGON_SKIP_TAGS=('yb-boclot', 'cyb-boclot'))
     def test_exclusions_prevent_remote_build(self):
         for owner, tags in [('DANG', []), ('ms24', ['YB-BoClot']), ('ms24', ['CYB-BoClot'])]:
             with self.subTest(owner=owner, tags=tags):
@@ -56,6 +57,15 @@ class PackageBuildTests(SimpleTestCase):
                     client.view_tags.assert_not_called()
                 client.packages.assert_not_called()
                 client.call.assert_not_called()
+
+    def test_former_exclusions_can_build_current_packages(self):
+        for owner in ('ms24', 'legend0fhell', 'linhdieu', 'mmirzayanov', 'geranazavr555'):
+            with self.subTest(owner=owner):
+                client = self.polygon_client(owner, ['yb-boclot', 'CYB-BoClot'])
+                client.packages.side_effect = [[], [package(3, 'READY')]]
+                self.assertIn('built=1', self.run_command(client))
+                client.call.assert_called_once_with('problem.buildPackage', problemId=1,
+                                                    full='true', verify='true')
 
     def test_current_ready_and_active_builds_are_not_rebuilt(self):
         client = self.polygon_client()

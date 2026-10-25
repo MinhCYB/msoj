@@ -89,10 +89,11 @@ Detailed Vietnamese operations guide: [Polygon build and sync](docs/polygon-oper
 
 Automatic synchronisation (`manage.py sync_polygon` and the Polygon admin sync
 actions) skips problems matching `POLYGON_SKIP_TAGS` or `POLYGON_SKIP_OWNERS`,
-case-insensitively. Defaults exclude tags `yb-boclot` and `cyb-boclot` and owners `dang`,
-`longvu1305`, `mmirzayanov` and `geranazavr555`. Excluded owners are rejected before tag or package
-requests. Excluded tags are rejected before package downloads, and the download API rechecks
-live owner/tag metadata before opening a payload stream or temporary ZIP. Missing source metadata
+case-insensitively. Defaults exclude only owners `dang` and `longvu1305`; no tags
+exclude problems. Tags such as `yb-boclot` and `cyb-boclot`, and other owners,
+remain eligible. Excluded owners are rejected before tag or package requests.
+The download API rechecks live owner/tag metadata before opening a payload stream
+or temporary ZIP. Missing source metadata
 fails closed. Force sync cannot bypass these rules. Excluded sources remain only in the tracking
 index with a skip reason and cannot win duplicate-code selection. Previously imported problems
 require an explicit, backed-up hard-delete cleanup of their database rows and test directories;

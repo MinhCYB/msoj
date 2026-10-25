@@ -271,10 +271,10 @@ DMOJ_STORAGE_CONFIG_PATH = None
 # environment variables and are never stored in settings.
 # Tags that are never copied to MSOJ taxonomy (the problem itself is still synced).
 POLYGON_IGNORED_TAGS = ()
-# Problems carrying any of these Polygon tags (case-insensitive) belong to someone else and are never synced.
-POLYGON_SKIP_TAGS = ('yb-boclot', 'cyb-boclot')
+# No tags exclude problems by default; tags remain available for taxonomy mapping.
+POLYGON_SKIP_TAGS = ()
 # Problems owned by these Polygon users (case-insensitive) are never synced.
-POLYGON_SKIP_OWNERS = ('dang', 'longvu1305', 'mmirzayanov', 'geranazavr555')
+POLYGON_SKIP_OWNERS = ('dang', 'longvu1305')
 # When several Polygon problems normalise to the same MSOJ code, the one owned by this Polygon user wins.
 POLYGON_PREFERRED_OWNER = 'ms24'
 # MSOJ username set as author of newly synced problems.
