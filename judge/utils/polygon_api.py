@@ -97,13 +97,34 @@ class PolygonClient:
         return self.call('problems.list')
 
     def view_tags(self, problem_id: int) -> List[str]:
-        return self.call('problem.viewTags', problemId=problem_id) or []
+        tags = self.call('problem.viewTags', problemId=problem_id)
+        if not isinstance(tags, list) or any(not isinstance(tag, str) for tag in tags):
+            raise PolygonAPIError(f'Could not verify tags of Polygon problem {problem_id}')
+        return tags
 
     def packages(self, problem_id: int) -> List[dict]:
         return self.call('problem.packages', problemId=problem_id)
 
     def download_package(self, problem_id: int, package_id: int, package_type: str = 'linux'):
-        """Download a package into a temporary file. Caller must close the returned file."""
+        """Download an allowed package into a temporary file. Caller must close the returned file."""
+        # Recheck current source policy here so stale sync rows or direct callers cannot bypass exclusions.
+        problems = self.call('problems.list', id=problem_id)
+        if (not isinstance(problems, list) or len(problems) != 1 or not isinstance(problems[0], dict)
+                or problems[0].get('id') != problem_id or problems[0].get('deleted')
+                or not isinstance(problems[0].get('owner'), str) or not problems[0]['owner']):
+            raise PolygonAPIError(f'Could not verify owner of Polygon problem {problem_id}; package download refused')
+        owner = problems[0]['owner'].lower()
+        if owner in {value.lower() for value in settings.POLYGON_SKIP_OWNERS}:
+            raise PolygonAPIError(f'Excluded owner {problems[0]["owner"]}; package download refused')
+        try:
+            tags = self.call('problem.viewTags', problemId=problem_id)
+        except PolygonAPIError as exc:
+            raise PolygonAPIError(f'Could not verify tags of Polygon problem {problem_id}; package download refused: {exc}') from exc
+        if not isinstance(tags, list) or any(not isinstance(tag, str) for tag in tags):
+            raise PolygonAPIError(f'Could not verify tags of Polygon problem {problem_id}; package download refused')
+        excluded_tags = {value.lower() for value in tags} & {value.lower() for value in settings.POLYGON_SKIP_TAGS}
+        if excluded_tags:
+            raise PolygonAPIError('Excluded tags ' + ', '.join(sorted(excluded_tags)) + '; package download refused')
         response = self._post('problem.package', {
             'problemId': problem_id, 'packageId': package_id, 'type': package_type,
         }, stream=True)

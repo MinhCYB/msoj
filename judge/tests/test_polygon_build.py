@@ -12,7 +12,7 @@ def package(pid, state, kind='linux', revision=3):
     return {'id': pid, 'state': state, 'type': kind, 'revision': revision, 'comment': 'generator failed'}
 
 
-@override_settings(POLYGON_SKIP_OWNERS=('dang', 'longvu1305'), POLYGON_SKIP_TAGS=('yb-boclot',))
+@override_settings(POLYGON_SKIP_OWNERS=('dang', 'longvu1305'))
 class PackageBuildTests(SimpleTestCase):
     def polygon_client(self, owner='ms24', tags=()):
         client = mock.Mock(max_retries=6)
@@ -46,14 +46,16 @@ class PackageBuildTests(SimpleTestCase):
         self.assertIn('would_build=1', self.run_command(client, dry_run=True))
         client.call.assert_not_called()
 
-    def test_exclusions_prevent_remote_build_unless_explicitly_included(self):
-        for owner, tags in [('DANG', []), ('longvu1305', []), ('ms24', ['YB-BoClot'])]:
-            with self.subTest(owner=owner):
+    def test_exclusions_prevent_remote_build(self):
+        for owner, tags in [('DANG', []), ('ms24', ['YB-BoClot']), ('ms24', ['CYB-BoClot'])]:
+            with self.subTest(owner=owner, tags=tags):
                 client = self.polygon_client(owner, tags)
                 client.packages.return_value = []
                 self.assertIn('skipped=1', self.run_command(client))
+                if owner.lower() in ('dang', 'longvu1305'):
+                    client.view_tags.assert_not_called()
+                client.packages.assert_not_called()
                 client.call.assert_not_called()
-                self.assertIn('would_build=1', self.run_command(client, include_excluded=True, dry_run=True))
 
     def test_current_ready_and_active_builds_are_not_rebuilt(self):
         client = self.polygon_client()

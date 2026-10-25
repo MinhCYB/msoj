@@ -103,6 +103,9 @@ class Command(BaseCommand):
             item = candidates[0]
             if item.get('modified'):
                 raise CommandError(f'{name}: uncommitted Polygon changes; finish upload before importing.')
+            pp = sync._apply_remote(item, refresh_tags=True)
+            if pp.owner.lower() in {o.lower() for o in settings.POLYGON_SKIP_OWNERS} or skip_tags_of(pp.tags):
+                raise CommandError(f'{name} matches the skip policy.')
             current_revision = item.get('revision')
             ready = [p for p in client.packages(item['id']) if p.get('type') == 'linux'
                      and p.get('state') == 'READY' and p.get('revision') == current_revision]
@@ -119,9 +122,6 @@ class Command(BaseCommand):
                 authored_update = linked is not None and linked.synced_revision != current_revision
                 if authored_update and (existing.description != statement(spec) or existing.solution.content != tutorial(spec)):
                     raise CommandError(f'{name}: local authored edits differ; review before importing newer Polygon revision.')
-            pp = sync._apply_remote(item, refresh_tags=True)
-            if pp.owner.lower() in {o.lower() for o in settings.POLYGON_SKIP_OWNERS} or skip_tags_of(pp.tags):
-                raise CommandError(f'{name} matches the skip policy.')
             result = sync.sync_problem(pp, author=author)
             if result.status != PolygonProblem.SYNCED:
                 raise CommandError(f'{name}: {result.status}: {result.message}')

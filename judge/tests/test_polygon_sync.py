@@ -96,6 +96,55 @@ class SignatureTests(SimpleTestCase):
         self.assertEqual(digest, expected)
         self.assertNotIn('pin', signed)
 
+    def test_package_download_rejects_blocked_sources_before_payload_request(self):
+        for owner in ('DANG', 'LONGVU1305'):
+            with self.subTest(owner=owner):
+                client = PolygonClient(key='k', secret='s', min_interval=0)
+                client.call = mock.Mock(return_value=[remote(1, 'alpha', owner=owner)])
+                client._post = mock.Mock()
+                with mock.patch('judge.utils.polygon_api.tempfile.TemporaryFile') as temporary_file:
+                    with self.assertRaises(PolygonAPIError):
+                        client.download_package(1, 9)
+                client.call.assert_called_once_with('problems.list', id=1)
+                client._post.assert_not_called()
+                temporary_file.assert_not_called()
+
+    @override_settings(POLYGON_SKIP_OWNERS=(), POLYGON_SKIP_TAGS=('yb-boclot',))
+    def test_package_download_rejects_mixed_case_excluded_tags_before_payload_request(self):
+        client = PolygonClient(key='k', secret='s', min_interval=0)
+        client.call = mock.Mock(side_effect=[
+            [remote(1, 'alpha', owner='allowed')],
+            ['Dp', 'YB-BoClot'],
+        ])
+        client._post = mock.Mock()
+        with mock.patch('judge.utils.polygon_api.tempfile.TemporaryFile') as temporary_file:
+            with self.assertRaises(PolygonAPIError):
+                client.download_package(1, 9)
+        client._post.assert_not_called()
+        temporary_file.assert_not_called()
+
+    def test_package_download_fails_closed_when_tags_are_unavailable(self):
+        client = PolygonClient(key='k', secret='s', min_interval=0)
+        client.call = mock.Mock(side_effect=[[remote(1, 'alpha')], PolygonAPIError('unavailable')])
+        client._post = mock.Mock()
+        with mock.patch('judge.utils.polygon_api.tempfile.TemporaryFile') as temporary_file:
+            with self.assertRaises(PolygonAPIError):
+                client.download_package(1, 9)
+        client._post.assert_not_called()
+        temporary_file.assert_not_called()
+
+    def test_package_download_rejects_missing_mismatched_or_deleted_source(self):
+        for sources in ([], [remote(2, 'other')], [remote(1, 'deleted', deleted=True)]):
+            with self.subTest(sources=sources):
+                client = PolygonClient(key='k', secret='s', min_interval=0)
+                client.call = mock.Mock(return_value=sources)
+                client._post = mock.Mock()
+                with mock.patch('judge.utils.polygon_api.tempfile.TemporaryFile') as temporary_file:
+                    with self.assertRaises(PolygonAPIError):
+                        client.download_package(1, 9)
+                client._post.assert_not_called()
+                temporary_file.assert_not_called()
+
     def test_missing_credentials_are_rejected(self):
         with mock.patch.dict('os.environ', {}, clear=True), self.assertRaises(PolygonAPIError):
             PolygonClient(key=None, secret=None)
@@ -130,21 +179,18 @@ class RetryTests(SimpleTestCase):
             client.call('problem.info', problemId=1)
 
 
-@override_settings(POLYGON_SKIP_TAGS=('yb-boclot',), POLYGON_IGNORED_TAGS=('cyb-boclot',),
-                   POLYGON_PREFERRED_OWNER='ms24', POLYGON_SYNC_AUTHOR='admin')
+@override_settings(POLYGON_PREFERRED_OWNER='ms24', POLYGON_SYNC_AUTHOR='admin')
 class ClassificationTests(TestCase):
     def sync(self, problems, tags=None):
         client = FakeClient(problems, tags)
         sync = PolygonSync(client=client)
         return sync, client, {pp.polygon_id: pp for pp in sync.refresh_index()}
 
-    def test_skip_tag_is_case_insensitive_and_wins_over_everything(self):
-        _, _, rows = self.sync([remote(1, 'a')], {1: ['Dp', 'YB-BoClot']})
-        self.assertEqual(rows[1].status, PolygonProblem.SKIPPED)
-
-    def test_cyb_boclot_problem_is_synced_not_skipped(self):
-        _, _, rows = self.sync([remote(1, 'a')], {1: ['cyb-boclot']})
-        self.assertEqual(rows[1].status, PolygonProblem.NEW)
+    def test_skip_tags_are_case_insensitive_and_win_over_everything(self):
+        for tag in ('YB-BoClot', 'CYB-BoClot'):
+            with self.subTest(tag=tag):
+                _, _, rows = self.sync([remote(1, 'a', owner='ms24')], {1: ['Dp', tag]})
+                self.assertEqual(rows[1].status, PolygonProblem.SKIPPED)
 
     @override_settings(POLYGON_SKIP_OWNERS=('dang', 'longvu1305'))
     def test_blocked_owners_are_skipped_even_with_unreadable_tags(self):
@@ -220,6 +266,30 @@ class ClassificationTests(TestCase):
         sync.refresh_index()
         self.assertEqual(client.tag_calls, [1, 1])
 
+    @override_settings(POLYGON_SKIP_OWNERS=('blocked',))
+    def test_new_blocked_owner_is_tracked_without_fetching_tags(self):
+        sync, client, rows = self.sync([remote(1, 'new-problem', owner='BLOCKED')])
+        row = rows[1]
+        self.assertEqual(row.status, PolygonProblem.SKIPPED)
+        self.assertIsNone(row.tags_revision)
+        self.assertEqual(row.tags, [])
+        self.assertEqual(client.tag_calls, [])
+
+    @override_settings(POLYGON_SKIP_OWNERS=('blocked',))
+    def test_remote_owner_change_to_blocked_skips_cached_tags_and_sync(self):
+        Profile.objects.create(user=get_user_model().objects.create_user('admin'))
+        client = FakeClient([remote(1, 'alpha', owner='allowed')], tags={1: ['dp']})
+        sync = PolygonSync(client=client)
+        row = sync.refresh_index()[0]
+        client.problems = [remote(1, 'alpha', owner='BLOCKED', revision=4)]
+        row = sync.refresh_one(row)
+        client.download_package = mock.Mock(side_effect=AssertionError('Blocked problem downloaded'))
+        row = sync.sync_problem(row, force=True)
+        self.assertEqual(row.owner, 'BLOCKED')
+        self.assertEqual(row.status, PolygonProblem.SKIPPED)
+        self.assertEqual(client.tag_calls, [1])
+        client.download_package.assert_not_called()
+
 
 @override_settings(POLYGON_IGNORED_TAGS=('cyb-boclot',))
 class TagMappingTests(TestCase):
@@ -240,7 +310,7 @@ class TagMappingTests(TestCase):
         self.assertEqual(map_tags(['nope']), (None, []))
 
 
-@override_settings(POLYGON_SKIP_TAGS=('yb-boclot',), POLYGON_PREFERRED_OWNER='ms24', POLYGON_SYNC_AUTHOR='admin')
+@override_settings(POLYGON_PREFERRED_OWNER='ms24', POLYGON_SYNC_AUTHOR='admin')
 class SyncProblemTests(TestCase):
     def setUp(self):
         Profile.objects.create(user=get_user_model().objects.create_user('admin'))
@@ -254,14 +324,17 @@ class SyncProblemTests(TestCase):
         self.assertEqual(pp.status, PolygonProblem.FAILED)
         self.assertIn('full', pp.message)
 
-    def test_skipped_problem_never_downloads_anything(self):
-        client = FakeClient([remote(1, 'a')], tags={1: ['yb-boclot']})
-        client.download_package = mock.Mock()
-        sync = PolygonSync(client=client)
-        sync.refresh_index()
-        sync.sync_all()
-        client.download_package.assert_not_called()
-        self.assertEqual(PolygonProblem.objects.get(polygon_id=1).status, PolygonProblem.SKIPPED)
+    def test_skip_tags_block_bulk_and_forced_sync_without_downloads(self):
+        for tag in ('yb-boclot', 'CYB-BoClot'):
+            with self.subTest(tag=tag):
+                client = FakeClient([remote(1, 'a', owner='ms24')], tags={1: [tag]})
+                client.download_package = mock.Mock()
+                sync = PolygonSync(client=client)
+                sync.refresh_index()
+                sync.sync_all(force=True)
+                sync.sync_problem(PolygonProblem.objects.get(polygon_id=1), force=True)
+                client.download_package.assert_not_called()
+                self.assertEqual(PolygonProblem.objects.get(polygon_id=1).status, PolygonProblem.SKIPPED)
 
     @override_settings(POLYGON_SKIP_OWNERS=('dang', 'longvu1305'))
     def test_owner_exclusion_blocks_bulk_and_forced_sync_without_removing_existing_problem(self):

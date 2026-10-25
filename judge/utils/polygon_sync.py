@@ -108,6 +108,11 @@ class PolygonSync:
         pp.latest_revision = item.get('latestPackage')
         revision = item.get('revision')
         pp.tags_error = ''
+        pp.last_checked = timezone.now()
+        if pp.owner.lower() in _lower_set(settings.POLYGON_SKIP_OWNERS):
+            pp.tags_revision = None
+            pp.save()
+            return pp
         if refresh_tags or pp.tags_revision != revision:
             try:
                 pp.tags = self.client.view_tags(item['id'])
@@ -117,7 +122,6 @@ class PolygonSync:
                 pp.tags_revision = None
                 pp.tags_error = str(e)
                 logger.warning('Could not read tags of Polygon problem %s: %s', item['id'], e)
-        pp.last_checked = timezone.now()
         pp.save()
         return pp
 

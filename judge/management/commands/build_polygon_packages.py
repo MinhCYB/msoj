@@ -11,12 +11,11 @@ from judge.utils.polygon_sync import FULL_PACKAGE_TYPE, skip_tags_of
 
 class Command(BaseCommand):
     help = ('Build missing full packages on Polygon and wait for linux/READY. '
-            'Respects sync exclusions unless --include-excluded is supplied; does not import problems.')
+            'Respects sync exclusions; does not import problems.')
 
     def add_arguments(self, parser):
         parser.add_argument('names', nargs='*', help='Polygon names or IDs (default: all visible problems)')
         parser.add_argument('--dry-run', action='store_true', help='Inspect and print the plan; do not build')
-        parser.add_argument('--include-excluded', action='store_true', help='Also build excluded owners/tags')
         parser.add_argument('--poll-interval', type=int, default=15, help='Seconds between build checks (default: 15)')
         parser.add_argument('--timeout', type=int, default=1800, help='Build wait limit per problem in seconds (default: 1800)')
 
@@ -51,12 +50,11 @@ class Command(BaseCommand):
             client.session.close()
 
     def build_one(self, client, problem, options):
-        if not options['include_excluded']:
-            if problem['owner'].lower() in {owner.lower() for owner in settings.POLYGON_SKIP_OWNERS}:
-                return 'skipped', 'excluded owner'
-            tags = skip_tags_of(client.view_tags(problem['id']))
-            if tags:
-                return 'skipped', 'excluded tags: ' + ', '.join(sorted(tags))
+        if problem['owner'].lower() in {owner.lower() for owner in settings.POLYGON_SKIP_OWNERS}:
+            return 'skipped', 'excluded owner'
+        tags = skip_tags_of(client.view_tags(problem['id']))
+        if tags:
+            return 'skipped', 'excluded tags: ' + ', '.join(sorted(tags))
         revision = problem['revision']
         packages = client.packages(problem['id'])
         current = [p for p in packages if p['revision'] == revision]

@@ -89,13 +89,15 @@ Detailed Vietnamese operations guide: [Polygon build and sync](docs/polygon-oper
 
 Automatic synchronisation (`manage.py sync_polygon` and the Polygon admin sync
 actions) skips problems matching `POLYGON_SKIP_TAGS` or `POLYGON_SKIP_OWNERS`,
-case-insensitively. Defaults exclude tag `yb-boclot` and owners `dang`,
-`longvu1305`, `mmirzayanov` and `geranazavr555`. Force sync does not override these rules. Excluded problems remain
-in the Polygon tracking table with a skip reason and cannot win duplicate-code
-selection. Previously imported MSOJ problems are not deleted or hidden by a new
-exclusion rule. Manual ZIP imports are separate from automatic synchronisation.
-Restart Celery workers after changing sync settings; the next refresh/sync
-reclassifies the stored Polygon index.
+case-insensitively. Defaults exclude tags `yb-boclot` and `cyb-boclot` and owners `dang`,
+`longvu1305`, `mmirzayanov` and `geranazavr555`. Excluded owners are rejected before tag or package
+requests. Excluded tags are rejected before package downloads, and the download API rechecks
+live owner/tag metadata before opening a payload stream or temporary ZIP. Missing source metadata
+fails closed. Force sync cannot bypass these rules. Excluded sources remain only in the tracking
+index with a skip reason and cannot win duplicate-code selection. Previously imported problems
+require an explicit, backed-up hard-delete cleanup of their database rows and test directories;
+changing the policy alone does not delete them. Manual ZIP uploads remain a separate local-file flow.
+Restart Celery workers after changing sync settings; the next refresh/sync reclassifies the index.
 
 Build missing full packages before importing (uses the same environment API
 credentials as sync; requires WRITE/OWNER access on Polygon):
@@ -105,18 +107,16 @@ credentials as sync; requires WRITE/OWNER access on Polygon):
 venv/bin/python manage.py build_polygon_packages --dry-run
 # Build sequentially, verify solutions, and wait for each linux/READY package.
 venv/bin/python manage.py build_polygon_packages
-# Optional: process selected Polygon names/IDs, or include ALL excluded problems.
+# Optional: process selected eligible Polygon names/IDs.
 venv/bin/python manage.py build_polygon_packages 450077 hhy-cluster
-venv/bin/python manage.py build_polygon_packages --include-excluded
 # Import separately once packages are ready.
 venv/bin/python manage.py sync_polygon
 ```
 
-`build_polygon_packages` reads live tags, respects sync owner/tag exclusions by
-default, skips current-revision linux/READY packages, and waits for an existing
-PENDING/RUNNING build rather than starting another. `--include-excluded` overrides
-only the builder's exclusions, not the sync policy. Polling defaults to 15 seconds
-and a 1,800-second wait limit per problem (`--poll-interval`, `--timeout`).
+`build_polygon_packages` reads live tags and always enforces sync owner/tag exclusions;
+there is no excluded-source override. It skips current-revision linux/READY packages and
+waits for an existing PENDING/RUNNING build rather than starting another. Polling defaults
+to 15 seconds and a 1,800-second wait limit per problem (`--poll-interval`, `--timeout`).
 It does not import, delete, update local database records, or commit Polygon
 working copies. Commit/review uncommitted changes in Polygon first. Failures are
 reported per problem, remaining problems are processed, and the command exits
