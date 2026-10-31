@@ -6,7 +6,7 @@ keyset pagination with signed cursors, and strict authorization.
 import json
 
 from .lecture_services import LectureQAError, execute_lesson_qa, update_lesson_reading_state
-from django.http import JsonResponse
+from django.http import HttpResponseRedirect, JsonResponse
 from django.urls import reverse
 
 from .roadmap_pages import roadmap_index, roadmap_map, roadmap_learning_page, wants_html
@@ -17,6 +17,7 @@ from .roadmap_selectors import (
     get_effective_published_node,
     get_node_immediate_children,
     get_node_readiness,
+    get_node_document_lessons,
     get_node_learn_data,
     get_node_lesson_data,
     get_progress_data,
@@ -217,6 +218,9 @@ def roadmap_node_learn_view(request, slug, node_id):
         return _json_response({'error': 'Learning content not found or unauthorized'}, status=404)
 
     if wants_html(request):
+        documents, resume_lesson_id = get_node_document_lessons(roadmap, node_id, request.user)
+        learn_data['document_lessons'] = documents
+        learn_data['resume_lesson_id'] = resume_lesson_id
         return roadmap_learning_page(request, roadmap, learn_data)
 
     return _json_response(learn_data)
@@ -239,10 +243,12 @@ def roadmap_node_lesson_view(request, slug, node_id, lesson_id):
         return _json_response({'error': 'Lesson not found or unauthorized'}, status=404)
 
     if wants_html(request):
-        learn_data = get_node_learn_data(roadmap, node_id, request.user)
-        if learn_data is None:
-            return _json_response({'error': 'Learning content not found or unauthorized'}, status=404)
-        return roadmap_learning_page(request, roadmap, learn_data, lesson_data)
+        response = HttpResponseRedirect(
+            f"{reverse('roadmap_node_learn', args=[roadmap.slug, node_id])}#rm-lesson-{lesson_id}"
+        )
+        response['Cache-Control'] = 'private, no-store'
+        response['Vary'] = 'Accept'
+        return response
 
     return _json_response(lesson_data)
 

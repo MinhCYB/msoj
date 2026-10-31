@@ -336,14 +336,22 @@ class BrainstormClaimTests(BrainstormFixture, TestCase):
         turn.save(update_fields=['status'])
         BrainstormMessage.objects.create(session=turn.session, turn=turn, role='student',
                                          content='Approved question', described_approach='Approach')
+        prior_visual = {'version': 2, 'id': 'prior', 'title': 'Prior hint', 'summary': 'Visual context',
+                        'data': {'values': {'type': 'sequence', 'values': [2, 4]}},
+                        'modules': [{'id': 'vector', 'type': 'vector', 'source': 'values'}],
+                        'layout': {'areas': [['vector']], 'readingOrder': ['vector']}}
         BrainstormMessage.objects.create(session=turn.session, turn=turn, role='ai', content='Approved answer' * 7,
-                                         hint_level_granted=1)
+                                         hint_level_granted=1,
+                                         approved_visuals=[{'document': prior_visual, 'frames': [{'private': 'omit'}]}])
         BrainstormMessage.objects.create(session=turn.session, role='ai', content='[STUB] FAKE')
         BrainstormMessage.objects.create(session=turn.session, role='student', content='legacy question',
                                          described_approach='legacy approach')
         new, context, _ = self.claim('next', current_code='')
         self.assertEqual(context.current['code'], '')
         self.assertEqual(len(context.history), 1)
+        self.assertEqual(context.history[0]['visuals'], [prior_visual])
+        self.assertNotIn('frames', str(context.history[0]['visuals']))
+        self.assertNotIn('private', str(context.history[0]['visuals']))
         self.assertEqual(context.history[0]['answer'], 'Approved answer' * 7)
         self.assertNotIn('SECRET', str(context))
         self.assertNotIn('FAKE', str(context))

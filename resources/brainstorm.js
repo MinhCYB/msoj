@@ -99,6 +99,7 @@
     controller = null;
     inFlight = false;
     submitting = false;
+    clearVisuals();
   }
 
   async function request(url, options) {
@@ -136,20 +137,55 @@
     }
   }
 
-  function addMessage(role, text) {
+  var visualControllers = [];
+
+  function clearVisuals() {
+    visualControllers.forEach(function (instance) {
+      if (instance && typeof instance.destroy === "function") instance.destroy();
+    });
+    visualControllers = [];
+  }
+
+  function addMessage(role, text, visuals) {
     var entry = document.createElement("article");
     entry.className = "ms-mentor-message ms-mentor-message-" + role;
     var body = document.createElement("p");
     body.textContent = text || "";
     entry.appendChild(body);
+    if (role === "ai" && Array.isArray(visuals)) {
+      visuals.forEach(function (compiled) {
+        var host = document.createElement("section");
+        host.className = "ms-mentor-visual msoj-visual";
+        entry.appendChild(host);
+        var runtime = window.MSOJVisuals;
+        if (!runtime || typeof runtime.mountDocument !== "function") {
+          var unavailable = document.createElement("p");
+          unavailable.className = "ms-mentor-visual-unavailable";
+          unavailable.textContent = "Minh họa trực quan hiện chưa khả dụng; nội dung hướng dẫn vẫn được hiển thị.";
+          host.appendChild(unavailable);
+          return;
+        }
+        try {
+          var instance = runtime.mountDocument(host, compiled, { allowInputEdit: false });
+          if (instance) visualControllers.push(instance);
+        } catch (error) {
+          host.replaceChildren();
+          var failed = document.createElement("p");
+          failed.className = "ms-mentor-visual-unavailable";
+          failed.textContent = "Không thể tải minh họa trực quan; nội dung hướng dẫn vẫn được hiển thị.";
+          host.appendChild(failed);
+        }
+      });
+    }
     history.appendChild(entry);
   }
 
   function renderHistory(rows) {
+    clearVisuals();
     history.replaceChildren();
     (Array.isArray(rows) ? rows : []).forEach(function (pair) {
       addMessage("student", pair.question + (pair.approach ? "\n\n" + pair.approach : ""));
-      addMessage("ai", pair.answer);
+      addMessage("ai", pair.answer, pair.visuals);
     });
     empty.hidden = !!history.children.length;
     conversation.scrollTop = conversation.scrollHeight;

@@ -1,5 +1,5 @@
 {% from 'roadmap/nodes.html' import progress %}
-<section class="rm-learning-section" aria-labelledby="rm-exercises-heading"><h2 id="rm-exercises-heading">Bài tập thực hành</h2>
+<section class="rm-learning-section" aria-labelledby="rm-exercises-heading"><h2 id="rm-exercises-heading" tabindex="-1">Bài tập thực hành</h2>
     <p class="rm-progress">{{ progress(learning.progress, 'Bài tập') }}</p>
     <p class="rm-help">AC chỉ phản ánh bài tập của node này, không phải tiến độ đọc hay mức độ nắm vững lý thuyết.</p>
     {% if learning.problems %}<ol class="rm-exercise-list">{% for problem in learning.problems %}

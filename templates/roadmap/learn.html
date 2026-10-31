@@ -1,12 +1,78 @@
 {% extends 'roadmap/learning-base.html' %}
+{% block learning_navigation %}
+<aside class="rm-document-sidebar" id="rm-document-navigation">
+  <a class="rm-back-link" href="{{ return_url }}">Quay lại lộ trình</a>
+  <details class="rm-document-contents" open>
+    <summary>Mục lục chuyên đề</summary>
+    <nav aria-label="Mục lục chuyên đề">
+      <ol class="rm-document-toc">
+        {% if learning.topic and learning.topic.introduction %}<li><a href="#rm-intro-heading">Giới thiệu</a></li>{% endif %}
+        {% for lesson in document_lessons %}<li data-toc-lesson="{{ lesson.id }}"><a href="#rm-lesson-{{ lesson.id }}">{{ lesson.title }}</a><ol class="rm-toc-subsections"></ol></li>{% endfor %}
+        <li><a href="#rm-exercises-heading">Bài tập thực hành</a></li>
+      </ol>
+    </nav>
+  </details>
+  <a class="rm-exercises-shortcut" href="#rm-exercises-heading">Đến bài tập</a>
+</aside>
+{% endblock %}
 {% block learning_content %}
-<section class="rm-learning-section" aria-labelledby="rm-intro-heading"><h2 id="rm-intro-heading">Giới thiệu</h2>
-    {% if learning.topic and learning.topic.introduction %}{{ prose(learning.topic.introduction) }}{% else %}<p class="rm-help">Chuyên đề chưa có phần giới thiệu.</p>{% endif %}
-</section>
-<section class="rm-learning-section" aria-labelledby="rm-lessons-heading"><h2 id="rm-lessons-heading">Bài giảng</h2>
-    {% if resume_lesson_url %}<p><a class="button" href="{{ resume_lesson_url }}">Tiếp tục bài giảng đang đọc</a></p>{% endif %}
-    {% if learning.lessons %}<ol class="rm-lesson-list">{% for lesson in learning.lessons %}<li><a href="{{ lesson.lesson_url }}">{{ lesson.title }}</a></li>{% endfor %}</ol>
-    {% else %}<p class="rm-help">Chưa có bài giảng được công bố. Bạn vẫn có thể luyện các bài tập bên dưới.</p>{% endif %}
-</section>
+{% if resume_lesson_id %}<p class="rm-document-resume" hidden><button type="button" class="button" data-resume-lesson="{{ resume_lesson_id }}">Đọc tiếp vị trí đã lưu</button></p>{% endif %}
+{% if learning.topic and learning.topic.introduction %}
+<section class="rm-learning-section" aria-labelledby="rm-intro-heading"><h2 id="rm-intro-heading" tabindex="-1">Giới thiệu</h2>{{ prose(learning.topic.introduction) }}</section>
+{% endif %}
+{% for lesson in document_lessons %}
+<article class="rm-document-lesson" id="rm-lesson-{{ lesson.id }}" aria-labelledby="rm-lesson-heading-{{ lesson.id }}" tabindex="-1" data-lesson-id="{{ lesson.id }}" data-revision="{{ lesson.content_revision }}"{% if lesson.lecture_state %} data-state-url="{{ lesson.lecture_state.state_url }}" data-resume-offset="{{ lesson.lecture_state.resume_offset }}" data-position-version="{{ lesson.lecture_state.position_version }}"{% endif %}>
+  <h2 id="rm-lesson-heading-{{ lesson.id }}"{% if document_lessons|length == 1 and lesson.title == learning.node.title %} class="rm-sr-only"{% endif %}>{{ lesson.title }}</h2>
+  <div class="rm-reading-pane">{{ prose(lesson.body) }}</div>
+  <div class="rm-reading-tools" hidden>
+    <button type="button" class="button rm-resume-reading" hidden>Đọc tiếp trong chương này</button>
+    <span class="rm-resume-status rm-help" role="status"></span>
+  </div>
+  {% if lesson.summary %}<div class="rm-lesson-tools"><details class="rm-document-summary"><summary>Tóm tắt kiến thức</summary>{{ prose(lesson.summary) }}</details></div>{% endif %}
+</article>
+{% else %}
+<p class="rm-help rm-learning-section">Chưa có bài giảng được công bố. Bạn vẫn có thể đọc phần giới thiệu và luyện các bài tập bên dưới.</p>
+{% endfor %}
 {% include 'roadmap/exercises.html' %}
+{% if document_lessons %}
+<div class="rm-chat" hidden>
+  <section class="rm-chat-window" id="rm-chat-window" aria-labelledby="rm-chat-heading" hidden>
+    <header class="rm-chat-header">
+      <span class="rm-chat-avatar" aria-hidden="true"><i class="fa fa-graduation-cap"></i></span>
+      <div><h2 id="rm-chat-heading">Trợ lý bài học</h2><p>Hỏi ngay khi cần, tiếp tục đọc khi chờ.</p></div>
+      <button type="button" class="rm-chat-close" aria-label="Thu gọn chat" title="Thu gọn chat"><i class="fa fa-minus" aria-hidden="true"></i></button>
+    </header>
+    <div class="rm-chat-context">
+      <label for="rm-chat-lesson">Đang hỏi về</label>
+      <select id="rm-chat-lesson" aria-describedby="rm-chat-context-help">{% for lesson in document_lessons %}<option value="{{ lesson.id }}">{{ lesson.title }}</option>{% endfor %}</select>
+      <p id="rm-chat-context-help">Đổi chương tại đây; cuộn trang không đổi cuộc trò chuyện.</p>
+      <button type="button" class="rm-chat-follow" hidden><i class="fa fa-arrow-right" aria-hidden="true"></i> Hỏi về chương đang đọc</button>
+    </div>
+    <p class="rm-chat-pending" role="status" hidden></p>
+    <div class="rm-chat-conversations">
+      {% for lesson in document_lessons %}
+      <section class="rm-chat-conversation" data-chat-lesson="{{ lesson.id }}" aria-label="Hỏi đáp: {{ lesson.title }}"{% if not loop.first %} hidden{% endif %}>
+        <div class="rm-tutor-messages" role="log" aria-label="Lịch sử hỏi đáp: {{ lesson.title }}" aria-live="polite" aria-relevant="additions text">
+          <div class="rm-chat-empty"{% if lesson.lecture_state and lesson.lecture_state.messages %} hidden{% endif %}>
+            <i class="fa fa-comments-o" aria-hidden="true"></i><p>Bạn muốn làm rõ điều gì?</p><span>Hỏi về ý tưởng, dòng code hoặc một bước mô phỏng trong chương này.</span>
+          </div>
+          {% if lesson.lecture_state %}{% for message in lesson.lecture_state.messages %}<div class="rm-tutor-message" data-role="{{ message.role }}"><strong>{{ 'Bạn' if message.role == 'user' else 'Trợ lý' }}</strong><p>{{ message.content }}</p></div>{% endfor %}{% endif %}
+        </div>
+        {% if request.user.is_authenticated and lesson.lecture_state %}
+        <form class="rm-tutor-form" data-url="{{ lesson.lecture_state.qa_url }}" method="post">{% csrf_token %}
+          <label class="rm-sr-only" for="rm-tutor-question-{{ lesson.id }}">Câu hỏi về {{ lesson.title }}</label>
+          <textarea id="rm-tutor-question-{{ lesson.id }}" rows="2" maxlength="2000" required aria-describedby="rm-tutor-status-{{ lesson.id }} rm-chat-note" placeholder="Hỏi về chương này…"></textarea>
+          <div class="rm-chat-composer-actions"><span>Enter xuống dòng</span><button type="submit" class="button rm-tutor-send" disabled><i class="fa fa-paper-plane-o" aria-hidden="true"></i> Gửi</button></div>
+          <p id="rm-tutor-status-{{ lesson.id }}" class="rm-tutor-status" role="status"></p>
+        </form>
+        {% else %}<p class="rm-chat-login"><a class="button" href="{{ url('auth_login') }}?next={{ learn_url|urlencode }}">Đăng nhập để hỏi</a><span>Bạn vẫn có thể đọc bài và dùng mô phỏng.</span></p>{% endif %}
+      </section>
+      {% endfor %}
+    </div>
+    <p id="rm-chat-note" class="rm-chat-note">AI có thể sai; đối chiếu với bài giảng. Hội thoại chỉ hiển thị cho tài khoản của bạn.</p>
+  </section>
+  <button type="button" class="button rm-chat-toggle" aria-controls="rm-chat-window" aria-expanded="false"><i class="fa fa-comments-o" aria-hidden="true"></i><span>Hỏi AI</span><span class="rm-chat-unread" hidden>Có trả lời mới</span></button>
+</div>
+<noscript><p class="rm-help">Bật JavaScript để dùng chat Trợ lý bài học và lưu vị trí đọc.</p></noscript>
+{% endif %}
 {% endblock %}

@@ -1,0 +1,13 @@
+<ul class="rm-tree-list">
+{% for entry in tree %}
+<li data-node-title="{{ entry.node.title }} {{ entry.node.slug }}">
+  {% if entry.children %}<details {% if entry.node.level == 0 %}open{% endif %}>
+  <summary><span>{{ entry.node.title }}</span><small>{{ entry.node.get_status_display }}</small></summary>{% endif %}
+  <div class="rm-tree-row {% if node.pk == entry.node.pk %}is-selected{% endif %}">
+    <a href="{{ entry.url }}" {% if node.pk == entry.node.pk %}aria-current="page"{% endif %}>{{ entry.node.title }}</a>
+    <small>{% if entry.node.type == 'GROUP' %}Nhóm{% else %}{{ entry.node.lesson_count }} giảng · {{ entry.node.problem_count }} luyện{% endif %} · {{ entry.node.get_status_display }}</small>
+  </div>
+  {% if entry.children %}{% include "admin/mentor/roadmap/tree.html" with tree=entry.children %}</details>{% endif %}
+</li>
+{% endfor %}
+</ul>

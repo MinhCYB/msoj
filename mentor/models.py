@@ -196,6 +196,7 @@ class BrainstormMessage(models.Model):
     turn = models.ForeignKey('BrainstormTurn', null=True, blank=True, on_delete=models.PROTECT,
                              related_name='published_messages')
     is_legacy_stub = models.BooleanField(default=False, editable=False)
+    approved_visuals = models.JSONField(default=list, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def clean(self):

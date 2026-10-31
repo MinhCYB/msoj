@@ -9,17 +9,17 @@ from mptt.models import MPTTModel
 from .roadmap_icons import ICON_CHOICES
 
 class Publication(models.TextChoices):
-    DRAFT = 'DRAFT', 'Draft'
-    PUBLISHED = 'PUBLISHED', 'Published'
+    DRAFT = 'DRAFT', 'Bản nháp'
+    PUBLISHED = 'PUBLISHED', 'Đã xuất bản'
 
 
 class Visibility(models.TextChoices):
-    PUBLIC = 'PUBLIC', 'Public'
-    ORGANIZATION = 'ORGANIZATION', 'Organization'
+    PUBLIC = 'PUBLIC', 'Công khai'
+    ORGANIZATION = 'ORGANIZATION', 'Trong tổ chức'
 
 
 class PublishedContent(models.Model):
-    status = models.CharField(max_length=10, choices=Publication.choices, default=Publication.DRAFT)
+    status = models.CharField(max_length=10, choices=Publication.choices, default=Publication.DRAFT, verbose_name='Trạng thái')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -28,8 +28,8 @@ class PublishedContent(models.Model):
 
 
 class ScopedContent(PublishedContent):
-    visibility = models.CharField(max_length=12, choices=Visibility.choices, default=Visibility.PUBLIC)
-    organization = models.ForeignKey('judge.Organization', null=True, blank=True, on_delete=models.PROTECT)
+    visibility = models.CharField(max_length=12, choices=Visibility.choices, default=Visibility.PUBLIC, verbose_name='Phạm vi truy cập')
+    organization = models.ForeignKey('judge.Organization', null=True, blank=True, on_delete=models.PROTECT, verbose_name='Tổ chức')
 
     class Meta:
         abstract = True
@@ -41,13 +41,15 @@ class ScopedContent(PublishedContent):
 
 
 class Roadmap(ScopedContent):
-    title = models.CharField(max_length=200)
-    slug = models.SlugField(max_length=100, unique=True)
-    introduction = models.TextField(blank=True)
+    title = models.CharField(max_length=200, verbose_name='Tên lộ trình')
+    slug = models.SlugField(max_length=100, unique=True, verbose_name='Mã đường dẫn')
+    introduction = models.TextField(blank=True, verbose_name='Giới thiệu')
     tree_revision = models.PositiveIntegerField(default=1, editable=False)
 
     class Meta:
         ordering = ('pk',)
+        verbose_name = 'Lộ trình học'
+        verbose_name_plural = 'Lộ trình học'
         permissions = [('publish_roadmap', 'Publish learning content and roadmaps')]
         constraints = [
             models.CheckConstraint(check=Q(status__in=Publication.values), name='mentor_roadmap_status'),
@@ -73,13 +75,15 @@ class Roadmap(ScopedContent):
 
 
 class LearningTopic(ScopedContent):
-    name = models.CharField(max_length=100)
-    slug = models.SlugField(max_length=100, unique=True)
-    introduction = models.TextField(blank=True)
+    name = models.CharField(max_length=100, verbose_name='Tên bộ nội dung')
+    slug = models.SlugField(max_length=100, unique=True, verbose_name='Mã đường dẫn')
+    introduction = models.TextField(blank=True, verbose_name='Giới thiệu')
     content_revision = models.PositiveIntegerField(default=1, editable=False)
 
     class Meta:
         ordering = ('name', 'pk')
+        verbose_name = 'Bộ nội dung chuyên đề'
+        verbose_name_plural = 'Thư viện nội dung'
         constraints = [
             models.CheckConstraint(check=Q(status__in=Publication.values), name='mentor_topic_status'),
             models.CheckConstraint(check=(Q(visibility='PUBLIC', organization__isnull=True) |
@@ -104,16 +108,18 @@ class LearningTopic(ScopedContent):
 
 
 class TopicLesson(PublishedContent):
-    topic = models.ForeignKey(LearningTopic, related_name='lessons', on_delete=models.PROTECT)
-    title = models.CharField(max_length=200)
-    slug = models.SlugField(max_length=100)
-    position = models.PositiveIntegerField(default=0)
-    body = models.TextField(blank=True)
-    summary = models.TextField(blank=True, default='')
+    topic = models.ForeignKey(LearningTopic, related_name='lessons', on_delete=models.PROTECT, verbose_name='Bộ nội dung')
+    title = models.CharField(max_length=200, verbose_name='Tên bài giảng')
+    slug = models.SlugField(max_length=100, verbose_name='Mã đường dẫn')
+    position = models.PositiveIntegerField(default=0, verbose_name='Thứ tự')
+    body = models.TextField(blank=True, verbose_name='Nội dung bài giảng')
+    summary = models.TextField(blank=True, default='', verbose_name='Tóm tắt')
     content_revision = models.PositiveIntegerField(default=1, editable=False)
 
     class Meta:
         ordering = ('position', 'pk')
+        verbose_name = 'Bài giảng'
+        verbose_name_plural = 'Bài giảng'
         constraints = [
             models.UniqueConstraint(fields=('topic', 'slug'), name='mentor_lesson_slug'),
             models.CheckConstraint(check=Q(status__in=Publication.values), name='mentor_lesson_status'),
@@ -123,6 +129,12 @@ class TopicLesson(PublishedContent):
         super().clean()
         if self.status == Publication.PUBLISHED and not self.body.strip():
             raise ValidationError({'body': 'Published lessons require content.'})
+        from .lesson_visuals import validate_visual_blocks
+        for field in ('body', 'summary'):
+            try:
+                validate_visual_blocks(getattr(self, field))
+            except ValidationError as exc:
+                raise ValidationError({field: exc.messages}) from None
 
     def save(self, *args, **kwargs):
         with transaction.atomic():
@@ -157,20 +169,22 @@ def lock_roadmap_forest():
 
 class RoadmapNode(MPTTModel):
     class Type(models.TextChoices):
-        GROUP = 'GROUP', 'Group'
-        TOPIC = 'TOPIC', 'Topic'
+        GROUP = 'GROUP', 'Nhóm'
+        TOPIC = 'TOPIC', 'Chuyên đề'
 
     class Difficulty(models.TextChoices):
-        BASIC = 'BASIC', 'Basic'
-        INTERMEDIATE = 'INTERMEDIATE', 'Intermediate'
-        ADVANCED = 'ADVANCED', 'Advanced'
+        BASIC = 'BASIC', 'Cơ bản'
+        INTERMEDIATE = 'INTERMEDIATE', 'Trung cấp'
+        ADVANCED = 'ADVANCED', 'Nâng cao'
 
     roadmap = models.ForeignKey(Roadmap, related_name='nodes', on_delete=models.PROTECT)
     parent = TreeForeignKey('self', null=True, blank=True, related_name='children', on_delete=models.PROTECT)
     learning_topic = models.ForeignKey(LearningTopic, null=True, blank=True,
                                       related_name='roadmap_nodes', on_delete=models.PROTECT)
-    title = models.CharField(max_length=200)
-    slug = models.SlugField(max_length=100)
+    title = models.CharField(max_length=200, verbose_name='Tiêu đề')
+    slug = models.SlugField(max_length=100, verbose_name='Đường dẫn')
+    summary = models.TextField(blank=True, default='', verbose_name='Mô tả ngắn')
+    display_section = models.CharField(max_length=100, blank=True, default='', verbose_name='Nhóm hiển thị')
     type = models.CharField(max_length=5, choices=Type.choices, default=Type.TOPIC)
     icon = models.CharField(max_length=24, blank=True, default='', choices=ICON_CHOICES,
                             verbose_name='Icon',
@@ -185,6 +199,8 @@ class RoadmapNode(MPTTModel):
         order_insertion_by = ('position', 'slug')
 
     class Meta:
+        verbose_name = 'Nhóm / chuyên đề'
+        verbose_name_plural = 'Cấu trúc lộ trình (nâng cao)'
         index_together = (('tree_id', 'lft'),)
         constraints = [
             models.UniqueConstraint(fields=('roadmap', 'slug'), name='mentor_node_slug'),
@@ -254,6 +270,8 @@ class NodeProblem(models.Model):
 
     class Meta:
         ordering = ('position', 'pk')
+        verbose_name = 'Liên kết bài luyện'
+        verbose_name_plural = 'Liên kết bài luyện (nâng cao)'
         constraints = [models.UniqueConstraint(fields=('node', 'problem'), name='mentor_node_problem')]
 
     def save(self, *args, **kwargs):
@@ -282,10 +300,60 @@ class NodeProblem(models.Model):
 
 class RoadmapPrerequisite(models.Model):
     node = models.ForeignKey(RoadmapNode, on_delete=models.PROTECT, related_name='prerequisites')
+    reason = models.TextField(blank=True, default='', verbose_name='Lý do')
     prerequisite = models.ForeignKey(RoadmapNode, on_delete=models.PROTECT, related_name='required_by')
 
     class Meta:
         unique_together = ('node', 'prerequisite')
+        verbose_name = 'Quan hệ nên học trước'
+        verbose_name_plural = 'Quan hệ nên học trước (nâng cao)'
+
+    def clean(self):
+        super().clean()
+        if not self.node_id or not self.prerequisite_id:
+            return
+        if self.node_id == self.prerequisite_id:
+            raise ValidationError({'prerequisite': 'Một chuyên đề không thể yêu cầu học chính nó trước.'})
+        node = RoadmapNode.objects.filter(pk=self.node_id).only('roadmap_id').first()
+        prerequisite = RoadmapNode.objects.filter(pk=self.prerequisite_id).only('roadmap_id').first()
+        if node is None or prerequisite is None:
+            raise ValidationError('Cả hai chuyên đề phải tồn tại.')
+        if node.roadmap_id != prerequisite.roadmap_id:
+            raise ValidationError({'prerequisite': 'Hai chuyên đề phải thuộc cùng một lộ trình.'})
+
+        # Edges point dependent -> prerequisite. Reject a back-edge.
+        adjacency = {}
+        links = type(self).objects.filter(node__roadmap_id=node.roadmap_id)
+        if self.pk:
+            links = links.exclude(pk=self.pk)
+        for dependent_id, prerequisite_id in links.values_list('node_id', 'prerequisite_id'):
+            adjacency.setdefault(dependent_id, []).append(prerequisite_id)
+        pending = [self.prerequisite_id]
+        visited = set()
+        while pending:
+            current = pending.pop()
+            if current == self.node_id:
+                raise ValidationError({'prerequisite': 'Quan hệ này tạo thành vòng học trước; hãy chọn chuyên đề khác.'})
+            if current not in visited:
+                visited.add(current)
+                pending.extend(adjacency.get(current, ()))
+
+    def save(self, *args, **kwargs):
+        with transaction.atomic():
+            lock_roadmap_forest()
+            self.full_clean()
+            result = super().save(*args, **kwargs)
+            Roadmap.objects.filter(nodes__pk__in=(self.node_id, self.prerequisite_id)).distinct().update(
+                tree_revision=F('tree_revision') + 1)
+            return result
+
+    def delete(self, *args, **kwargs):
+        with transaction.atomic():
+            lock_roadmap_forest()
+            node_ids = (self.node_id, self.prerequisite_id)
+            result = super().delete(*args, **kwargs)
+            Roadmap.objects.filter(nodes__pk__in=node_ids).distinct().update(tree_revision=F('tree_revision') + 1)
+            return result
 
     def __str__(self):
         return f'{self.node} requires {self.prerequisite}'
@@ -301,6 +369,8 @@ class TopicLessonState(models.Model):
 
     class Meta:
         ordering = ('-last_accessed_at', 'pk')
+        verbose_name = 'Tiến độ đọc bài giảng'
+        verbose_name_plural = 'Tiến độ đọc (chỉ xem)'
         constraints = [
             models.UniqueConstraint(fields=('user', 'lesson'), name='mentor_lesson_user_state'),
             models.CheckConstraint(check=Q(offset__gte=0, offset__lte=10000), name='mentor_lesson_state_offset_range'),
@@ -328,6 +398,8 @@ class TopicLessonQAMessage(models.Model):
 
     class Meta:
         ordering = ('created_at', 'pk')
+        verbose_name = 'Hội thoại bài giảng'
+        verbose_name_plural = 'Hội thoại bài giảng (chỉ xem)'
         indexes = [
             models.Index(fields=('user', 'lesson', 'content_revision'), name='mentor_qa_user_lesson_rev_idx'),
         ]
@@ -356,6 +428,8 @@ class TopicLessonQAAttempt(models.Model):
 
     class Meta:
         ordering = ('-created_at', 'pk')
+        verbose_name = 'Lần hỏi AI bài giảng'
+        verbose_name_plural = 'Lần hỏi AI bài giảng (chỉ xem)'
         indexes = [
             models.Index(fields=('user', 'status'), name='mentor_qa_user_status_idx'),
             models.Index(fields=('user', 'lesson', 'content_revision'), name='mentor_qa_att_user_rev_idx'),

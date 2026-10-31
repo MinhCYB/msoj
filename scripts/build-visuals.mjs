@@ -1,0 +1,18 @@
+import Ajv2020 from 'ajv/dist/2020.js';
+import standaloneCode from 'ajv/dist/standalone/index.js';
+import esbuild from 'esbuild';
+import {mkdir, readFile, writeFile} from 'node:fs/promises';
+import {dirname, resolve} from 'node:path';
+import {fileURLToPath} from 'node:url';
+const root=resolve(dirname(fileURLToPath(import.meta.url)),'..'),output=resolve(root,'resources/vendor/visual-v2');
+await mkdir(output,{recursive:true});
+const schema=JSON.parse(await readFile(resolve(root,'mentor/visual_schema_v2.json'),'utf8'));
+const ajv=new Ajv2020({code:{source:true,esm:true},allErrors:true,strict:false});
+const validate=ajv.compile(schema);
+await writeFile(resolve(output,'visual-validator.mjs'),standaloneCode(ajv,validate));
+await esbuild.build({entryPoints:[resolve(root,'scripts/visual-echarts-entry.js')],bundle:true,minify:true,format:'iife',outfile:resolve(output,'echarts.js')});
+await esbuild.build({entryPoints:[resolve(root,'scripts/visual-validator-entry.js')],bundle:true,minify:true,format:'iife',outfile:resolve(output,'visual-validator.js')});
+await esbuild.build({entryPoints:[resolve(root,'scripts/visual-cytoscape-entry.js')],bundle:true,minify:true,format:'iife',outfile:resolve(output,'cytoscape.js')});
+const licenses=[['Apache ECharts 5.6.0 — Apache-2.0',resolve(root,'node_modules/echarts/LICENSE')],['Cytoscape.js 3.30.4 — MIT',resolve(root,'node_modules/cytoscape/LICENSE')],['Ajv 8.17.1 — MIT',resolve(root,'node_modules/ajv/LICENSE')]];
+const notices=await Promise.all(licenses.map(async([label,path])=>`${label}\n${await readFile(path,'utf8')}`));
+await writeFile(resolve(output,'NOTICE.txt'),notices.join('\n\n---\n\n'));

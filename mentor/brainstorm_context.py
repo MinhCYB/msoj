@@ -1,5 +1,6 @@
 """Structured, bounded Brainstorm data. All returned content is data, never instructions."""
 
+import json
 from dataclasses import dataclass
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -55,7 +56,7 @@ class BrainstormContextBuilder:
         rows = BrainstormMessage.objects.filter(session=session, is_legacy_stub=False,
                                                 turn__status=BrainstormTurn.STATUS_SUCCEEDED) \
             .order_by('turn__created_at', 'turn_id', 'created_at', 'pk').values(
-                'turn_id', 'role', 'content', 'described_approach')
+                'turn_id', 'role', 'content', 'described_approach', 'approved_visuals')
         grouped = {}
         for row in rows:
             pair = grouped.setdefault(row['turn_id'], {})
@@ -63,16 +64,28 @@ class BrainstormContextBuilder:
                 pair[row['role']] = row
             else:
                 pair['duplicate'] = True
-        pairs = [(pair['student']['content'], pair['student']['described_approach'], pair['ai']['content'])
-                 for pair in grouped.values() if not pair.get('duplicate') and 'student' in pair and 'ai' in pair]
+        pairs = []
+        for pair in grouped.values():
+            if pair.get('duplicate') or 'student' not in pair or 'ai' not in pair:
+                continue
+            ai = pair['ai']
+            # Frames are redundant snapshots; canonical documents retain the approved
+            # data and declared steps/trace inputs at a much smaller bounded size.
+            documents = [visual['document'] for visual in ai['approved_visuals']]
+            visuals_json = json.dumps(documents, ensure_ascii=False, separators=(',', ':')) if documents else ''
+            pairs.append((pair['student']['content'], pair['student']['described_approach'],
+                          ai['content'], documents, visuals_json))
         history = []
         remaining = budget - reserved
         for pair in reversed(pairs):
-            size = sum(map(len, pair))
+            size = sum(map(len, pair[:3])) + len(pair[4])
             if size > remaining:
                 break  # Only a contiguous recent suffix of complete approved pairs is allowed.
             remaining -= size
-            history.append({'question': pair[0], 'approach': pair[1], 'answer': pair[2]})
+            item = {'question': pair[0], 'approach': pair[1], 'answer': pair[2]}
+            if pair[3]:
+                item['visuals'] = pair[3]
+            history.append(item)
         history.reverse()
         return BrainstormContext(reference, hints, current, tuple(history), len(history) < len(pairs))
 

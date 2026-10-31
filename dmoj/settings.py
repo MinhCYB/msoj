@@ -423,6 +423,31 @@ else:
             },
             'custom_menu': [
                 {
+                    'title': 'Học tập & nội dung',
+                    'icon': 'fa-book',
+                    'children': [
+                        {'model': 'mentor.Roadmap', 'title': 'Lộ trình học'},
+                        {'model': 'mentor.LearningTopic', 'title': 'Thư viện nội dung'},
+                        {'title': 'Quản trị nâng cao', 'children': [
+                            'mentor.RoadmapNode', 'mentor.TopicLesson',
+                            'mentor.NodeProblem', 'mentor.RoadmapPrerequisite',
+                        ]},
+                    ],
+                },
+                {
+                    'title': 'AI Brainstorm', 'icon': 'fa-lightbulb-o',
+                    'children': ['mentor.ProblemHint', 'mentor.BrainstormContestConfig',
+                                 'mentor.BrainstormPolicy', 'mentor.BrainstormPolicyVersion'],
+                },
+                {
+                    'title': 'Theo dõi vận hành', 'icon': 'fa-history',
+                    'children': ['mentor.TopicLessonState', 'mentor.TopicLessonQAMessage',
+                                 'mentor.TopicLessonQAAttempt', 'mentor.BrainstormSession',
+                                 'mentor.BrainstormTurn', 'mentor.BrainstormMessage',
+                                 'mentor.BrainstormCall', 'mentor.AIReview',
+                                 'mentor.AIReviewAttempt', 'mentor.AIReviewApproach'],
+                },
+                {
                     'model': 'judge.Problem',
                     'icon': 'fa-question-circle',
                     'children': [

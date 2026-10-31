@@ -59,23 +59,19 @@ def roadmap_map(request, slug):
     })
 
 
-def roadmap_learning_page(request, roadmap, data, lesson=None):
+def roadmap_learning_page(request, roadmap, data):
     node = data['node']
     map_url = reverse('roadmap_detail', args=[roadmap.slug])
-    context = {
-        'title': lesson['lesson']['title'] if lesson else node['title'],
+    return private_page(request, 'roadmap/learn.html', {
+        'title': node['title'],
         'roadmap': roadmap,
         'learning': data,
-        'lesson_data': lesson,
+        'document_lessons': data['document_lessons'],
+        'resume_lesson_id': data['resume_lesson_id'],
         'map_url': map_url,
         'return_url': f"{map_url}?focus={node['id']}",
         'learn_url': reverse('roadmap_node_learn', args=[roadmap.slug, node['id']]),
-    }
-    if lesson:
-        context['lecture_state'] = lesson.get('lecture_state')
-    else:
-        context['resume_lesson_url'] = data.get('resume_lesson_url')
-    return private_page(request, 'roadmap/lesson.html' if lesson else 'roadmap/learn.html', context)
+    })
 
 
 def roadmap_markdown_preview(request):
@@ -89,4 +85,5 @@ def roadmap_markdown_preview(request):
         return private_page(request, 'roadmap/preview.html', {'preview_data': ''}, status=405)
     if 'content' not in request.POST:
         return HttpResponseBadRequest('No preview data specified.')
-    return private_page(request, 'roadmap/preview.html', {'preview_data': request.POST['content']})
+    template = 'roadmap/visual-preview.html' if request.POST.get('interactive_preview') == '1' else 'roadmap/preview.html'
+    return private_page(request, template, {'preview_data': request.POST['content']})

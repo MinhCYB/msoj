@@ -13,45 +13,57 @@ from .schema import ProblemSpec
 SOURCE = 'MSOJ Beginner Pack 2026-10'
 ROADMAP = 'competitive-programming'
 SECTIONS = {
-    'io': 'Nhập/xuất, biến và phép toán',
-    'conditions': 'Điều kiện và phân chia trường hợp',
-    'loops': 'Vòng lặp và tích lũy',
+    'io': 'Nhập xuất và tính toán cơ bản',
+    'conditions': 'Điều kiện và rẽ nhánh',
+    'loops': 'Vòng lặp',
     'digits': 'Xử lý chữ số của số nguyên',
-    'functions': 'Hàm và chia nhỏ chương trình',
+    'functions': 'Hàm và tổ chức chương trình',
     'arrays': 'Mảng một chiều và duyệt tuyến tính',
     'frequency': 'Mảng đếm và đánh dấu',
     'strings': 'Ký tự và xâu cơ bản',
     'matrices': 'Mảng hai chiều và bảng số',
     'numbers': 'Số học cơ bản',
 }
+SECTION_NODES = {
+    'io': 'io-basics',
+    'conditions': 'conditions',
+    'loops': 'loops',
+    'digits': 'loops',
+    'functions': 'functions',
+    'arrays': 'array-basics',
+    'frequency': 'array-basics',
+    'strings': 'string-basics',
+    'matrices': 'matrix-basics',
+    'numbers': 'gcd-euclid',
+}
 TAG_NAMES = {
-    'io-basics': 'Nhập/xuất cơ bản',
-    'numeric-safety': 'An toàn số học',
-    'arithmetic': 'Phép toán cơ bản',
+    'io-basics': 'Nhập xuất và tính toán cơ bản',
     'conditions': 'Điều kiện và rẽ nhánh',
-    'loops': 'Vòng lặp và tích lũy',
-    'digits': 'Xử lý chữ số',
-    'functions': 'Hàm và chia nhỏ chương trình',
-    'array-basics': 'Mảng một chiều cơ bản',
-    'frequency-array': 'Mảng đếm và đánh dấu',
+    'loops': 'Vòng lặp',
+    'functions': 'Hàm và tổ chức chương trình',
+    'array-basics': 'Mảng một chiều',
     'string-basics': 'Ký tự và xâu cơ bản',
-    'matrix-basics': 'Mảng hai chiều cơ bản',
+    'matrix-basics': 'Mảng hai chiều',
+    'arithmetic': 'Phép toán số học',
+    'numeric-safety': 'An toàn số học',
+    'number-theory': 'Lý thuyết số',
     'divisors': 'Ước và bội',
-    'primality': 'Kiểm tra nguyên tố cơ bản',
+    'primality': 'Số nguyên tố',
     'modulo': 'Số học modulo (Modular arithmetic)',
+    'gcd-euclid': 'Thuật toán Euclid',
 }
 REUSE = [
-    {'code': 'aplusb', 'section': 'io', 'tags': ['programming-basics', 'io-basics', 'loops'], 'nodes': ['io-and-numeric-safety']},
-    {'code': 'maxab', 'section': 'conditions', 'tags': ['conditions'], 'nodes': ['casework']},
-    {'code': 'chon10_cau1', 'section': 'conditions', 'tags': ['programming-basics', 'conditions', 'numeric-safety'], 'nodes': ['casework']},
-    {'code': 'evenodd', 'section': 'conditions', 'tags': ['conditions', 'loops', 'io-basics'], 'nodes': ['programming-basics']},
-    {'code': 'tristr', 'section': 'loops', 'tags': ['loops'], 'nodes': ['programming-basics']},
-    {'code': 'mxar', 'section': 'arrays', 'tags': ['arrays-and-strings', 'array-basics'], 'nodes': ['arrays-and-strings']},
-    {'code': 'chon10_cau2', 'section': 'strings', 'tags': ['arrays-and-strings', 'string-basics'], 'nodes': ['arrays-and-strings']},
-    {'code': 'alphabet', 'section': 'strings', 'tags': ['arrays-and-strings', 'string-basics'], 'nodes': ['arrays-and-strings']},
-    {'code': 'sorry', 'section': 'strings', 'tags': ['string-basics'], 'nodes': ['arrays-and-strings']},
-    {'code': 'password', 'section': 'strings', 'tags': ['string-basics', 'modulo'], 'nodes': ['arrays-and-strings', 'modulo']},
-    {'code': 'primes', 'section': 'numbers', 'tags': ['primality', 'array-basics'], 'nodes': ['prime-sieve']},
+    {'code': 'aplusb', 'section': 'io', 'tags': ['io-basics', 'arithmetic'], 'nodes': ['io-basics']},
+    {'code': 'maxab', 'section': 'conditions', 'tags': ['conditions'], 'nodes': ['conditions']},
+    {'code': 'chon10_cau1', 'section': 'conditions', 'tags': ['conditions', 'numeric-safety'], 'nodes': ['conditions']},
+    {'code': 'evenodd', 'section': 'conditions', 'tags': ['conditions', 'loops', 'io-basics'], 'nodes': ['conditions']},
+    {'code': 'tristr', 'section': 'loops', 'tags': ['loops'], 'nodes': ['loops']},
+    {'code': 'mxar', 'section': 'arrays', 'tags': ['array-basics'], 'nodes': ['array-basics']},
+    {'code': 'chon10_cau2', 'section': 'strings', 'tags': ['string-basics'], 'nodes': ['string-basics']},
+    {'code': 'alphabet', 'section': 'strings', 'tags': ['string-basics'], 'nodes': ['string-basics']},
+    {'code': 'sorry', 'section': 'strings', 'tags': ['string-basics'], 'nodes': ['string-basics']},
+    {'code': 'password', 'section': 'strings', 'tags': ['string-basics', 'modulo'], 'nodes': ['string-basics', 'modulo']},
+    {'code': 'primes', 'section': 'numbers', 'tags': ['primality', 'number-theory'], 'nodes': ['prime-sieve']},
 ]
 
 
@@ -83,6 +95,7 @@ def load_problems() -> list[ProblemSpec]:
             if problem['oracle'](sample['input']).split() != sample['output'].split():
                 raise ValueError(f'Sample disagrees with independent oracle: {code}')
     return problems
+
 
 
 def statement(problem: ProblemSpec) -> str:

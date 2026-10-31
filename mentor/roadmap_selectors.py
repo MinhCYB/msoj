@@ -5,7 +5,8 @@ aggregation, signed keyset cursors, and Submission.result='AC' parity.
 """
 from django.contrib.auth.models import AnonymousUser
 from django.core import signing
-from django.db.models import Exists, OuterRef, Q
+from django.db.models import Exists, OuterRef, Q, Window
+from django.db.models.functions import RowNumber
 from django.urls import reverse
 from django.utils import timezone
 
@@ -461,6 +462,8 @@ def serialize_node_list(roadmap, nodes, user):
             'parent_id': node.parent_id,
             'type': node.type,
             'title': node.title,
+            'summary': node.summary,
+            'display_section': node.display_section,
             'slug': node.slug,
             'icon_class': resolve_node_icon(node.icon, node.slug, node.type),
             'depth': node.level,
@@ -773,6 +776,98 @@ def get_node_lesson_data(roadmap, node_id, lesson_id, user):
             else None
         ),
     }
+
+def get_node_document_lessons(roadmap, node_id, user):
+    """Return all authorized published lesson documents with batched learner state."""
+    node = get_effective_published_node(roadmap, node_id)
+    if node is None:
+        return [], None
+
+    if user is None:
+        user = AnonymousUser()
+    topic = node.learning_topic
+    if (
+        topic is None
+        or topic.status != Publication.PUBLISHED
+        or not is_content_scoped_to_user(topic, user)
+    ):
+        return [], None
+
+    lessons = list(
+        topic.lessons.filter(status=Publication.PUBLISHED)
+        .exclude(body='')
+        .order_by('position', 'pk')
+    )
+    lessons = [lesson for lesson in lessons if lesson.body and lesson.body.strip()]
+    if not lessons:
+        return [], None
+
+    lesson_ids = [lesson.pk for lesson in lessons]
+    revisions = {lesson.pk: lesson.content_revision for lesson in lessons}
+    states = {}
+    resume_lesson_id = None
+    if user.is_authenticated:
+        revision_filter = Q()
+        for lesson in lessons:
+            revision_filter |= Q(lesson_id=lesson.pk, content_revision=lesson.content_revision)
+        state_rows = list(
+            TopicLessonState.objects.filter(user=user, lesson_id__in=lesson_ids)
+            .order_by('-last_accessed_at', '-pk')
+        )
+        for state in state_rows:
+            states[state.lesson_id] = state
+        resume_lesson_id = next((state.lesson_id for state in state_rows
+                                 if state.content_revision == revisions[state.lesson_id]), None)
+
+        ranked_messages = (
+            TopicLessonQAMessage.objects.filter(user=user, lesson_id__in=lesson_ids)
+            .filter(revision_filter)
+            .annotate(
+                lesson_rank=Window(
+                    expression=RowNumber(),
+                    partition_by=['lesson_id'],
+                    order_by=['-created_at', '-pk'],
+                )
+            )
+            .filter(lesson_rank__lte=40)
+            .order_by('lesson_id', '-created_at', '-pk')
+        )
+        messages_by_lesson = {}
+        for message in ranked_messages:
+            if message.content_revision == revisions[message.lesson_id]:
+                messages_by_lesson.setdefault(message.lesson_id, []).append(message)
+    else:
+        messages_by_lesson = {}
+
+    documents = []
+    for lesson in lessons:
+        state = states.get(lesson.pk)
+        current_state = state if state and state.content_revision == lesson.content_revision else None
+        lecture_state = None
+        if user.is_authenticated:
+            lecture_state = {
+                'state_url': reverse('roadmap_node_lesson_state', args=[roadmap.slug, node.id, lesson.id]),
+                'qa_url': reverse('roadmap_node_lesson_questions', args=[roadmap.slug, node.id, lesson.id]),
+                'resume_offset': current_state.offset if current_state else 0,
+                'position_version': state.position_version if state else 0,
+                'messages': [
+                    {
+                        'role': message.role,
+                        'content': message.content,
+                        'created_at': message.created_at.isoformat(),
+                    }
+                    for message in reversed(messages_by_lesson.get(lesson.pk, []))
+                ],
+            }
+        documents.append({
+            'id': lesson.id,
+            'title': lesson.title,
+            'body': lesson.body,
+            'summary': lesson.summary,
+            'content_revision': lesson.content_revision,
+            'lecture_state': lecture_state,
+        })
+    return documents, resume_lesson_id
 
 
 def get_progress_data(roadmap, user, focus_node_id=None):

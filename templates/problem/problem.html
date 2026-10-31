@@ -1,5 +1,6 @@
 {% extends "common-content.html" %}
 {% block content_media %}
+    {% include "roadmap/visual-assets.html" %}
     {% if not comment_lock %}
         {% include "comments/media-css.html" %}
     {% endif %}
@@ -73,7 +74,7 @@
     <script defer src="{{ static('submission-detail.js') }}?v=4"></script>
     <script defer src="{{ static('workspace-submissions.js') }}?v=2"></script>
     <script defer src="{{ static('problem-workspace.js') }}?v=13"></script>
-    <script defer src="{{ static('brainstorm.js') }}?v=3"></script>
+        <script defer src="{{ static('brainstorm.js') }}?v=visual-v2"></script>
     <script type="text/javascript">
         $(function() {
             $('#pdf_button').click(async function(e) {

@@ -25,8 +25,8 @@ def problems():
             "function_practice": False,
         })
 
-    array_nodes = ["arrays-and-strings"]
-    array_tags = ["arrays-and-strings", "array-basics"]
+    array_nodes = ["array-basics"]
+    array_tags = ["array-basics"]
     reverse_samples = [
         {"input": "5\n1 2 3 4 5\n", "output": "5 4 3 2 1\n", "explanation": "Các phần tử được in theo thứ tự từ cuối về đầu."},
         {"input": "1\n-7\n", "output": "-7\n", "explanation": "Mảng có một phần tử nên thứ tự không thay đổi."},
@@ -50,7 +50,7 @@ In các phần tử theo thứ tự ngược lại trên một dòng, cách nhau
     add("msb_reversearray", "In mảng theo thứ tự ngược", "arrays", "foundations", array_tags, array_nodes, reverse_statement, reverse_samples,
         "Duyệt mảng từ phần tử cuối về đầu và in trực tiếp, không cần tạo thêm mảng đảo.", "~O(n)~ thời gian, ~O(n)~ bộ nhớ để lưu mảng.", reverse_cpp, reverse_oracle, reverse_extras)
 
-    frequency_tags = ["arrays-and-strings", "frequency-array"]
+    frequency_tags = ["array-basics"]
     freq_statement = """Dòng đầu gồm số nguyên ~n~; dòng tiếp theo gồm ~n~ số nguyên ~a_i~ trong đoạn từ 0 đến 1000. Hãy tìm số nguyên không âm nhỏ nhất không xuất hiện trong dãy.
 
 ## Dữ liệu vào
@@ -103,8 +103,8 @@ In giá trị đầu tiên được gặp lại khi quét từ trái sang phải
     add("msb_firstrepeat", "Giá trị đầu tiên xuất hiện lặp", "frequency", "foundations", frequency_tags, array_nodes, repeat_statement, repeat_samples,
         "Đánh dấu từng giá trị khi quét từ trái sang phải và dừng ở lần đầu gặp lại. Kết quả in ra là giá trị của phần tử, không phải vị trí (chỉ số) của nó; đây cũng không nhất thiết là giá trị trùng nhỏ nhất.", "~O(n)~ thời gian, ~O(1001)~ bộ nhớ.", repeat_cpp, repeat_oracle, repeat_extras)
 
-    string_nodes = ["arrays-and-strings"]
-    string_tags = ["arrays-and-strings", "string-basics"]
+    string_nodes = ["string-basics"]
+    string_tags = ["string-basics"]
     char_samples = [
         {"input": "banana\na\n", "output": "3\n", "explanation": "Ký tự a xuất hiện ba lần trong banana."},
         {"input": "abc\nz\n", "output": "0\n", "explanation": "Ký tự z không xuất hiện trong chuỗi."},
@@ -170,7 +170,7 @@ Dòng đầu gồm ~n~ và ~m~. Mỗi dòng trong ~n~ dòng tiếp theo gồm ~m
 In ~n~ dòng; dòng thứ ~i~ là giá trị lớn nhất của hàng thứ ~i~."""
     matrix_extras = ["1 4\n-5 -2 -9 -3\n", "3 1\n7\n-8\n0\n", "2 2\n-1 -2\n-3 -4\n", "2 4\n1 2 3 4\n4 3 2 1\n", "3 2\n-1000000000 1000000000\n0 0\n-5 -6\n", "4 3\n2 2 2\n-1 -1 -1\n9 0 9\n-8 4 3\n", "1 5\n0 0 0 0 0\n", "5 1\n-10\n-20\n-30\n-40\n-50\n", "2 3\n-9 -7 -8\n-6 -5 -4\n"]
     matrix_extras.append("200 200\n" + (" ".join(["-1000000000", "1000000000"] * 100) + "\n") * 200)
-    add("msb_rowmax", "Giá trị lớn nhất trên từng hàng", "matrices", "foundations", ["arrays-and-strings", "matrix-basics"], array_nodes, matrix_statement, matrix_samples,
+    add("msb_rowmax", "Giá trị lớn nhất trên từng hàng", "matrices", "foundations", ["matrix-basics"], ["matrix-basics"], matrix_statement, matrix_samples,
         "Đọc từng hàng, giữ giá trị lớn nhất của hàng đó rồi in ngay; không cần lưu toàn bộ ma trận.", "~O(nm)~ thời gian, ~O(1)~ bộ nhớ phụ.", matrix_cpp, rowmax_oracle, matrix_extras)
 
     divisor_samples = [
@@ -195,7 +195,6 @@ Một số nguyên dương ~n~ (~1 ≤ n ≤ 10^6~).
 ## Dữ liệu ra
 In tổng các ước dương của ~n~. Kết quả vừa kiểu số nguyên 64 bit có dấu."""
     divisor_extras = ["2\n", "3\n", "4\n", "9\n", "12\n", "13\n", "16\n", "28\n", "36\n", "100\n", "360\n", "999983\n", "1000000\n"]
-    add("msb_divisorsum", "Tổng các ước dương", "numbers", "number-theory", ["programming-basics", "number-theory", "divisors", "numeric-safety"], ["programming-basics", "implementation"], divisor_statement, divisor_samples,
+    add("msb_divisorsum", "Tổng các ước dương", "numbers", "number-theory", ["number-theory", "divisors", "numeric-safety", "loops"], ["arithmetic-functions", "loops"], divisor_statement, divisor_samples,
         "Thử lần lượt các số từ 1 đến ~n~; nếu số đó chia hết ~n~, cộng nó vào tổng. Kiểu số nguyên 64 bit đủ chứa kết quả theo giới hạn đề bài.", "~O(n)~ thời gian, ~O(1)~ bộ nhớ phụ.", divisor_cpp, divisor_oracle, divisor_extras)
-
     return result

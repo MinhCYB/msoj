@@ -57,9 +57,9 @@ class RoadmapExplorerUnitTests(TestCase):
         nodes = [
             {'id': 1, 'slug': 'dfs', 'type': 'TOPIC', 'position': 0},
             {'id': 2, 'slug': 'recursion', 'type': 'TOPIC', 'position': 1},
-            {'id': 3, 'slug': 'programming-basics', 'type': 'TOPIC', 'position': 2},
+            {'id': 3, 'slug': 'functions', 'type': 'TOPIC', 'position': 2},
         ]
-        # dfs requires recursion; recursion requires programming-basics
+        # dfs requires recursion; recursion requires functions
         prereq_graph = {
             1: [(2, 'reason')],
             2: [(3, 'reason')],
@@ -74,7 +74,7 @@ class RoadmapExplorerUnitTests(TestCase):
 
     def test_dfs_closure_staging_and_slug_layers(self):
         nodes = {
-            1: {'id': 1, 'slug': 'programming-basics', 'position': 0},
+            1: {'id': 1, 'slug': 'functions', 'position': 0},
             2: {'id': 2, 'slug': 'stack', 'position': 1},
             3: {'id': 3, 'slug': 'graph-models', 'position': 2},
             4: {'id': 4, 'slug': 'recursion', 'position': 3},
@@ -91,7 +91,7 @@ class RoadmapExplorerUnitTests(TestCase):
         self.assertEqual(len(stages), 3)
 
         stage_0_slugs = [n['slug'] for n in stages[0]['nodes']]
-        self.assertEqual(sorted(stage_0_slugs), ['graph-models', 'programming-basics', 'stack'])
+        self.assertEqual(sorted(stage_0_slugs), ['functions', 'graph-models', 'stack'])
         stage_1_slugs = [n['slug'] for n in stages[1]['nodes']]
         self.assertEqual(stage_1_slugs, ['recursion'])
         stage_2_slugs = [n['slug'] for n in stages[2]['nodes']]
@@ -154,6 +154,33 @@ class RoadmapExplorerIntegrationTests(RoadmapFixture, TestCase):
         self.assertIn(t1.pk, successor_graph)
         self.assertEqual(successor_graph[t1.pk][0][0], t2.pk)
 
+    def test_canonical_cp_uses_database_edge_and_reason_without_manifest_override(self):
+        from .roadmap_models import RoadmapPrerequisite
+
+        self.roadmap.slug = ROADMAP_SLUG
+        self.roadmap.visibility = Visibility.PUBLIC
+        self.roadmap.save()
+        first = self.node('custom-prior')
+        second = self.node('custom-target', summary='Database summary')
+        RoadmapPrerequisite.objects.create(node=second, prerequisite=first, reason='Database reason')
+        serialized = get_serialized_published_nodes(self.roadmap, self.learner)
+        prereq_graph, _, _, canonical = build_prerequisite_graphs(self.roadmap, serialized)
+        self.assertTrue(canonical)
+        self.assertEqual(prereq_graph[second.pk], [(first.pk, 'Database reason')])
+        self.assertEqual(next(node for node in serialized if node['id'] == second.pk)['summary'], 'Database summary')
+
+    def test_prerequisite_clean_rejects_reverse_cycle_and_cross_roadmap_edge(self):
+        from django.core.exceptions import ValidationError
+
+        first = self.node('cycle-first')
+        second = self.node('cycle-second')
+        RoadmapPrerequisite.objects.create(node=first, prerequisite=second)
+        with self.assertRaises(ValidationError):
+            RoadmapPrerequisite(node=second, prerequisite=first).full_clean()
+        other_roadmap = Roadmap.objects.create(title='Other', slug='other-roadmap')
+        cross_node = RoadmapNode.objects.create(roadmap=other_roadmap, title='Cross', slug='cross')
+        with self.assertRaises(ValidationError):
+            RoadmapPrerequisite(node=first, prerequisite=cross_node).full_clean()
     def test_canonical_cp_picks_dfs_when_complete(self):
         cp_roadmap = Roadmap.objects.create(
             title='Competitive Programming',
@@ -161,12 +188,17 @@ class RoadmapExplorerIntegrationTests(RoadmapFixture, TestCase):
             visibility=Visibility.PUBLIC,
             status=Publication.PUBLISHED,
         )
-        # Create the 5 nodes in the DFS closure
-        pb = RoadmapNode.objects.create(roadmap=cp_roadmap, title='PB', slug='programming-basics', status=Publication.PUBLISHED)
-        rec = RoadmapNode.objects.create(roadmap=cp_roadmap, title='Rec', slug='recursion', status=Publication.PUBLISHED)
-        st = RoadmapNode.objects.create(roadmap=cp_roadmap, title='Stack', slug='stack', status=Publication.PUBLISHED)
-        gm = RoadmapNode.objects.create(roadmap=cp_roadmap, title='GM', slug='graph-models', status=Publication.PUBLISHED)
-        dfs_node = RoadmapNode.objects.create(roadmap=cp_roadmap, title='DFS', slug='dfs', status=Publication.PUBLISHED)
+        from .roadmap_curriculum import load_curriculum_manifest
+        for spec in load_curriculum_manifest()['nodes']:
+            if spec['type'] == 'TOPIC':
+                RoadmapNode.objects.create(roadmap=cp_roadmap, title=spec['title'], slug=spec['slug'],
+                                          position=spec['position'], status=Publication.PUBLISHED)
+        nodes_by_slug = {node.slug: node for node in RoadmapNode.objects.filter(roadmap=cp_roadmap)}
+        for edge in load_curriculum_manifest()['prerequisites']['edges']:
+            target = nodes_by_slug[edge['target']]
+            for prior_slug in edge['prerequisites']:
+                RoadmapPrerequisite.objects.create(
+                    node=target, prerequisite=nodes_by_slug[prior_slug], reason=edge.get('reason', ''))
 
         serialized = get_serialized_published_nodes(cp_roadmap, self.learner)
         id_map = {n['id']: n for n in serialized}
@@ -187,7 +219,7 @@ class RoadmapExplorerIntegrationTests(RoadmapFixture, TestCase):
             default_goal['id'], id_map, prereq_graph, missing_prereqs
         )
         self.assertTrue(has_path)
-        self.assertEqual(len(stages), 3)
-        self.assertEqual(stages[0]['nodes'][0]['slug'], 'programming-basics')
-        self.assertEqual(stages[1]['nodes'][0]['slug'], 'recursion')
-        self.assertEqual(stages[2]['nodes'][0]['slug'], 'dfs')
+        layer = {node['id']: index for index, stage in enumerate(stages) for node in stage['nodes']}
+        for node_id in layer:
+            for prerequisite_id, reason in prereq_graph.get(node_id, []):
+                self.assertLess(layer[prerequisite_id], layer[node_id])

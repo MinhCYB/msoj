@@ -1,0 +1,83 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'roadmap-admin.css' %}">{{ media.css }}{% endblock %}
+{% block extrahead %}{{ block.super }}<script src="{% static 'admin/js/vendor/jquery/jquery.min.js' %}"></script><script src="{% static 'admin/js/jquery.init.js' %}"></script><script src="{% url 'admin:jsi18n' %}"></script>{{ media.js }}<script defer src="{% static 'roadmap-admin.js' %}"></script>{% endblock %}
+{% block bodyclass %}{{ block.super }} roadmap-workspace{% endblock %}
+{% block breadcrumbs %}<div class="breadcrumbs"><a href="{% url 'admin:index' %}">Quản trị</a> › <a href="{% url 'admin:mentor_roadmap_changelist' %}">Lộ trình học</a> › <a href="{% url 'admin:mentor_roadmap_workspace' roadmap.pk %}">{{ roadmap.title }}</a>{% if node %} › {{ node.title }}{% endif %}</div>{% endblock %}
+{% block content %}
+<div class="rm-toolbar">
+  <p class="help">Cấu trúc, nội dung và quan hệ học trước đều lấy từ database. Không có điều kiện bắt buộc hoàn thành để mở chuyên đề.</p>
+  <div class="rm-actions"><a class="button" href="{% url 'admin:mentor_roadmap_preview' roadmap.pk %}{% if node %}?node={{ node.pk }}{% endif %}">Xem trước</a><a href="{% url 'roadmap_detail' roadmap.slug %}">Trang học viên</a></div>
+</div>
+{% if errors %}<div class="errornote" role="alert"><ul>{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul></div>{% endif %}
+<div class="rm-layout">
+<aside class="rm-sidebar module" aria-label="Cây lộ trình">
+  <h2>Cấu trúc lộ trình</h2>
+  <div class="rm-sidebar-controls"><label for="rm-tree-search">Tìm nhóm / chuyên đề</label><input type="search" id="rm-tree-search" placeholder="Tên hoặc mã chuyên đề" autocomplete="off"><p id="rm-tree-result" role="status" hidden>Không tìm thấy chuyên đề phù hợp.</p>
+  {% if perms.mentor.add_roadmapnode %}<div class="rm-actions"><a href="{% url 'admin:mentor_roadmap_node_add' roadmap.pk %}?kind=GROUP{% if node %}&parent={{ node.pk }}{% endif %}">+ Nhóm</a><a href="{% url 'admin:mentor_roadmap_node_add' roadmap.pk %}{% if node %}?parent={{ node.pk }}{% endif %}">+ Chuyên đề</a></div>{% endif %}</div>
+  {% include "admin/mentor/roadmap/tree.html" %}
+  {% if not tree %}<p class="rm-pad">Lộ trình chưa có nội dung. Thêm nhóm hoặc chuyên đề để bắt đầu.</p>{% endif %}
+</aside>
+<main class="rm-main">
+{% if node and not adding %}
+<nav class="rm-tabs" aria-label="Quản lý chuyên đề">
+<a href="?tab=information" {% if tab == 'information' %}aria-current="page"{% endif %}>Thông tin</a>
+<a href="?tab=lessons" {% if tab == 'lessons' %}aria-current="page"{% endif %}>Bài giảng</a>
+<a href="?tab=problems" {% if tab == 'problems' %}aria-current="page"{% endif %}>Bài luyện</a>
+<a href="?tab=prerequisites" {% if tab == 'prerequisites' %}aria-current="page"{% endif %}>Nên học trước</a>
+<a href="?tab=publication" {% if tab == 'publication' %}aria-current="page"{% endif %}>Hiển thị & xuất bản</a>
+</nav>
+{% endif %}
+{% if adding or node and tab == 'information' %}
+<section class="module rm-panel"><h2>{% if adding %}{{ title }}{% else %}Thông tin và vị trí{% endif %}</h2>
+<form method="post" class="rm-form">{% csrf_token %}<input type="hidden" name="action" value="placement"><input type="hidden" name="kind" value="{{ kind }}">
+{{ placement_form.non_field_errors }}
+{% for field in placement_form %}
+{% if field.name == 'slug' %}<details class="rm-advanced"><summary>Nâng cao: mã đường dẫn</summary>{% endif %}
+<div class="form-row">{{ field.errors }}{{ field.label_tag }}{{ field }}{% if field.help_text %}<div class="help">{{ field.help_text }}</div>{% endif %}</div>
+{% if field.name == 'slug' %}</details>{% endif %}
+{% endfor %}
+{% if adding or perms.mentor.change_roadmapnode %}<div class="submit-row"><input type="submit" value="Lưu thông tin" class="default"></div>{% else %}<p>Bạn chỉ có quyền xem cấu trúc.</p>{% endif %}
+</form>
+{% if node and perms.mentor.change_roadmapnode %}<div class="rm-actions rm-pad">{% include "admin/mentor/roadmap/reorder.html" with target='node' item=node %}</div>{% endif %}
+</section>
+{% if node and node.type == 'TOPIC' %}<section class="module rm-panel"><h2>Giới thiệu nội dung học</h2>
+{% if intro_form %}
+<form method="post" class="rm-form" data-shared="{{ shared|yesno:'yes,no' }}">{% csrf_token %}<input type="hidden" name="action" value="introduction">
+{% if shared %}<div class="rm-warning">Nội dung dùng chung tại {{ placements|length }} vị trí. Chỉnh sửa giới thiệu hoặc bài giảng sẽ áp dụng cho tất cả các vị trí đó.</div>{% endif %}
+{{ intro_form.as_p }}{% if perms.mentor.change_learningtopic %}<div class="submit-row"><input type="submit" value="Lưu giới thiệu" class="default"></div>{% endif %}</form>
+{% elif has_topic %}<p class="rm-pad">Bạn chưa có quyền xem thư viện nội dung.</p>
+{% else %}<p class="rm-pad">Chưa gắn bộ nội dung. Tạo nội dung riêng để soạn bài giảng; bài luyện vẫn quản lý độc lập.</p>{% if perms.mentor.add_learningtopic and perms.mentor.change_roadmapnode %}<form method="post" class="rm-pad">{% csrf_token %}<button name="action" value="create_topic">Tạo bộ nội dung riêng</button></form>{% endif %}{% endif %}
+{% if placements %}<details class="rm-pad"><summary>Nơi sử dụng bộ nội dung</summary><ul>{% for placement in placements %}<li><a href="{% url 'admin:mentor_roadmap_node_workspace' placement.roadmap_id placement.pk %}">{{ placement.roadmap.title }} → {{ placement.title }}</a></li>{% endfor %}</ul></details>{% endif %}
+</section>{% endif %}
+{% elif node and tab == 'lessons' %}
+<section class="module rm-panel"><h2>Bài giảng{% if topic %} — {{ topic.name }}{% endif %}</h2>
+<p class="rm-pad">Soạn từng bài ở trang riêng; không nhúng nhiều bài giảng dài vào một form.</p>
+{% if shared %}<p class="rm-warning">Bộ nội dung này dùng chung tại {{ placements|length }} vị trí. Thứ tự và nội dung bài giảng thay đổi ở tất cả các nơi sử dụng.</p>{% endif %}
+{% if topic and can_lesson %}
+{% if perms.mentor.add_topiclesson %}<p class="rm-pad"><a class="addlink" href="{% url 'admin:mentor_topiclesson_add' %}?topic={{ topic.pk }}&workspace_node={{ node.pk }}">Thêm bài giảng</a></p>{% endif %}
+<div class="rm-table-wrap"><table><thead><tr><th>Bài giảng</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>
+{% for lesson in lessons %}<tr><td><a href="{% url 'admin:mentor_topiclesson_change' lesson.pk %}?workspace_node={{ node.pk }}">{{ lesson.title }}</a></td><td>{{ lesson.get_status_display }}</td><td><div class="rm-actions"><a href="{% url 'admin:mentor_roadmap_preview' roadmap.pk %}?node={{ node.pk }}&lesson={{ lesson.pk }}">Xem trước</a>{% if perms.mentor.change_topiclesson and perms.mentor.change_learningtopic %}{% include "admin/mentor/roadmap/reorder.html" with target='lesson' item=lesson %}{% endif %}</div></td></tr>
+{% empty %}<tr><td colspan="3">Chưa có bài giảng. Thêm bài đầu tiên để bắt đầu soạn nội dung.</td></tr>{% endfor %}</tbody></table></div>
+{% else %}<p class="rm-pad">{% if not has_topic %}Tạo bộ nội dung tại tab Thông tin trước khi thêm bài giảng.{% else %}Bạn cần quyền xem bộ nội dung và bài giảng.{% endif %}</p>{% endif %}
+</section>
+{% elif node and tab == 'problems' %}
+<section class="module rm-panel"><h2>Bài luyện trong chuyên đề</h2><p class="rm-pad">Gỡ bài ở đây chỉ xóa liên kết khỏi chuyên đề, không xóa đề bài, bài nộp hay kết quả AC.</p>
+{% if perms.mentor.add_nodeproblem and perms.mentor.change_roadmapnode %}<form method="post" class="rm-form">{% csrf_token %}<input type="hidden" name="action" value="problem_add">{{ problem_form.as_p }}<button type="submit">Gắn bài luyện</button></form>{% endif %}
+<div class="rm-table-wrap"><table><thead><tr><th>Bài luyện</th><th>Thao tác</th></tr></thead><tbody>{% for row in problems %}<tr><td>{% if row.accessible %}<a href="{{ row.link.problem.get_absolute_url }}">{{ row.link.problem.code }} — {{ row.link.problem.name }}</a>{% else %}Bài luyện không có quyền truy cập (không hiển thị nội dung){% endif %}</td><td><div class="rm-actions">{% if perms.mentor.change_nodeproblem and perms.mentor.change_roadmapnode %}{% include "admin/mentor/roadmap/reorder.html" with target='problem' item=row.link %}{% endif %}{% if perms.mentor.delete_nodeproblem and perms.mentor.change_roadmapnode %}<form method="post">{% csrf_token %}<input type="hidden" name="item" value="{{ row.link.pk }}"><button name="action" value="problem_remove">Gỡ khỏi chuyên đề</button></form>{% endif %}</div></td></tr>{% empty %}<tr><td colspan="2">Chưa gắn bài luyện nào.</td></tr>{% endfor %}</tbody></table></div></section>
+{% elif node and tab == 'prerequisites' %}
+<section class="module rm-panel"><h2>Nên học trước {{ node.title }}</h2><p class="rm-pad">Đây là hướng dẫn thứ tự học, không phải điều kiện khóa nội dung. Thay đổi tại đây có hiệu lực trên lộ trình học viên.</p>
+{% if perms.mentor.add_roadmapprerequisite and perms.mentor.change_roadmapnode %}<form method="post" class="rm-form">{% csrf_token %}<input type="hidden" name="action" value="prerequisite_add">{{ prereq_form.as_p }}<button type="submit">Thêm quan hệ học trước</button></form>{% endif %}
+<ul class="rm-pad">{% for link in prerequisites %}<li><a href="{% url 'admin:mentor_roadmap_node_workspace' roadmap.pk link.prerequisite_id %}">{{ link.prerequisite.title }}</a>{% if link.reason %} — {{ link.reason }}{% endif %}{% if perms.mentor.delete_roadmapprerequisite and perms.mentor.change_roadmapnode %}<form method="post" class="rm-inline">{% csrf_token %}<input type="hidden" name="item" value="{{ link.pk }}"><button name="action" value="prerequisite_remove">Gỡ quan hệ</button></form>{% endif %}</li>{% empty %}<li>Không có chuyên đề học trước.</li>{% endfor %}</ul>
+<h3 class="rm-pad">Các chuyên đề nên học sau chuyên đề này</h3><ul>{% for link in dependents %}<li><a href="{% url 'admin:mentor_roadmap_node_workspace' roadmap.pk link.node_id %}?tab=prerequisites">{{ link.node.title }}</a></li>{% empty %}<li>Chưa có quan hệ học sau.</li>{% endfor %}</ul></section>
+{% elif tab == 'publication' or not node and not adding %}
+<section class="module rm-panel"><h2>Hiển thị & xuất bản</h2>
+<div class="rm-pad"><p><strong>Lộ trình:</strong> {{ roadmap.get_status_display }} · {{ roadmap.get_visibility_display }}{% if roadmap.organization %} — {{ roadmap.organization }}{% endif %}</p>{% if node %}<p><strong>Nhóm / chuyên đề:</strong> {{ node.get_status_display }}</p>{% endif %}{% if topic %}<p><strong>Bộ nội dung:</strong> {{ topic.get_status_display }}</p>{% endif %}
+<p><strong>{% if visibility_report.visible %}Đủ điều kiện hiển thị trong phạm vi truy cập đã chọn.{% else %}Chưa hiển thị đầy đủ cho học viên.{% endif %}</strong></p><ul>{% for reason in visibility_report.reasons %}<li>{{ reason }}</li>{% endfor %}</ul>
+<h3>Phạm vi ảnh hưởng</h3><ul><li>{% if node %}Xuất bản / ẩn nhóm hoặc chuyên đề này ảnh hưởng đến {{ descendant_count }} mục con.{% else %}Ẩn lộ trình sẽ ẩn toàn bộ {{ descendant_count }} nhóm / chuyên đề bên trong.{% endif %}</li><li>Đổi trạng thái không tự xuất bản các bài giảng hay bài tập riêng tư.</li>{% if shared %}<li>Đổi trạng thái bộ nội dung ảnh hưởng {{ placements|length }} vị trí dùng chung.</li>{% endif %}<li>Không xóa tiến độ đọc, bài nộp hoặc kết quả AC.</li></ul></div>
+{% if perms.mentor.publish_roadmap %}<form method="post" class="rm-form">{% csrf_token %}<input type="hidden" name="action" value="publication">{{ publish_form.as_p }}{% if shared %}<p><label><input type="checkbox" name="confirm_shared"> Xác nhận nếu đổi trạng thái bộ nội dung: áp dụng tại mọi vị trí dùng chung.</label></p>{% endif %}<div class="submit-row"><input type="submit" value="Áp dụng trạng thái" class="default"></div></form>{% else %}<p class="rm-pad">Bạn chưa có quyền xuất bản / ẩn nội dung.</p>{% endif %}
+{% if not node %}<p class="rm-pad"><a href="{% url 'admin:mentor_roadmap_change' roadmap.pk %}">Sửa tên, giới thiệu và phạm vi lộ trình</a> · <a href="{% url 'admin:mentor_learningtopic_changelist' %}">Thư viện nội dung</a></p>{% endif %}
+</section>
+{% endif %}
+</main></div>
+{% endblock %}

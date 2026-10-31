@@ -6,7 +6,8 @@ RUN npm ci --ignore-scripts --no-audit --no-fund
 COPY make_style.sh ./make_style.sh
 COPY scripts ./scripts
 COPY resources ./resources
-RUN ./make_style.sh
+COPY mentor/visual_schema_v2.json ./mentor/visual_schema_v2.json
+RUN npm run build:visuals && ./make_style.sh
 
 FROM python:3.13.5-slim-bookworm@sha256:4c2cf9917bd1cbacc5e9b07320025bdb7cdf2df7b0ceaccb55e9dd7e30987419 AS python-build
 ENV PYTHONDONTWRITEBYTECODE=1 PIP_DISABLE_PIP_VERSION_CHECK=1 PIP_NO_CACHE_DIR=1

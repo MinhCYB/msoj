@@ -19,7 +19,7 @@ from mentor.roadmap_curriculum import (
 
 class Command(BaseCommand):
     help = (
-        "Inspect or seed the approved MSOJ 216-node Competitive Programming curriculum.\n"
+        "Inspect or seed the approved MSOJ Competitive Programming curriculum.\n"
         "Defaults to dry-run (no writes). Writing requires --apply, --user <staff_user>,\n"
         "--isolated-dev, and settings.ROADMAP_CURRICULUM_SEED_ALLOWED=True.\n"
         "Multi-db aliases are not supported (default database only)."
@@ -140,8 +140,8 @@ class Command(BaseCommand):
         self.stdout.write(f"  Conflicts:               {len(plan.conflicts)}")
         self.stdout.write(f"  Unexpected extra nodes:  {len(plan.extra_nodes)}")
         self.stdout.write(
-            f"  Manifest prerequisites:  {plan.prerequisite_targets_count} targets, "
-            f"{plan.prerequisite_edges_count} edges (metadata-only, model rows not persisted per policy)"
+            f"  Seed prerequisites:     {plan.prerequisite_targets_count} targets, "
+            f"{plan.prerequisite_edges_count} edges (persisted for newly created nodes)"
         )
 
         if not plan.is_valid_for_apply:
@@ -170,6 +170,6 @@ class Command(BaseCommand):
         self.stdout.write(f"  Nodes created:           {result['nodes_created']}")
         self.stdout.write(f"  Nodes matched (no-op):   {result['nodes_matched']}")
         self.stdout.write(
-            f"  Manifest prerequisites:  {result['prerequisite_targets_count']} targets, "
-            f"{result['prerequisite_edges_count']} edges (manifest metadata only)"
+            f"  Seed prerequisites:     {result['prerequisite_targets_count']} targets, "
+            f"{result['prerequisite_edges_count']} edges (database rows)"
         )

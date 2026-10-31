@@ -62,6 +62,7 @@ def _turn_state(turn):
         approved = turn.published_messages.filter(role=BrainstormMessage.ROLE_AI, is_legacy_stub=False).first()
         if approved:
             data['answer'] = approved.content
+            data['visuals'] = approved.approved_visuals
     return data
 
 
@@ -86,7 +87,7 @@ def session_state(request, problem_code):
             pairs.setdefault(message.turn_id, []).append(message)
         history = [{'turn_id': turn_id, 'question': messages[0].content,
                     'approach': messages[0].described_approach, 'answer': messages[1].content,
-                    'hint_level': messages[1].hint_level_granted}
+                    'visuals': messages[1].approved_visuals, 'hint_level': messages[1].hint_level_granted}
                    for turn_id, messages in pairs.items()
                    if len(messages) == 2 and messages[0].role == 'student' and messages[1].role == 'ai']
         running = session.turns.filter(status__in=(BrainstormTurn.STATUS_PENDING,

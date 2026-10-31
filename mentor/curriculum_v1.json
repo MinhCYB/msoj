@@ -8,18 +8,18 @@
     "introduction": "Lộ trình CP từ người đã bắt đầu lập trình đến người học thuật toán chuyên sâu, lấy VNOI Roadmap làm nguồn chính."
   },
   "summary": {
-    "nodes_count": 216,
+    "nodes_count": 217,
     "groups_count": 27,
-    "topics_count": 189,
+    "topics_count": 190,
     "roots_count": 13,
     "max_depth": 4,
-    "prerequisite_targets_count": 69,
-    "prerequisite_edges_count": 136
+    "prerequisite_targets_count": 70,
+    "prerequisite_edges_count": 139
   },
   "editorial_policy": {
     "content_readiness": "Node publication is independent of content readiness (Public Curriculum Skeleton B). Newly seeded nodes are published skeletons with learning_topic=null.",
-    "metadata_boundary": "Introduction, source stars, source URLs, and node provenance remain in the manifest only; no fake LearningTopic, TopicLesson, or NodeProblem records are created.",
-    "prerequisite_policy": "Curriculum prerequisites are non-locking recommended learning order metadata stored in the manifest only; no RoadmapPrerequisite model rows are persisted by default."
+    "metadata_boundary": "Node introduction and display section initialize database authoring fields on first seed; source stars, URLs and provenance remain manifest-only. No fake LearningTopic, TopicLesson, or NodeProblem records are created.",
+    "prerequisite_policy": "Curriculum prerequisites initialize non-locking database recommendations for fresh seed targets. Runtime reads database edits only; reapplying seed never overwrites authored metadata or existing-target edges."
   },
   "source_provenance": {
     "r_roadmap": {
@@ -77,38 +77,15 @@
       }
     },
     {
-      "slug": "programming-basics",
-      "title": "Lập trình căn bản (Programming basics)",
+      "slug": "io-basics",
+      "title": "Nhập xuất và tính toán cơ bản (I/O and basic arithmetic)",
       "parent": "foundations",
       "position": 0,
       "type": "TOPIC",
       "difficulty": "BASIC",
       "stars_raw": "—",
       "source_raw": "M:đề xuất riêng",
-      "introduction": "Nắm biến, kiểu dữ liệu, điều kiện, vòng lặp và hàm trước khi học thuật toán.",
-      "content_status": "SK",
-      "provenance": {
-        "r_topics": [],
-        "w_topics": [],
-        "g_links": [],
-        "r_groups": [],
-        "g_headings": [],
-        "m_supplement": {
-          "reason": "Nắm biến, kiểu dữ liệu, điều kiện, vòng lặp và hàm trước khi học thuật toán.",
-          "note": "Không có node tương ứng trong inventory R/G/W đã đọc."
-        }
-      }
-    },
-    {
-      "slug": "io-and-numeric-safety",
-      "title": "Nhập xuất và an toàn số học (I/O and numeric safety)",
-      "parent": "foundations",
-      "position": 1,
-      "type": "TOPIC",
-      "difficulty": "BASIC",
-      "stars_raw": "—",
-      "source_raw": "M:đề xuất riêng",
-      "introduction": "Xử lý dữ liệu đầu vào, giới hạn kiểu số và sai số trong chương trình thi đấu.",
+      "introduction": "Đọc và ghi dữ liệu, dùng biến, kiểu số và phép toán; kiểm tra chia nguyên, chia dư và giá trị trung gian.",
       "content_status": "SK",
       "provenance": {
         "r_topics": [],
@@ -120,18 +97,108 @@
           "reason": "Xử lý dữ liệu đầu vào, giới hạn kiểu số và sai số trong chương trình thi đấu.",
           "note": "Không có node tương ứng trong inventory R/G/W đã đọc."
         }
-      }
+      },
+      "display_section": "foundations-7"
     },
     {
-      "slug": "arrays-and-strings",
-      "title": "Mảng và xâu căn bản (Arrays and strings)",
+      "slug": "conditions",
+      "title": "Điều kiện và rẽ nhánh (Conditions and branching)",
+      "parent": "foundations",
+      "position": 1,
+      "type": "TOPIC",
+      "difficulty": "BASIC",
+      "stars_raw": "R95:1★, W1.1:1★",
+      "source_raw": "R95; W1.1",
+      "introduction": "So sánh và kết hợp điều kiện, viết if/else; chia trường hợp đầy đủ, không chồng lấn và kiểm tra giá trị biên.",
+      "content_status": "SK",
+      "provenance": {
+        "r_topics": [
+          {
+            "code": "R95",
+            "node_id": "enKcoppmK9jEB-DNxjfil",
+            "raw_label": "Casework",
+            "stars": 1,
+            "handling": "Giữ"
+          }
+        ],
+        "w_topics": [
+          {
+            "code": "W1.1",
+            "group": "Khái niệm cơ bản",
+            "raw_label": "Casework",
+            "url": null,
+            "stars": 1,
+            "handling": "Giữ/gộp với R; Chưa có bài"
+          }
+        ],
+        "g_links": [],
+        "r_groups": [],
+        "g_headings": [],
+        "m_supplement": null,
+        "transferred_lessons": [
+          "casework:case-analysis"
+        ]
+      },
+      "display_section": "foundations-7"
+    },
+    {
+      "slug": "loops",
+      "title": "Vòng lặp (Loops)",
       "parent": "foundations",
       "position": 2,
       "type": "TOPIC",
       "difficulty": "BASIC",
       "stars_raw": "—",
       "source_raw": "M:đề xuất riêng",
-      "introduction": "Biểu diễn và duyệt dãy dữ liệu bằng mảng và xâu.",
+      "introduction": "Dùng for/while để tích lũy, đếm và xử lý chữ số; xác định khởi tạo, điều kiện dừng và bước cập nhật.",
+      "content_status": "SK",
+      "provenance": {
+        "r_topics": [],
+        "w_topics": [],
+        "g_links": [],
+        "r_groups": [],
+        "g_headings": [],
+        "m_supplement": {
+          "reason": "Nắm biến, kiểu dữ liệu, điều kiện, vòng lặp và hàm trước khi học thuật toán.",
+          "note": "Không có node tương ứng trong inventory R/G/W đã đọc."
+        }
+      },
+      "display_section": "foundations-7"
+    },
+    {
+      "slug": "functions",
+      "title": "Hàm và tổ chức chương trình (Functions and program structure)",
+      "parent": "foundations",
+      "position": 3,
+      "type": "TOPIC",
+      "difficulty": "BASIC",
+      "stars_raw": "—",
+      "source_raw": "M:đề xuất riêng",
+      "introduction": "Chia chương trình thành hàm nhỏ, rõ nhiệm vụ; hiểu tham số, giá trị trả về và phạm vi biến.",
+      "content_status": "SK",
+      "provenance": {
+        "r_topics": [],
+        "w_topics": [],
+        "g_links": [],
+        "r_groups": [],
+        "g_headings": [],
+        "m_supplement": {
+          "reason": "Tổ chức chương trình bằng hàm trước khi học kỹ thuật thuật toán.",
+          "note": "Không có node tương ứng trong inventory R/G/W đã đọc."
+        }
+      },
+      "display_section": "foundations-7"
+    },
+    {
+      "slug": "array-basics",
+      "title": "Mảng một chiều (One-dimensional arrays)",
+      "parent": "foundations",
+      "position": 4,
+      "type": "TOPIC",
+      "difficulty": "BASIC",
+      "stars_raw": "—",
+      "source_raw": "M:đề xuất riêng",
+      "introduction": "Lưu và duyệt dãy một chiều; tính tổng, tìm cực trị, tìm kiếm tuyến tính, dùng mảng đếm và đánh dấu.",
       "content_status": "SK",
       "provenance": {
         "r_topics": [],
@@ -142,19 +209,71 @@
         "m_supplement": {
           "reason": "Biểu diễn và duyệt dãy dữ liệu bằng mảng và xâu.",
           "note": "Không có node tương ứng trong inventory R/G/W đã đọc."
+        },
+        "transferred_lessons": [
+          "arrays-and-strings:arrays-strings-reference"
+        ]
+      },
+      "display_section": "foundations-7"
+    },
+    {
+      "slug": "string-basics",
+      "title": "Ký tự và xâu cơ bản (Characters and strings)",
+      "parent": "foundations",
+      "position": 5,
+      "type": "TOPIC",
+      "difficulty": "BASIC",
+      "stars_raw": "—",
+      "source_raw": "M:đề xuất riêng",
+      "introduction": "Biểu diễn, đọc, duyệt và xử lý ký tự cùng xâu ngắn một cách an toàn.",
+      "content_status": "SK",
+      "provenance": {
+        "r_topics": [],
+        "w_topics": [],
+        "g_links": [],
+        "r_groups": [],
+        "g_headings": [],
+        "m_supplement": {
+          "reason": "Tách kỹ năng xâu căn bản khỏi thuật toán xâu chuyên sâu.",
+          "note": "Không có node tương ứng trong inventory R/G/W đã đọc."
         }
-      }
+      },
+      "display_section": "foundations-7"
+    },
+    {
+      "slug": "matrix-basics",
+      "title": "Mảng hai chiều (Two-dimensional arrays)",
+      "parent": "foundations",
+      "position": 6,
+      "type": "TOPIC",
+      "difficulty": "BASIC",
+      "stars_raw": "—",
+      "source_raw": "M:đề xuất riêng",
+      "introduction": "Lưu và duyệt dữ liệu dạng bảng bằng hàng, cột và chỉ số hợp lệ.",
+      "content_status": "SK",
+      "provenance": {
+        "r_topics": [],
+        "w_topics": [],
+        "g_links": [],
+        "r_groups": [],
+        "g_headings": [],
+        "m_supplement": {
+          "reason": "Bổ sung nền tảng ma trận cho bài toán bảng và lưới.",
+          "note": "Không có node tương ứng trong inventory R/G/W đã đọc."
+        }
+      },
+      "display_section": "foundations-7"
     },
     {
       "slug": "algorithmic-thinking",
-      "title": "Tư duy giải bài và tài liệu học (Problem solving)",
+      "title": "Tư duy giải bài và lập luận đúng đắn (Problem solving and correctness)",
       "parent": "foundations",
-      "position": 3,
+      "position": 7,
       "type": "TOPIC",
       "difficulty": "BASIC",
       "stars_raw": "W2.1:1★, G1:1★, G2:1★, G3:1★, G4:1★",
       "source_raw": "W2.1; G1; G2; G3; G4",
-      "introduction": "Phân tích yêu cầu, tìm hướng giải và chọn tài liệu phù hợp.",
+      "introduction": "Hiểu đề, mô hình hóa, tìm hướng giải và lập luận đúng đắn; dùng bất biến, chia trường hợp và phản ví dụ.",
       "content_status": "SK",
       "provenance": {
         "r_topics": [],
@@ -200,14 +319,19 @@
         ],
         "r_groups": [],
         "g_headings": [],
-        "m_supplement": null
-      }
+        "m_supplement": null,
+        "transferred_lessons": [
+          "correctness:correctness",
+          "algorithmic-thinking:problem-solving-reference"
+        ]
+      },
+      "display_section": "foundations-3"
     },
     {
       "slug": "complexity",
-      "title": "Độ phức tạp thuật toán (Complexity)",
+      "title": "Độ phức tạp thuật toán (Algorithmic complexity)",
       "parent": "foundations",
-      "position": 4,
+      "position": 8,
       "type": "TOPIC",
       "difficulty": "BASIC",
       "stars_raw": "W2.2:1★, G5:1★",
@@ -248,73 +372,14 @@
           }
         ],
         "m_supplement": null
-      }
-    },
-    {
-      "slug": "correctness",
-      "title": "Chứng minh tính đúng đắn (Correctness)",
-      "parent": "foundations",
-      "position": 5,
-      "type": "TOPIC",
-      "difficulty": "BASIC",
-      "stars_raw": "—",
-      "source_raw": "M:đề xuất riêng",
-      "introduction": "Dùng bất biến, quy nạp và phản ví dụ để kiểm chứng thuật toán.",
-      "content_status": "SK",
-      "provenance": {
-        "r_topics": [],
-        "w_topics": [],
-        "g_links": [],
-        "r_groups": [],
-        "g_headings": [],
-        "m_supplement": {
-          "reason": "Dùng bất biến, quy nạp và phản ví dụ để kiểm chứng thuật toán.",
-          "note": "Không có node tương ứng trong inventory R/G/W đã đọc."
-        }
-      }
-    },
-    {
-      "slug": "casework",
-      "title": "Phân chia trường hợp (Casework)",
-      "parent": "foundations",
-      "position": 6,
-      "type": "TOPIC",
-      "difficulty": "BASIC",
-      "stars_raw": "R95:1★, W1.1:1★",
-      "source_raw": "R95; W1.1",
-      "introduction": "Chia yêu cầu thành các trường hợp đầy đủ và không chồng lấn.",
-      "content_status": "SK",
-      "provenance": {
-        "r_topics": [
-          {
-            "code": "R95",
-            "node_id": "enKcoppmK9jEB-DNxjfil",
-            "raw_label": "Casework",
-            "stars": 1,
-            "handling": "Giữ"
-          }
-        ],
-        "w_topics": [
-          {
-            "code": "W1.1",
-            "group": "Khái niệm cơ bản",
-            "raw_label": "Casework",
-            "url": null,
-            "stars": 1,
-            "handling": "Giữ/gộp với R; Chưa có bài"
-          }
-        ],
-        "g_links": [],
-        "r_groups": [],
-        "g_headings": [],
-        "m_supplement": null
-      }
+      },
+      "display_section": "foundations-3"
     },
     {
       "slug": "implementation",
-      "title": "Kỹ năng cài đặt (Implementation)",
+      "title": "Cài đặt, kiểm thử và gỡ lỗi (Implementation, testing, and debugging)",
       "parent": "foundations",
-      "position": 7,
+      "position": 9,
       "type": "TOPIC",
       "difficulty": "BASIC",
       "stars_raw": "R97:1★, W1.2:1★",
@@ -344,82 +409,14 @@
         "g_links": [],
         "r_groups": [],
         "g_headings": [],
-        "m_supplement": null
-      }
-    },
-    {
-      "slug": "hardcode",
-      "title": "Xử lý tập trường hợp cố định (Hardcode)",
-      "parent": "foundations",
-      "position": 8,
-      "type": "TOPIC",
-      "difficulty": "BASIC",
-      "stars_raw": "R96:1★, W1.3:1★",
-      "source_raw": "R96; W1.3",
-      "introduction": "Nhận biết khi nào có thể liệt kê một tập hữu hạn đã được chứng minh đầy đủ.",
-      "content_status": "SK",
-      "provenance": {
-        "r_topics": [
-          {
-            "code": "R96",
-            "node_id": "l5jlC3rovasZ7z2Pcz5Kk",
-            "raw_label": "Hardcode",
-            "stars": 1,
-            "handling": "Giữ"
-          }
-        ],
-        "w_topics": [
-          {
-            "code": "W1.3",
-            "group": "Khái niệm cơ bản",
-            "raw_label": "Hardcode",
-            "url": null,
-            "stars": 1,
-            "handling": "Giữ/gộp với R; Chưa có bài"
-          }
-        ],
-        "g_links": [],
-        "r_groups": [],
-        "g_headings": [],
-        "m_supplement": null
-      }
-    },
-    {
-      "slug": "queries",
-      "title": "Mô hình truy vấn (Queries)",
-      "parent": "foundations",
-      "position": 9,
-      "type": "TOPIC",
-      "difficulty": "BASIC",
-      "stars_raw": "R99:1★, W1.4:1★",
-      "source_raw": "R99; W1.4",
-      "introduction": "Phân biệt truy vấn và cập nhật cùng yêu cầu online hoặc offline.",
-      "content_status": "SK",
-      "provenance": {
-        "r_topics": [
-          {
-            "code": "R99",
-            "node_id": "MYMDHkFsK5Q5crb6tpiRH",
-            "raw_label": "Queries",
-            "stars": 1,
-            "handling": "Giữ"
-          }
-        ],
-        "w_topics": [
-          {
-            "code": "W1.4",
-            "group": "Khái niệm cơ bản",
-            "raw_label": "Truy vấn (Queries)",
-            "url": null,
-            "stars": 1,
-            "handling": "Giữ/gộp với R; Chưa có bài"
-          }
-        ],
-        "g_links": [],
-        "r_groups": [],
-        "g_headings": [],
-        "m_supplement": null
-      }
+        "m_supplement": null,
+        "transferred_lessons": [
+          "io-and-numeric-safety:numeric-safety",
+          "implementation:implementation-reference",
+          "programming-basics:programming-foundations-reference"
+        ]
+      },
+      "display_section": "foundations-3"
     },
     {
       "slug": "basic-algorithms",
@@ -478,6 +475,13 @@
             "raw_label": "Brute Force",
             "stars": 1,
             "handling": "Giữ"
+          },
+          {
+            "code": "R96",
+            "node_id": "l5jlC3rovasZ7z2Pcz5Kk",
+            "raw_label": "Hardcode",
+            "stars": 1,
+            "handling": "Giữ"
           }
         ],
         "w_topics": [
@@ -488,12 +492,23 @@
             "url": "https://wiki.vnoi.info/vi/translate/topcoder/Planning-an-Approach-to-a-Topcoder-Problem-Part-1",
             "stars": 1,
             "handling": "Giữ/gộp với R; Có link Wiki"
+          },
+          {
+            "code": "W1.3",
+            "group": "Khái niệm cơ bản",
+            "raw_label": "Hardcode",
+            "url": null,
+            "stars": 1,
+            "handling": "Giữ/gộp với R; Chưa có bài"
           }
         ],
         "g_links": [],
         "r_groups": [],
         "g_headings": [],
-        "m_supplement": null
+        "m_supplement": null,
+        "transferred_lessons": [
+          "hardcode:finite-domains"
+        ]
       }
     },
     {
@@ -1782,10 +1797,47 @@
       }
     },
     {
+      "slug": "queries",
+      "title": "Mô hình truy vấn (Queries)",
+      "parent": "range-queries",
+      "position": 0,
+      "type": "TOPIC",
+      "difficulty": "BASIC",
+      "stars_raw": "R99:1★, W1.4:1★",
+      "source_raw": "R99; W1.4",
+      "introduction": "Phân biệt truy vấn và cập nhật cùng yêu cầu online hoặc offline.",
+      "content_status": "SK",
+      "provenance": {
+        "r_topics": [
+          {
+            "code": "R99",
+            "node_id": "MYMDHkFsK5Q5crb6tpiRH",
+            "raw_label": "Queries",
+            "stars": 1,
+            "handling": "Giữ"
+          }
+        ],
+        "w_topics": [
+          {
+            "code": "W1.4",
+            "group": "Khái niệm cơ bản",
+            "raw_label": "Truy vấn (Queries)",
+            "url": null,
+            "stars": 1,
+            "handling": "Giữ/gộp với R; Chưa có bài"
+          }
+        ],
+        "g_links": [],
+        "r_groups": [],
+        "g_headings": [],
+        "m_supplement": null
+      }
+    },
+    {
       "slug": "prefix-difference",
       "title": "Mảng cộng dồn và mảng hiệu (Prefix sums, difference array)",
       "parent": "range-queries",
-      "position": 0,
+      "position": 1,
       "type": "TOPIC",
       "difficulty": "BASIC",
       "stars_raw": "R8:1★, W7.4:1★, G23:1★",
@@ -1830,7 +1882,7 @@
       "slug": "sparse-table",
       "title": "Bảng thưa và RMQ (Sparse table)",
       "parent": "range-queries",
-      "position": 1,
+      "position": 2,
       "type": "TOPIC",
       "difficulty": "INTERMEDIATE",
       "stars_raw": "R13:2★, W7.6:2★",
@@ -1867,7 +1919,7 @@
       "slug": "fenwick-tree",
       "title": "Cây Fenwick (Binary indexed tree)",
       "parent": "range-queries",
-      "position": 2,
+      "position": 3,
       "type": "TOPIC",
       "difficulty": "INTERMEDIATE",
       "stars_raw": "R33:2★, W12.1:2★",
@@ -1904,7 +1956,7 @@
       "slug": "segment-tree",
       "title": "Cây phân đoạn (Segment tree)",
       "parent": "range-queries",
-      "position": 3,
+      "position": 4,
       "type": "TOPIC",
       "difficulty": "INTERMEDIATE",
       "stars_raw": "R32:2★, W12.2:2★",
@@ -7887,20 +7939,21 @@
     }
   ],
   "prerequisites": {
-    "targets_count": 69,
-    "edges_count": 136,
+    "targets_count": 70,
+    "edges_count": 139,
     "edges": [
       {
         "target": "complexity",
         "prerequisites": [
-          "programming-basics"
+          "loops",
+          "array-basics"
         ],
         "reason": "Phân tích các phép lặp và truy cập dữ liệu."
       },
       {
         "target": "recursion",
         "prerequisites": [
-          "programming-basics"
+          "functions"
         ],
         "reason": "Hiểu hàm và trạng thái lời gọi."
       },
@@ -7916,15 +7969,15 @@
         "target": "branch-and-bound",
         "prerequisites": [
           "backtracking",
-          "correctness"
+          "algorithmic-thinking"
         ],
         "reason": "Cận phải hợp lệ để không bỏ nghiệm tốt."
       },
       {
         "target": "binary-search",
         "prerequisites": [
-          "arrays-and-strings",
-          "correctness"
+          "array-basics",
+          "algorithmic-thinking"
         ],
         "reason": "Bất biến biên và tính đơn điệu."
       },
@@ -7936,6 +7989,14 @@
         "reason": "Bảo toàn thứ tự sau sắp xếp."
       },
       {
+        "target": "greedy",
+        "prerequisites": [
+          "algorithmic-thinking",
+          "sorting-overview"
+        ],
+        "reason": "Chứng minh lựa chọn và thứ tự xét."
+      },
+      {
         "target": "merge-sort",
         "prerequisites": [
           "recursion"
@@ -7943,12 +8004,11 @@
         "reason": "Chia bài toán và trộn kết quả."
       },
       {
-        "target": "greedy",
+        "target": "heap-sort",
         "prerequisites": [
-          "correctness",
-          "sorting-overview"
+          "heap-priority-queue"
         ],
-        "reason": "Chứng minh lựa chọn và thứ tự xét."
+        "reason": "Dùng tính chất heap."
       },
       {
         "target": "monotonic-structures",
@@ -7960,11 +8020,20 @@
         "reason": "Bất biến thứ tự và cửa sổ."
       },
       {
-        "target": "heap-sort",
+        "target": "queries",
         "prerequisites": [
-          "heap-priority-queue"
+          "array-basics",
+          "complexity"
         ],
-        "reason": "Dùng tính chất heap."
+        "reason": "Cần hiểu cấu trúc mảng và chi phí xử lý trước khi học mô hình truy vấn."
+      },
+      {
+        "target": "sparse-table",
+        "prerequisites": [
+          "array-basics",
+          "bitwise"
+        ],
+        "reason": "Đoạn lũy thừa hai và phép gộp."
       },
       {
         "target": "fenwick-tree",
@@ -7986,17 +8055,41 @@
         "target": "lazy-propagation",
         "prerequisites": [
           "segment-tree",
-          "correctness"
+          "algorithmic-thinking"
         ],
         "reason": "Luật hợp thành cập nhật."
       },
       {
-        "target": "sparse-table",
+        "target": "mo-algorithm",
         "prerequisites": [
-          "arrays-and-strings",
-          "bitwise"
+          "queries",
+          "two-pointers",
+          "sqrt-decomposition"
         ],
-        "reason": "Đoạn lũy thừa hai và phép gộp."
+        "reason": "Offline và dịch chuyển biên."
+      },
+      {
+        "target": "persistent-segment-tree",
+        "prerequisites": [
+          "segment-tree"
+        ],
+        "reason": "Phiên bản và chia sẻ cấu trúc."
+      },
+      {
+        "target": "li-chao-tree",
+        "prerequisites": [
+          "segment-tree",
+          "convex-hull-trick"
+        ],
+        "reason": "Truy vấn tập đường thẳng."
+      },
+      {
+        "target": "segment-tree-beats",
+        "prerequisites": [
+          "lazy-propagation",
+          "complexity"
+        ],
+        "reason": "Chi phí khấu hao và điều kiện dừng."
       },
       {
         "target": "modular-inverse",
@@ -8031,15 +8124,6 @@
         "reason": "Trường hợp modulo nguyên tố."
       },
       {
-        "target": "fft",
-        "prerequisites": [
-          "polynomials-series",
-          "divide-and-conquer",
-          "io-and-numeric-safety"
-        ],
-        "reason": "Tích chập và sai số."
-      },
-      {
         "target": "mobius",
         "prerequisites": [
           "arithmetic-functions",
@@ -8065,9 +8149,18 @@
         "reason": "Điều kiện nhóm nhân; trường hợp bình phương có hướng riêng."
       },
       {
+        "target": "fft",
+        "prerequisites": [
+          "polynomials-series",
+          "divide-and-conquer",
+          "implementation"
+        ],
+        "reason": "Tích chập và sai số."
+      },
+      {
         "target": "dp-basics",
         "prerequisites": [
-          "arrays-and-strings",
+          "array-basics",
           "recursion",
           "complexity"
         ],
@@ -8117,7 +8210,7 @@
         "target": "knuth-optimization",
         "prerequisites": [
           "dp-basics",
-          "correctness"
+          "algorithmic-thinking"
         ],
         "reason": "Điều kiện bất đẳng thức và điểm chia đơn điệu."
       },
@@ -8126,7 +8219,7 @@
         "prerequisites": [
           "dp-basics",
           "divide-and-conquer",
-          "correctness"
+          "algorithmic-thinking"
         ],
         "reason": "Chứng minh điểm tối ưu đơn điệu."
       },
@@ -8139,28 +8232,20 @@
         "reason": "Hàm tuyến tính và so sánh giao điểm; không bắt buộc học thuật toán bao lồi điểm trước."
       },
       {
-        "target": "li-chao-tree",
+        "target": "sos-dp",
         "prerequisites": [
-          "segment-tree",
-          "convex-hull-trick"
+          "bitmask-dp"
         ],
-        "reason": "Truy vấn tập đường thẳng."
+        "reason": "Biến đổi tập con."
       },
       {
         "target": "aliens-trick",
         "prerequisites": [
           "dp-basics",
           "binary-search",
-          "correctness"
+          "algorithmic-thinking"
         ],
         "reason": "Tham số phạt và tính lồi hoặc đơn điệu phù hợp."
-      },
-      {
-        "target": "sos-dp",
-        "prerequisites": [
-          "bitmask-dp"
-        ],
-        "reason": "Biến đổi tập con."
       },
       {
         "target": "bfs",
@@ -8180,29 +8265,6 @@
         "reason": "Duyệt lặp hoặc đệ quy."
       },
       {
-        "target": "bfs-01",
-        "prerequisites": [
-          "bfs",
-          "deque"
-        ],
-        "reason": "Thứ tự khoảng cách 0–1."
-      },
-      {
-        "target": "dijkstra",
-        "prerequisites": [
-          "bfs",
-          "heap-priority-queue"
-        ],
-        "reason": "Cạnh không âm và lấy khoảng cách nhỏ nhất."
-      },
-      {
-        "target": "shortest-path-dag",
-        "prerequisites": [
-          "topological-sort"
-        ],
-        "reason": "Phụ thuộc trên DAG; dù nguồn chấm 1 sao vẫn học sau nền đồ thị."
-      },
-      {
         "target": "scc",
         "prerequisites": [
           "dfs",
@@ -8219,11 +8281,27 @@
         "reason": "Low-link trên đồ thị vô hướng."
       },
       {
-        "target": "two-sat",
+        "target": "bfs-01",
         "prerequisites": [
-          "scc"
+          "bfs",
+          "deque"
         ],
-        "reason": "Đồ thị hàm ý."
+        "reason": "Thứ tự khoảng cách 0–1."
+      },
+      {
+        "target": "shortest-path-dag",
+        "prerequisites": [
+          "topological-sort"
+        ],
+        "reason": "Phụ thuộc trên DAG; dù nguồn chấm 1 sao vẫn học sau nền đồ thị."
+      },
+      {
+        "target": "dijkstra",
+        "prerequisites": [
+          "bfs",
+          "heap-priority-queue"
+        ],
+        "reason": "Cạnh không âm và lấy khoảng cách nhỏ nhất."
       },
       {
         "target": "kruskal",
@@ -8239,6 +8317,28 @@
           "dijkstra"
         ],
         "reason": "Kỹ thuật lấy đỉnh hoặc cạnh ưu tiên; mục tiêu khác Dijkstra."
+      },
+      {
+        "target": "two-sat",
+        "prerequisites": [
+          "scc"
+        ],
+        "reason": "Đồ thị hàm ý."
+      },
+      {
+        "target": "block-cut-tree",
+        "prerequisites": [
+          "bcc"
+        ],
+        "reason": "Khối và khớp thành cây."
+      },
+      {
+        "target": "rollback-dsu",
+        "prerequisites": [
+          "dsu",
+          "divide-and-conquer"
+        ],
+        "reason": "Hoàn tác không dùng path compression tùy tiện."
       },
       {
         "target": "lca-binary-lifting",
@@ -8290,36 +8390,6 @@
         "reason": "Cây động và đường ưu tiên."
       },
       {
-        "target": "block-cut-tree",
-        "prerequisites": [
-          "bcc"
-        ],
-        "reason": "Khối và khớp thành cây."
-      },
-      {
-        "target": "rollback-dsu",
-        "prerequisites": [
-          "dsu",
-          "divide-and-conquer"
-        ],
-        "reason": "Hoàn tác không dùng path compression tùy tiện."
-      },
-      {
-        "target": "segment-tree-beats",
-        "prerequisites": [
-          "lazy-propagation",
-          "complexity"
-        ],
-        "reason": "Chi phí khấu hao và điều kiện dừng."
-      },
-      {
-        "target": "persistent-segment-tree",
-        "prerequisites": [
-          "segment-tree"
-        ],
-        "reason": "Phiên bản và chia sẻ cấu trúc."
-      },
-      {
         "target": "aho-corasick",
         "prerequisites": [
           "trie",
@@ -8332,17 +8402,9 @@
         "target": "suffix-array",
         "prerequisites": [
           "sorting-overview",
-          "arrays-and-strings"
+          "string-basics"
         ],
         "reason": "Thứ tự từ điển và biểu diễn xâu; không đòi hoàn thành mọi topic xâu cơ bản."
-      },
-      {
-        "target": "convex-hull",
-        "prerequisites": [
-          "geometry-basics",
-          "sorting-overview"
-        ],
-        "reason": "Định hướng và thứ tự điểm."
       },
       {
         "target": "sweep-line",
@@ -8353,12 +8415,28 @@
         "reason": "Thứ tự sự kiện và cấu trúc trạng thái."
       },
       {
+        "target": "convex-hull",
+        "prerequisites": [
+          "geometry-basics",
+          "sorting-overview"
+        ],
+        "reason": "Định hướng và thứ tự điểm."
+      },
+      {
         "target": "maximum-flow",
         "prerequisites": [
           "bfs",
           "dfs"
         ],
         "reason": "Mạng dư và tìm đường tăng."
+      },
+      {
+        "target": "weighted-matching",
+        "prerequisites": [
+          "maximum-matching",
+          "matrix"
+        ],
+        "reason": "Chọn phạm vi hai phía hoặc tổng quát khi biên soạn."
       },
       {
         "target": "min-cost-flow",
@@ -8377,14 +8455,6 @@
         "reason": "Biến đổi cận dưới."
       },
       {
-        "target": "weighted-matching",
-        "prerequisites": [
-          "maximum-matching",
-          "matrix"
-        ],
-        "reason": "Chọn phạm vi hai phía hoặc tổng quát khi biên soạn."
-      },
-      {
         "target": "grundy",
         "prerequisites": [
           "nim",
@@ -8398,15 +8468,6 @@
           "minimax"
         ],
         "reason": "Cận đối kháng."
-      },
-      {
-        "target": "mo-algorithm",
-        "prerequisites": [
-          "queries",
-          "two-pointers",
-          "sqrt-decomposition"
-        ],
-        "reason": "Offline và dịch chuyển biên."
       },
       {
         "target": "parallel-binary-search",
@@ -8435,7 +8496,7 @@
       {
         "target": "interactive",
         "prerequisites": [
-          "io-and-numeric-safety",
+          "io-basics",
           "queries"
         ],
         "reason": "Giao thức và flush."
@@ -9645,9 +9706,9 @@
         "node_id": "enKcoppmK9jEB-DNxjfil",
         "raw_label": "Casework",
         "stars": 1,
-        "slug": "casework",
+        "slug": "conditions",
         "slugs": [
-          "casework"
+          "conditions"
         ],
         "handling": "Giữ"
       },
@@ -9656,9 +9717,9 @@
         "node_id": "l5jlC3rovasZ7z2Pcz5Kk",
         "raw_label": "Hardcode",
         "stars": 1,
-        "slug": "hardcode",
+        "slug": "brute-force",
         "slugs": [
-          "hardcode"
+          "brute-force"
         ],
         "handling": "Giữ"
       },
@@ -10519,7 +10580,7 @@
         "url": null,
         "stars": 1,
         "slugs": [
-          "casework"
+          "conditions"
         ],
         "handling": "Giữ/gộp với R; Chưa có bài"
       },
@@ -10541,7 +10602,7 @@
         "url": null,
         "stars": 1,
         "slugs": [
-          "hardcode"
+          "brute-force"
         ],
         "handling": "Giữ/gộp với R; Chưa có bài"
       },
@@ -12613,22 +12674,22 @@
     ],
     "m_supplements": [
       {
-        "slug": "programming-basics",
+        "slug": "loops",
         "reason": "Nắm biến, kiểu dữ liệu, điều kiện, vòng lặp và hàm trước khi học thuật toán.",
         "note": "Không có node tương ứng trong inventory R/G/W đã đọc."
       },
       {
-        "slug": "io-and-numeric-safety",
+        "slug": "io-basics",
         "reason": "Xử lý dữ liệu đầu vào, giới hạn kiểu số và sai số trong chương trình thi đấu.",
         "note": "Không có node tương ứng trong inventory R/G/W đã đọc."
       },
       {
-        "slug": "arrays-and-strings",
+        "slug": "array-basics",
         "reason": "Biểu diễn và duyệt dãy dữ liệu bằng mảng và xâu.",
         "note": "Không có node tương ứng trong inventory R/G/W đã đọc."
       },
       {
-        "slug": "correctness",
+        "slug": "algorithmic-thinking",
         "reason": "Dùng bất biến, quy nạp và phản ví dụ để kiểm chứng thuật toán.",
         "note": "Không có node tương ứng trong inventory R/G/W đã đọc."
       }

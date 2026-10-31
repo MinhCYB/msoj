@@ -36,6 +36,15 @@ class PolygonTagMapFileTests(SimpleTestCase):
         self.assertEqual(entry['type'], ('dijkstra', 'Dijkstra'))
         self.assertEqual(entry['group'][0], 'graphs')
 
+    def test_foundation_tags_map_to_canonical_topics(self):
+        mapped = load_tag_map()['tags']
+        self.assertEqual(mapped['basic'], 'implementation')
+        self.assertEqual(mapped['ifelse'], 'conditions')
+        self.assertEqual(mapped['array'], 'array-basics')
+        self.assertEqual(mapped['2d array'], 'matrix-basics')
+        self.assertEqual(mapped['string'], 'string-basics')
+        self.assertEqual(mapped['strings'], 'string-basics')
+
 
 class ApplyPlanTests(TestCase):
     def test_apply_is_idempotent_and_keeps_admin_edits(self):

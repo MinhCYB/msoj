@@ -46,10 +46,10 @@
     {% endif %}
     {% compress css %}
         {% if PREFERRED_STYLE_CSS is not none %}
-            <link rel="stylesheet" href="{{ static(PREFERRED_STYLE_CSS) }}?v=visual-refresh-18">
+        <link rel="stylesheet" type="text/css" href="{{ static(PREFERRED_STYLE_CSS) }}?v=lesson-reading-24">
         {% else %}
-            <link rel="stylesheet" href="{{ static(LIGHT_STYLE_CSS) }}?v=visual-refresh-18">
-            <link rel="stylesheet" href="{{ static(DARK_STYLE_CSS) }}?v=visual-refresh-18" media="(prefers-color-scheme: dark)">
+        <link rel="stylesheet" type="text/css" href="{{ static(LIGHT_STYLE_CSS) }}?v=lesson-reading-24">
+        <link rel="stylesheet" type="text/css" href="{{ static(DARK_STYLE_CSS) }}?v=lesson-reading-24" media="(prefers-color-scheme: dark)">
         {% endif %}
         {% if INLINE_FONTAWESOME %}<link rel="stylesheet" href="{{ static('libs/fontawesome/font-awesome.css') }}">{% endif %}
         <link rel="stylesheet" href="{{ static('source_sans_pro.css') }}">

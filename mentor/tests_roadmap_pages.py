@@ -9,6 +9,30 @@ class RoadmapPageTests(RoadmapFixture, TestCase):
     def html(self, name, args, query=None):
         return self.client.get(reverse(name, args=args), query or {}, HTTP_ACCEPT='text/html')
 
+    def test_foundations_catalog_keeps_custom_topics_and_empty_state(self):
+        self.roadmap.slug = 'competitive-programming'
+        self.roadmap.save()
+        root = self.node('foundations', type='GROUP')
+        response = self.html('roadmap_detail', [self.roadmap.slug], {'group': root.pk})
+        self.assertEqual(response.context['explorer']['catalog_sections'], [])
+        custom = self.node('custom-foundation', parent=root)
+        response = self.html('roadmap_detail', [self.roadmap.slug], {'group': root.pk})
+        sections = response.context['explorer']['catalog_sections']
+        self.assertEqual([[n['id'] for n in s['nodes']] for s in sections], [[custom.pk]])
+    def test_catalog_sections_and_selected_summary_come_from_database(self):
+        root = self.node('catalog-group', type='GROUP')
+        first = self.node('section-first', parent=root, display_section='Database section', summary='Stored summary')
+        second = self.node('section-second', parent=root, display_section='Database section')
+        unassigned = self.node('unassigned', parent=root)
+        response = self.html('roadmap_detail', [self.roadmap.slug],
+                             {'group': root.pk, 'selected': first.pk})
+        self.assertEqual(response.status_code, 200)
+        sections = response.context['explorer']['catalog_sections']
+        self.assertEqual([section['title'] for section in sections], ['Database section', 'Chuyên đề khác'])
+        self.assertEqual([node['id'] for node in sections[0]['nodes']], [first.pk, second.pk])
+        self.assertEqual([node['id'] for node in sections[1]['nodes']], [unassigned.pk])
+        self.assertEqual(response.context['explorer']['summary'], 'Stored summary')
+
     def test_node_icon_override_and_no_icon_reach_knowledge_cards(self):
         node = self.node('foundations', type='GROUP')
         for stored, displayed in [('', 'fa-code'), ('fa-database', 'fa-database'), ('none', '')]:
@@ -156,55 +180,33 @@ class RoadmapPageTests(RoadmapFixture, TestCase):
         self.assertEqual([n['id'] for n in exp['stages'][1]['nodes']], [t2.pk])
         self.assertEqual([n['id'] for n in exp['stages'][2]['nodes']], [t3.pk])
 
-    def test_hidden_ancestor_prerequisite_never_leaks_and_breaks_path(self):
+    def test_database_reason_does_not_disclose_hidden_prerequisite(self):
         from .models import RoadmapPrerequisite
-
-        draft = self.node('draft-root', type='GROUP')
-        draft.status = 'DRAFT'
-        save_node(self.staff, draft)
-        hidden_prereq = self.node('hidden-prereq', parent=draft)
-        visible_prereq = self.node('visible-prereq')
-        pub_topic = self.node('pub-topic')
-
-        RoadmapPrerequisite.objects.create(node=pub_topic, prerequisite=hidden_prereq)
-        RoadmapPrerequisite.objects.create(node=pub_topic, prerequisite=visible_prereq)
-
-        resp = self.html('roadmap_detail', [self.roadmap.slug], {'view': 'path', 'goal': pub_topic.pk, 'selected': pub_topic.pk})
-        self.assertEqual(resp.status_code, 200)
-        exp = resp.context['explorer']
-        self.assertFalse(exp['has_path'])
-        self.assertNotIn(hidden_prereq.pk, [n['id'] for n in exp['visible_nodes']])
-        # Missing prerequisite rows are omitted entirely; visible prerequisite reason is cleared
-        self.assertEqual(len(exp['prerequisites']), 1)
-        self.assertEqual(exp['prerequisites'][0]['node']['id'], visible_prereq.pk)
-        self.assertEqual(exp['prerequisites'][0]['reason'], '')
-        self.assertNotContains(resp, 'hidden-prereq')
-        self.assertEqual(self.html('roadmap_detail', [self.roadmap.slug], {'goal': hidden_prereq.pk}).status_code, 404)
-
-    def test_manifest_reason_does_not_disclose_hidden_prerequisite(self):
-        from unittest.mock import patch
         from .roadmap_curriculum import ROADMAP_SLUG
         from .roadmap_models import Visibility
 
         self.roadmap.slug = ROADMAP_SLUG
         self.roadmap.visibility = Visibility.PUBLIC
         self.roadmap.save()
+        hidden_group = self.node('hidden-foundation', type='GROUP')
+        hidden_group.status = 'DRAFT'
+        hidden_group.save()
+        hidden = self.node('hidden-prerequisite', parent=hidden_group)
         visible = self.node('visible-foundation')
         target = self.node('visible-target')
-        edges = [{'target': target.slug,
-                  'prerequisites': [visible.slug, 'hidden-foundation'],
-                  'reason': 'Private hidden-foundation dependency rationale'}]
-        with patch('mentor.roadmap_explorer.get_manifest_prerequisite_edges', return_value=edges):
-            response = self.html('roadmap_detail', [self.roadmap.slug],
-                                 {'view': 'path', 'goal': target.pk, 'selected': target.pk})
-            self.assertEqual(response.status_code, 200)
-            self.assertFalse(response.context['explorer']['has_path'])
-            self.assertNotContains(response, 'hidden-foundation')
-            self.assertEqual(response.context['explorer']['prerequisites'][0]['node']['id'], visible.pk)
-            successor_response = self.html('roadmap_detail', [self.roadmap.slug],
-                                           {'view': 'path', 'goal': target.pk, 'selected': visible.pk})
-            self.assertNotContains(successor_response, 'hidden-foundation')
-
+        RoadmapPrerequisite.objects.create(node=target, prerequisite=visible, reason='Safe visible reason')
+        RoadmapPrerequisite.objects.create(node=target, prerequisite=hidden, reason='Private hidden dependency rationale')
+        response = self.html('roadmap_detail', [self.roadmap.slug],
+                             {'view': 'path', 'goal': target.pk, 'selected': target.pk})
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context['explorer']['has_path'])
+        self.assertNotContains(response, 'hidden-prerequisite')
+        self.assertNotContains(response, 'Private hidden dependency rationale')
+        self.assertEqual(response.context['explorer']['prerequisites'][0]['node']['id'], visible.pk)
+        self.assertEqual(response.context['explorer']['prerequisites'][0]['reason'], '')
+        successor_response = self.html('roadmap_detail', [self.roadmap.slug],
+                                       {'view': 'path', 'goal': target.pk, 'selected': visible.pk})
+        self.assertNotContains(successor_response, 'Private hidden dependency rationale')
     def test_invalid_parameters_return_400(self):
         self.assertEqual(self.html('roadmap_detail', [self.roadmap.slug], {'view': 'invalid'}).status_code, 400)
         self.assertEqual(self.html('roadmap_detail', [self.roadmap.slug], {'goal': 'invalid'}).status_code, 400)

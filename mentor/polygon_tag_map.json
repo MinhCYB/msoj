@@ -1,19 +1,27 @@
 {
-  "_comment": "Polygon tag (lowercase) -> slug of a node in curriculum_v1.json. One tag maps to exactly one node. Only the node's title is used, as the MSOJ problem type name; problems are never attached to roadmap nodes. The problem group is the title of the node's top-level ancestor.",
+  "_comment": "Polygon tags map to curriculum TOPIC slugs. Display sections remain metadata, not nodes. Problem group is the top-level roadmap domain; generic programming tags use implementation rather than every beginner foundation topic.",
   "type_names": {
     "_comment": "ProblemType.name is limited to 20 characters; slugs longer than that need a short name.",
     "binary-exponentiation": "binary-exponent",
     "bridges-articulations": "bridges-cuts",
-    "data-structures-overview": "ds-overview"
+    "data-structures-overview": "ds-overview",
+    "implementation": "implementation"
   },
   "tags": {
-    "basic": "programming-basics",
-    "ifelse": "programming-basics",
+    "basic": "implementation",
+    "ifelse": "conditions",
     "implementation": "implementation",
-    "array": "arrays-and-strings",
-    "2d array": "arrays-and-strings",
-    "string": "arrays-and-strings",
-    "strings": "arrays-and-strings",
+    "array": "array-basics",
+    "2d array": "matrix-basics",
+    "string": "string-basics",
+    "strings": "string-basics",
+    "io-basics": "io-basics",
+    "conditions": "conditions",
+    "loops": "loops",
+    "functions": "functions",
+    "array-basics": "array-basics",
+    "string-basics": "string-basics",
+    "matrix-basics": "matrix-basics",
     "brute force": "brute-force",
     "recursion": "recursion",
     "traceback": "backtracking",
@@ -24,7 +32,6 @@
     "bitmasks": "bitwise",
     "sorting": "sorting",
     "sortings": "sorting",
-
     "data structure": "data-structures-overview",
     "data structures": "data-structures-overview",
     "stack": "stack",
@@ -44,7 +51,6 @@
     "segment tree": "segment-tree",
     "lazy propagation": "lazy-propagation",
     "sqrt-decomposition": "sqrt-techniques",
-
     "math": "number-theory",
     "mathematics": "number-theory",
     "combinatorics": "binomial",
@@ -59,13 +65,11 @@
     "binary pow": "binary-exponentiation",
     "matrix multiplication": "matrix",
     "matrix exponentiation": "matrix",
-
     "dp": "dynamic-programming",
     "dynamic programming": "dynamic-programming",
     "bitmask-dp": "bitmask-dp",
     "knapsack": "knapsack",
     "lcs": "lcs",
-
     "graph": "graphs",
     "graphs": "graphs",
     "bfs": "bfs",
@@ -85,23 +89,19 @@
     "minimal spanning tree": "mst",
     "minimum spanning tree": "mst",
     "mst": "mst",
-
     "tree": "trees",
     "lca": "lca",
-
     "hashing": "string-hashing",
     "tries": "trie",
-
     "geometry": "geometry-basics",
     "sweep line": "sweep-line",
     "sweepline": "sweep-line",
-
     "ternary search": "ternary-search",
     "adhoc": "adhoc",
     "interactive": "interactive"
   },
   "unmapped": {
-    "_comment": "Seen on Polygon but intentionally given no type/group. cyb-boclot is ignored via settings.POLYGON_IGNORED_TAGS and yb-boclot via POLYGON_SKIP_TAGS.",
+    "_comment": "Tags listed here have no reliable curriculum topic mapping; this classification alone does not skip Polygon synchronization.",
     "hhy": "problem-set label, not an algorithm",
     "dhbb": "contest label",
     "coci": "contest source",

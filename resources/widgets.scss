@@ -28,7 +28,7 @@
 .button,
 button:not(.profile-disclosure):not(#prev-year-action):not(#next-year-action):not(.nav-seg-btn):not(
     .search-icon
-  ):not(:where(.ms-workspace *, .ms-submission-detail *, .ms-mentor *, .ms-annotation-toolbar *, #navigation *, .rm-finder-group, .rm-lecture-tabs *)),
+  ):not(:where(.ms-workspace *, .ms-submission-detail *, .ms-mentor *, .ms-annotation-toolbar *, #navigation *, .rm-finder-group, .rm-chat-close, .rm-chat-follow, .msoj-visual *, .mv-author *)),
 input[type="submit"]:not(:where(.ms-workspace *, #navigation *)) {
   color: var(--ms-btn-text, #ffffff) !important;
   text-decoration: none !important;

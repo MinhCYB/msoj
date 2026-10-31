@@ -9,7 +9,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from judge.fixtures.beginner.catalog import (
-    REUSE, ROADMAP, SECTIONS, SOURCE, TAG_NAMES, export_problems, load_problems, statement, tutorial,
+    REUSE, ROADMAP, SECTION_NODES, SECTIONS, SOURCE, TAG_NAMES, export_problems, load_problems, statement, tutorial,
 )
 from judge.fixtures.beginner.validators import validator_source
 from judge.models import PolygonProblem, PolygonTagMapping, Problem, ProblemGroup, ProblemType, Profile, Solution
@@ -176,7 +176,7 @@ class Command(BaseCommand):
                                 [p for p in REUSE if p['section'] == section]) for section, title in SECTIONS.items() if section != 'functions']
             section_entries.insert(4, ('functions', SECTIONS['functions'], [p for p in specs if p['function_practice']]))
             for position, (section, title, entries) in enumerate(section_entries, 1):
-                node_slug = 'gcd-euclid' if section == 'numbers' else 'arrays-and-strings' if section in ('arrays', 'frequency', 'strings', 'matrices') else 'programming-basics'
+                node_slug = SECTION_NODES[section]
                 topic = nodes[node_slug].learning_topic
                 if topic is None:
                     raise CommandError(f'Missing existing learning topic: {node_slug}')

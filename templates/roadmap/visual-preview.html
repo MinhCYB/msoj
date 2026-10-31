@@ -1,0 +1,7 @@
+{% from 'roadmap/prose.html' import prose %}
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Xem trước bài học tương tác</title>
+{{ select_css_theme('style.css', 'dark/style.css') }}
+{% include 'roadmap/visual-assets.html' %}
+<style>body{margin:0;padding:16px;background:var(--ms-page);color:var(--ms-text)}.rm-prose{overflow-wrap:anywhere}.rm-prose pre{overflow:auto}</style>
+</head><body><main>{{ prose(preview_data) }}</main>{% with mathjax_dollar_delimiters=true %}{% include 'mathjax-load.html' %}{% endwith %}</body></html>

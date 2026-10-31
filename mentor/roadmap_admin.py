@@ -4,7 +4,7 @@ from django.contrib import admin, messages
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from django.http import HttpResponseRedirect
-from django.urls import reverse, reverse_lazy
+from django.urls import path, reverse, reverse_lazy
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from mptt.admin import MPTTModelAdmin
@@ -58,16 +58,41 @@ class RoadmapForm(PublicationControlFormMixin, forms.ModelForm):
 
 
 class LearningTopicForm(PublicationControlFormMixin, forms.ModelForm):
+    confirm_shared = forms.BooleanField(required=False, label='Tôi hiểu thay đổi này áp dụng cho mọi nơi dùng chung nội dung')
+
+    def clean(self):
+        data = super().clean()
+        if self.instance.pk and self.instance.roadmap_nodes.count() > 1 and not data.get('confirm_shared'):
+            self.add_error('confirm_shared', 'Xác nhận phạm vi ảnh hưởng trước khi lưu nội dung dùng chung.')
+        return data
+
     class Meta:
         model = LearningTopic
-        fields = ('name', 'slug', 'status', 'visibility', 'organization', 'introduction')
+        fields = ('name', 'slug', 'status', 'visibility', 'organization', 'introduction', 'confirm_shared')
         widgets = {'introduction': AdminMartorWidget(attrs={'data-markdownfy-url': reverse_lazy('roadmap_markdown_preview')})}
 
 
 class TopicLessonForm(PublicationControlFormMixin, forms.ModelForm):
+    confirm_shared = forms.BooleanField(required=False, label='Tôi hiểu thay đổi này áp dụng cho mọi nơi dùng chung nội dung')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if 'slug' in self.fields:
+            self.fields['slug'].required = False
+
+    def clean(self):
+        data = super().clean()
+        topic = data.get('topic')
+        if not self.instance.pk and not data.get('slug') and topic:
+            from mentor.roadmap_workspace_forms import unique_slug
+            data['slug'] = unique_slug(TopicLesson, data.get('title', ''), topic=topic)
+        if topic and topic.roadmap_nodes.count() > 1 and not data.get('confirm_shared'):
+            self.add_error('confirm_shared', 'Xác nhận phạm vi ảnh hưởng trước khi lưu bài giảng dùng chung.')
+        return data
+
     class Meta:
         model = TopicLesson
-        fields = ('topic', 'title', 'slug', 'position', 'status', 'summary', 'body')
+        fields = ('topic', 'title', 'slug', 'position', 'status', 'summary', 'body', 'confirm_shared')
         widgets = {
             'summary': AdminMartorWidget(attrs={'data-markdownfy-url': reverse_lazy('roadmap_markdown_preview')}),
             'body': AdminMartorWidget(attrs={'data-markdownfy-url': reverse_lazy('roadmap_markdown_preview')}),
@@ -78,7 +103,7 @@ class RoadmapNodeForm(PublicationControlFormMixin, forms.ModelForm):
     class Meta:
         model = RoadmapNode
         fields = ('roadmap', 'parent', 'type', 'title', 'slug', 'icon', 'position',
-                  'difficulty', 'status', 'learning_topic', 'is_optional_review')
+                  'difficulty', 'status', 'learning_topic', 'is_optional_review', 'summary', 'display_section')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -118,8 +143,7 @@ class NodeProblemStandaloneForm(NodeProblemForm):
 class RoadmapPrerequisiteForm(forms.ModelForm):
     class Meta:
         model = RoadmapPrerequisite
-        fields = ('node', 'prerequisite')
-
+        fields = ('node', 'prerequisite', 'reason')
     def __init__(self, *args, user=None, **kwargs):
         self.user = user
         super().__init__(*args, **kwargs)
@@ -181,31 +205,6 @@ class RoadmapStaffAdmin(NoBatchDeleteMixin, admin.ModelAdmin):
         obj.delete()
 
 
-class TopicLessonInline(admin.StackedInline):
-    model = TopicLesson
-    form = TopicLessonForm
-    extra = 0
-    fields = ('title', 'slug', 'position', 'status', 'summary', 'body')
-    prepopulated_fields = {'slug': ('title',)}
-
-    def get_formset(self, request, obj=None, **kwargs):
-        FormSet = super().get_formset(request, obj, **kwargs)
-
-        class TopicLessonFormSetWithUser(FormSet):
-            def _construct_form(sub_self, i, **form_kwargs):
-                form_kwargs['user'] = request.user
-                return super()._construct_form(i, **form_kwargs)
-
-        return TopicLessonFormSetWithUser
-
-    def has_add_permission(self, request, obj=None):
-        return bool(request.user.is_active and request.user.is_staff and request.user.has_perm('mentor.add_topiclesson') and request.user.has_perm('mentor.change_learningtopic'))
-
-    def has_change_permission(self, request, obj=None):
-        return bool(request.user.is_active and request.user.is_staff and request.user.has_perm('mentor.change_topiclesson') and request.user.has_perm('mentor.change_learningtopic'))
-
-    def has_delete_permission(self, request, obj=None):
-        return bool(request.user.is_active and request.user.is_staff and request.user.has_perm('mentor.delete_topiclesson') and request.user.has_perm('mentor.change_learningtopic'))
 
 
 class NodeProblemInline(admin.TabularInline):
@@ -242,15 +241,42 @@ class NodeProblemInline(admin.TabularInline):
 @admin.register(Roadmap)
 class RoadmapAdmin(RoadmapStaffAdmin):
     form = RoadmapForm
-    list_display = ('title', 'slug', 'status', 'visibility', 'organization', 'get_node_count', 'tree_revision')
+    list_display = ('title', 'manage', 'status', 'visibility', 'organization', 'get_node_count')
     list_filter = ('status', 'visibility', 'organization')
     search_fields = ('title', 'slug')
     prepopulated_fields = {'slug': ('title',)}
     readonly_fields = ('tree_revision',)
+    change_form_template = 'admin/mentor/roadmap/change_form.html'
+    fieldsets = ((None, {'fields': ('title', 'introduction', 'status', 'visibility', 'organization')}),
+                 ('Nâng cao', {'classes': ('collapse',), 'fields': ('slug', 'tree_revision')}))
+
+    def get_urls(self):
+        from mentor.roadmap_workspace import roadmap_workspace
+        from mentor.roadmap_staff_preview import roadmap_staff_preview
+
+        def workspace(request, roadmap_id, node_id=None):
+            return roadmap_workspace(request, roadmap_id, self.admin_site, node_id=node_id)
+
+        def add_node(request, roadmap_id):
+            return roadmap_workspace(request, roadmap_id, self.admin_site, adding=True)
+
+        def preview(request, roadmap_id):
+            return roadmap_staff_preview(request, roadmap_id, self.admin_site)
+
+        return [
+            path('<int:roadmap_id>/workspace/', self.admin_site.admin_view(workspace), name='mentor_roadmap_workspace'),
+            path('<int:roadmap_id>/workspace/add/', self.admin_site.admin_view(add_node), name='mentor_roadmap_node_add'),
+            path('<int:roadmap_id>/workspace/<int:node_id>/', self.admin_site.admin_view(workspace), name='mentor_roadmap_node_workspace'),
+            path('<int:roadmap_id>/preview/', self.admin_site.admin_view(preview), name='mentor_roadmap_preview'),
+        ] + super().get_urls()
+
+    def manage(self, obj):
+        return format_html('<a href="{}">Quản lý lộ trình</a>', reverse('admin:mentor_roadmap_workspace', args=[obj.pk]))
+    manage.short_description = 'Nội dung và cấu trúc'
 
     def get_node_count(self, obj):
         return obj.nodes.count()
-    get_node_count.short_description = 'Nodes'
+    get_node_count.short_description = 'Nhóm / chuyên đề'
 
     def save_model(self, request, obj, form, change):
         save_content(request.user, obj)
@@ -259,58 +285,48 @@ class RoadmapAdmin(RoadmapStaffAdmin):
 @admin.register(LearningTopic)
 class LearningTopicAdmin(RoadmapStaffAdmin):
     form = LearningTopicForm
+    change_form_template = 'admin/mentor/roadmap/content_change_form.html'
     list_display = ('name', 'slug', 'status', 'visibility', 'organization', 'get_node_count', 'get_lesson_count', 'content_revision')
     list_filter = ('status', 'visibility', 'organization')
     search_fields = ('name', 'slug')
     prepopulated_fields = {'slug': ('name',)}
     readonly_fields = ('content_revision', 'usage_warning')
-    inlines = [TopicLessonInline]
+    inlines = []
+    fieldsets = ((None, {'fields': ('name', 'introduction', 'status', 'visibility', 'organization', 'usage_warning', 'confirm_shared')}),
+                 ('Nâng cao', {'classes': ('collapse',), 'fields': ('slug', 'content_revision')}))
 
     def get_node_count(self, obj):
         count = obj.roadmap_nodes.count()
-        return format_html('{} nodes (SHARED)', count) if count > 1 else (f'{count} node' if count else '0 nodes')
-    get_node_count.short_description = 'Placements'
+        return f'{count} vị trí (DÙNG CHUNG)' if count > 1 else f'{count} vị trí'
+    get_node_count.short_description = 'Nơi sử dụng'
 
     def get_lesson_count(self, obj):
         return obj.lessons.count()
-    get_lesson_count.short_description = 'Lessons'
+    get_lesson_count.short_description = 'Bài giảng'
 
     def usage_warning(self, obj):
         if not obj or not obj.pk:
-            return 'New topic (not yet referenced by any roadmap node).'
+            return 'Bộ nội dung mới, chưa được gắn vào lộ trình.'
         nodes = list(obj.roadmap_nodes.select_related('roadmap').all())
         if not nodes:
-            return 'Topic is not referenced by any roadmap node.'
-        items = [format_html('<li>Roadmap: {} &rarr; Node: {} [{}]</li>', n.roadmap.title, n.title, n.status) for n in nodes]
-        return format_html('Used by {} node(s):<ul>{}</ul>', len(nodes), mark_safe(''.join(items)))
-    usage_warning.short_description = 'Topic Placements & Sharing Impact'
+            return 'Bộ nội dung chưa được gắn vào lộ trình.'
+        items = [format_html('<li><a href="{}">{} → {}</a> [{}]</li>',
+            reverse('admin:mentor_roadmap_node_workspace', args=[n.roadmap_id, n.pk]),
+            n.roadmap.title, n.title, n.get_status_display()) for n in nodes]
+        lessons = reverse('admin:mentor_topiclesson_changelist') + f'?topic__id__exact={obj.pk}'
+        return format_html('Dùng tại {} vị trí:<ul>{}</ul><a href="{}">Quản lý từng bài giảng</a>',
+            len(nodes), mark_safe(''.join(items)), lessons)
+    usage_warning.short_description = 'Nơi sử dụng và phạm vi ảnh hưởng'
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
         topic = self.get_object(request, object_id)
         if topic and topic.roadmap_nodes.count() > 1:
-            messages.warning(request, f'Topic "{topic.name}" is shared across {topic.roadmap_nodes.count()} nodes.')
+            messages.warning(request, f'Bộ nội dung “{topic.name}” dùng chung tại {topic.roadmap_nodes.count()} vị trí; sửa ở đây sẽ áp dụng cho tất cả.')
         return super().change_view(request, object_id, form_url, extra_context=extra_context)
 
     def save_model(self, request, obj, form, change):
         save_content(request.user, obj)
 
-    def save_formset(self, request, form, formset, change):
-        instances = formset.save(commit=False)
-        for obj in formset.deleted_objects:
-            if isinstance(obj, TopicLesson):
-                lock_roadmap_forest()
-                require_write(request.user, obj, 'delete')
-                obj.delete()
-            else:
-                obj.delete()
-        for instance in instances:
-            if isinstance(instance, TopicLesson):
-                if not instance.topic_id and form.instance.pk:
-                    instance.topic = form.instance
-                save_content(request.user, instance)
-            else:
-                instance.save()
-        formset.save_m2m()
 
 
 @admin.register(TopicLesson)
@@ -321,14 +337,108 @@ class TopicLessonAdmin(RoadmapStaffAdmin):
     search_fields = ('title', 'slug', 'topic__name')
     prepopulated_fields = {'slug': ('title',)}
     readonly_fields = ('content_revision',)
+    change_form_template = 'admin/mentor/roadmap/lesson_change_form.html'
+    fieldsets = ((None, {'fields': ('topic', 'title', 'status', 'summary', 'body', 'confirm_shared')}),
+                 ('Nâng cao', {'classes': ('collapse',), 'fields': ('slug', 'position', 'content_revision')}))
+
+    def workspace_node(self, request, lesson=None):
+        from mentor.roadmap_workspace import can_read
+        value = request.GET.get('workspace_node', '')
+        if not (value.isascii() and value.isdigit() and can_read(request.user, Roadmap)
+                and can_read(request.user, RoadmapNode)):
+            return None
+        node = RoadmapNode.objects.select_related('roadmap').filter(pk=value).first()
+        if node and (lesson is None or node.learning_topic_id == lesson.topic_id):
+            return node
+        return None
+
+    def get_changeform_initial_data(self, request):
+        data = super().get_changeform_initial_data(request)
+        node = self.workspace_node(request)
+        if node and node.learning_topic_id:
+            data['topic'] = node.learning_topic_id
+            data['position'] = (TopicLesson.objects.filter(topic_id=node.learning_topic_id)
+                .order_by('-position').values_list('position', flat=True).first() or 0) + 1
+        return data
+
+    def get_form(self, request, obj=None, change=False, **kwargs):
+        FormClass = super().get_form(request, obj, change=change, **kwargs)
+        node = self.workspace_node(request, obj)
+        if node and node.learning_topic_id:
+            topic_id = node.learning_topic_id
+
+            class ContextLessonForm(FormClass):
+                def __init__(sub_self, *args, **form_kwargs):
+                    super().__init__(*args, **form_kwargs)
+                    if 'topic' in sub_self.fields:
+                        sub_self.fields['topic'].queryset = LearningTopic.objects.filter(pk=topic_id)
+
+            return ContextLessonForm
+        return FormClass
+
+    def changeform_view(self, request, object_id=None, form_url='', extra_context=None):
+        context = dict(extra_context or {})
+        import json
+        from pathlib import Path
+        from .lesson_visuals import visual_blocks
+        from .visual_algorithms import algorithm_document
+
+        templates = {}
+        for key in ('chart-table', 'prefix-sum', 'scene-geometry'):
+            body = (Path(__file__).with_name('interactive_samples') / (key + '.md')).read_text(encoding='utf-8')
+            templates[key] = json.loads(next(visual_blocks(body))[2])
+        for key, inputs in (
+            ('for-loop', {'start': 1, 'end': 4, 'step': 1}),
+            ('bfs', {'n': 4, 'edges': [[0, 1], [0, 2], [1, 3]], 'source': 0}),
+            ('dfs', {'n': 3, 'edges': [[0, 1], [1, 2]], 'source': 0}),
+            ('matrix-chain', {'dimensions': [10, 20, 5, 30]}),
+            ('dp-bitmask-matching', {'matrix': [[1, 1], [1, 1]]}),
+        ):
+            templates[key] = algorithm_document(key, inputs)
+        context['visual_templates'] = templates
+        lesson = self.get_object(request, object_id) if object_id else None
+        node = self.workspace_node(request, lesson)
+        if node:
+            context['workspace_node'] = node
+        return super().changeform_view(request, object_id, form_url, context)
+
+    def response_add(self, request, obj, post_url_continue=None):
+        if '_continue' not in request.POST and '_addanother' not in request.POST:
+            node = self.workspace_node(request, obj)
+            if node:
+                return HttpResponseRedirect(reverse('admin:mentor_roadmap_node_workspace', args=[node.roadmap_id, node.pk]) + '?tab=lessons')
+        return super().response_add(request, obj, post_url_continue)
+
+    def response_change(self, request, obj):
+        if '_continue' not in request.POST and '_addanother' not in request.POST:
+            node = self.workspace_node(request, obj)
+            if node:
+                return HttpResponseRedirect(reverse('admin:mentor_roadmap_node_workspace', args=[node.roadmap_id, node.pk]) + '?tab=lessons')
+        return super().response_change(request, obj)
 
     def save_model(self, request, obj, form, change):
         save_content(request.user, obj)
 
 
+class RoadmapOperationsAdmin(RoadmapStaffAdmin):
+    """Learning history is operational evidence, never an authoring form."""
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def get_readonly_fields(self, request, obj=None):
+        return tuple(field.name for field in self.model._meta.fields)
+
+
 
 @admin.register(TopicLessonState)
-class TopicLessonStateAdmin(RoadmapStaffAdmin):
+class TopicLessonStateAdmin(RoadmapOperationsAdmin):
     list_display = ('user', 'lesson', 'content_revision', 'offset', 'last_accessed_at')
     list_filter = ('content_revision',)
     search_fields = ('user__username', 'lesson__title')
@@ -336,7 +446,7 @@ class TopicLessonStateAdmin(RoadmapStaffAdmin):
 
 
 @admin.register(TopicLessonQAMessage)
-class TopicLessonQAMessageAdmin(RoadmapStaffAdmin):
+class TopicLessonQAMessageAdmin(RoadmapOperationsAdmin):
     list_display = ('user', 'lesson', 'content_revision', 'role', 'section', 'created_at')
     list_filter = ('role', 'content_revision')
     search_fields = ('user__username', 'lesson__title', 'content')
@@ -344,7 +454,7 @@ class TopicLessonQAMessageAdmin(RoadmapStaffAdmin):
 
 
 @admin.register(TopicLessonQAAttempt)
-class TopicLessonQAAttemptAdmin(RoadmapStaffAdmin):
+class TopicLessonQAAttemptAdmin(RoadmapOperationsAdmin):
     list_display = ('user', 'lesson', 'content_revision', 'status', 'claim_token', 'created_at', 'completed_at')
     list_filter = ('status', 'content_revision')
     search_fields = ('user__username', 'lesson__title', 'claim_token')

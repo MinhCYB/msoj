@@ -123,3 +123,9 @@ def markdown(text, style, math_engine=None, lazy_load=False, strip_paragraphs=Fa
     if bleach_params:
         result = get_cleaner(style, bleach_params).clean(result)
     return Markup(result)
+
+
+@registry.filter
+def lesson_markdown(text):
+    from mentor.lesson_visuals import render_lesson_markdown
+    return render_lesson_markdown(text or '')

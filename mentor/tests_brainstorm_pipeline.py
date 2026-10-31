@@ -19,6 +19,8 @@ from .tests_brainstorm_service import BrainstormFixture
 
 
 def result(text, **kwargs):
+    if isinstance(text, str) and not text.lstrip().startswith('{'):
+        text = json.dumps({'version': 1, 'text': text, 'visuals': []})
     return GatewayResult(text=text, provider='fake', requested_model='opaque', returned_model='normalized',
                          finish_reason='stop', usage=Usage(10, 5, 15), **kwargs)
 
@@ -65,6 +67,74 @@ class BrainstormPipelineTests(BrainstormFixture, TestCase):
         self.assertTrue(all(not m.is_legacy_stub for m in messages))
         self.assertNotIn('print(1)', str([m.content for m in messages]))
         self.assertNotIn('PRIVATE EDITORIAL', str([m.content for m in messages]))
+    def test_compiles_visuals_before_review_and_publishes_only_reviewed_payload(self):
+        document = {
+            'version': 2, 'id': 'hint', 'title': 'Hint', 'summary': 'A bounded hint',
+            'data': {'values': {'type': 'sequence', 'values': [2, 4]}},
+            'modules': [{'id': 'vector', 'type': 'vector', 'source': 'values'}],
+            'layout': {'areas': [['vector']], 'readingOrder': ['vector']},
+        }
+        envelope = {'version': 1, 'text': 'Approved text', 'visuals': [document]}
+        turn, _, _ = self.claim()
+        with patch('mentor.brainstorm_pipeline.ai_gateway.generate', side_effect=[
+                result(json.dumps(envelope)), verdict('approve', 'approved')]) as gateway:
+            run_brainstorm(turn.pk)
+        reviewer_payload = json.loads(gateway.call_args_list[1].kwargs['messages'][1].content)
+        self.assertEqual(reviewer_payload['draft']['text'], 'Approved text')
+        self.assertEqual(reviewer_payload['draft']['visuals'][0]['document']['id'], document['id'])
+        self.assertEqual(reviewer_payload['draft']['visuals'][0]['document']['version'], 2)
+        self.assertEqual(len(reviewer_payload['draft']['visuals'][0]['frames']), 1)
+        approved = turn.published_messages.get(role='ai')
+        self.assertEqual(approved.content, 'Approved text')
+        self.client.force_login(self.user)
+        session_url = reverse('mentor_brainstorm_send', args=[self.problem.code])
+        turn_response = self.client.get(reverse('mentor_brainstorm_turn', args=[turn.pk]))
+        self.assertEqual(turn_response.json()['answer'], 'Approved text')
+        self.assertEqual(turn_response.json()['visuals'], approved.approved_visuals)
+        session_response = self.client.get(session_url)
+        self.assertEqual(session_response.status_code, 200)
+        self.assertEqual(session_response.json()['history'][0]['visuals'], approved.approved_visuals)
+
+    def test_reviewer_receives_full_large_trace_before_publication(self):
+        from .visual_algorithms import algorithm_document
+
+        document = algorithm_document('dp-bitmask-matching', {'matrix': [[1] * 5 for _ in range(5)]})
+        envelope = {'version': 1, 'text': 'A bounded visual hint', 'visuals': [document]}
+        turn, gateway = self.generate([result(json.dumps(envelope)), verdict('approve', 'approved')])
+        self.assertEqual(turn.status, 'succeeded')
+        reviewed = json.loads(gateway.call_args_list[1].kwargs['messages'][1].content)['draft']
+        published = turn.published_messages.get(role='ai')
+        self.assertEqual(published.approved_visuals, reviewed['visuals'])
+        self.assertEqual(published.approved_visuals[0]['frames'][-1]['data']['dp']['values'][-1], 120)
+
+
+    def test_invalid_visual_envelope_fails_closed_before_reviewer(self):
+        document = {'version': 2, 'id': 'x', 'title': 'Hint', 'summary': 'Hint', 'data': {},
+                    'modules': [], 'layout': {'areas': [], 'readingOrder': []}}
+        turn, gateway = self.generate([result(json.dumps({'version': 1, 'text': 'Text',
+                                                          'visuals': [document]})),
+                                      verdict('approve', 'approved')])
+        self.assertEqual(turn.status, 'failed')
+        self.assertEqual(turn.error_code, 'generator_invalid_output')
+        self.assertFalse(turn.published_messages.exists())
+
+    def test_generator_rejects_duplicate_json_keys(self):
+        turn, gateway = self.generate([result('{"version":1,"version":1,"text":"Text","visuals":[]}'),
+                                      verdict('approve', 'approved')])
+        self.assertEqual(gateway.call_count, 1)
+        self.assertEqual(turn.error_code, 'generator_invalid_output')
+        self.assertFalse(turn.published_messages.exists())
+        self.assertEqual(turn.status, 'failed')
+        self.assertEqual(turn.error_code, 'generator_invalid_output')
+        self.assertFalse(turn.published_messages.exists())
+
+    def test_legacy_published_history_remains_text_only(self):
+        turn, _, _ = self.claim()
+        with patch('mentor.brainstorm_pipeline.ai_gateway.generate', side_effect=[
+                result('Approved answer'), verdict('approve', 'approved')]):
+            run_brainstorm(turn.pk)
+        self.assertEqual(turn.published_messages.get(role='ai').approved_visuals, [])
+
         with patch('mentor.brainstorm_pipeline.ai_gateway.generate') as unused:
             run_brainstorm(turn.pk)
         unused.assert_not_called()
@@ -257,6 +327,7 @@ class BrainstormApiTests(BrainstormFixture, TestCase):
             run_brainstorm(turn.pk)
         response = self.client.get(reverse('mentor_brainstorm_turn', args=[turn.pk]))
         self.assertEqual(response.json()['answer'], 'Approved answer')
+        self.assertEqual(response.json()['visuals'], [])
         session = self.client.get(self.session_url)
         self.assertEqual(len(session.json()['history']), 1)
         self.assertNotIn('print(1)', session.content.decode())

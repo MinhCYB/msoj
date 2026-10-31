@@ -1,7 +1,9 @@
 """Unit and integration tests for curriculum manifest, seeder command, and safety guards."""
+import json
 from copy import deepcopy
 import io
 import tempfile
+from pathlib import Path
 from django.contrib.auth.models import Permission, User
 from django.core.management import call_command, CommandError
 from django.test import TestCase, override_settings
@@ -31,6 +33,22 @@ class CurriculumManifestBehaviorTests(TestCase):
     def setUp(self):
         super().setUp()
         self.manifest = load_curriculum_manifest()
+
+    def test_foundations_has_canonical_seven_plus_three_topic_order(self):
+        children = [node for node in self.manifest['nodes'] if node['parent'] == 'foundations']
+        self.assertEqual(
+            [node['slug'] for node in children],
+            [
+                'io-basics', 'conditions', 'loops', 'functions', 'array-basics',
+                'string-basics', 'matrix-basics', 'algorithmic-thinking', 'complexity', 'implementation',
+            ],
+        )
+        self.assertTrue(all(node['type'] == 'TOPIC' for node in children))
+        self.assertEqual(self.manifest['summary']['nodes_count'], len(self.manifest['nodes']))
+        self.assertEqual(self.manifest['summary']['topics_count'], sum(n['type'] == 'TOPIC' for n in self.manifest['nodes']))
+        self.assertEqual(self.manifest['summary']['groups_count'], sum(n['type'] == 'GROUP' for n in self.manifest['nodes']))
+        notes = json.loads((Path(__file__).resolve().parent / 'theory_notes.json').read_text())
+        self.assertEqual({note['node_slug'] for note in notes}, {n['slug'] for n in self.manifest['nodes'] if n['type'] == 'TOPIC'})
 
     def test_validation_rejects_malformed_shapes_with_typed_error(self):
         # 1. Non-dict root
@@ -180,7 +198,7 @@ class CurriculumManifestBehaviorTests(TestCase):
         # Cycle in prerequisite graph
         bad = deepcopy(self.manifest)
         bad['prerequisites']['edges'].append({
-            'target': 'programming-basics',
+            'target': 'loops',
             'prerequisites': ['complexity'],
             'reason': 'Artificial cycle',
         })
@@ -321,7 +339,7 @@ class CurriculumSeedCommandTests(TestCase):
         self.assertIsNone(roadmap.organization_id)
 
         nodes = list(RoadmapNode.objects.filter(roadmap=roadmap).select_related('parent'))
-        self.assertEqual(len(nodes), 216)
+        self.assertEqual(len(nodes), manifest['summary']['nodes_count'])
         nodes_by_slug = {n.slug: n for n in nodes}
 
         manifest_parent_map = {m['slug']: m['parent'] for m in manifest['nodes']}
@@ -359,11 +377,24 @@ class CurriculumSeedCommandTests(TestCase):
             actual_ancestors = list(node.get_ancestors().values_list('slug', flat=True))
             self.assertEqual(actual_ancestors, expected_ancestors[slug])
 
-        # No fake content created in database
-        self.assertEqual(LearningTopic.objects.count(), 0)
-        self.assertEqual(TopicLesson.objects.count(), 0)
-        self.assertEqual(NodeProblem.objects.count(), 0)
-        self.assertEqual(RoadmapPrerequisite.objects.count(), 0)
+        expected_edges = sum(len(edge['prerequisites']) for edge in manifest['prerequisites']['edges'])
+        self.assertEqual(RoadmapPrerequisite.objects.count(), expected_edges)
+        prerequisites = {(link.node.slug, link.prerequisite.slug): link.reason
+                         for link in RoadmapPrerequisite.objects.select_related('node', 'prerequisite')}
+        expected_prerequisites = {
+            (edge['target'], prior): edge.get('reason', '')
+            for edge in manifest['prerequisites']['edges']
+            for prior in edge['prerequisites']
+        }
+        self.assertEqual(prerequisites, expected_prerequisites)
+        for spec in manifest['nodes']:
+            node = nodes_by_slug[spec['slug']]
+            self.assertEqual(node.summary, spec.get('introduction', ''))
+            expected_section = {
+                'foundations-7': 'Nhập môn lập trình',
+                'foundations-3': 'Kỹ năng giải bài nền tảng',
+            }.get(spec.get('display_section', ''), '')
+            self.assertEqual(node.display_section, expected_section)
 
     @override_settings(ROADMAP_CURRICULUM_SEED_ALLOWED=True)
     def test_reapply_is_idempotent_no_revision_churn(self):
@@ -548,7 +579,7 @@ class CurriculumConflictDetectionTests(TestCase):
             )
         node.refresh_from_db()
         self.assertEqual(node.title, 'Tìm kiếm nhị phân đã đổi tên')
-        self.assertEqual(RoadmapNode.objects.filter(roadmap=roadmap).count(), 216)
+        self.assertEqual(RoadmapNode.objects.filter(roadmap=roadmap).count(), load_curriculum_manifest()['summary']['nodes_count'])
 
     @override_settings(ROADMAP_CURRICULUM_SEED_ALLOWED=True)
     def test_difficulty_mismatch_fails_atomically(self):
@@ -567,7 +598,7 @@ class CurriculumConflictDetectionTests(TestCase):
             )
         node.refresh_from_db()
         self.assertEqual(node.difficulty, RoadmapNode.Difficulty.ADVANCED)
-        self.assertEqual(RoadmapNode.objects.filter(roadmap=roadmap).count(), 216)
+        self.assertEqual(RoadmapNode.objects.filter(roadmap=roadmap).count(), load_curriculum_manifest()['summary']['nodes_count'])
 
     @override_settings(ROADMAP_CURRICULUM_SEED_ALLOWED=True)
     def test_type_mismatch_fails_atomically(self):
@@ -587,7 +618,7 @@ class CurriculumConflictDetectionTests(TestCase):
             )
         node.refresh_from_db()
         self.assertEqual(node.type, RoadmapNode.Type.GROUP)
-        self.assertEqual(RoadmapNode.objects.filter(roadmap=roadmap).count(), 216)
+        self.assertEqual(RoadmapNode.objects.filter(roadmap=roadmap).count(), load_curriculum_manifest()['summary']['nodes_count'])
 
     @override_settings(ROADMAP_CURRICULUM_SEED_ALLOWED=True)
     def test_parent_mismatch_fails_atomically(self):
@@ -607,7 +638,7 @@ class CurriculumConflictDetectionTests(TestCase):
             )
         node.refresh_from_db()
         self.assertEqual(node.parent_id, other_parent.pk)
-        self.assertEqual(RoadmapNode.objects.filter(roadmap=roadmap).count(), 216)
+        self.assertEqual(RoadmapNode.objects.filter(roadmap=roadmap).count(), load_curriculum_manifest()['summary']['nodes_count'])
 
     @override_settings(ROADMAP_CURRICULUM_SEED_ALLOWED=True)
     def test_position_mismatch_fails_atomically(self):
@@ -626,7 +657,7 @@ class CurriculumConflictDetectionTests(TestCase):
             )
         node.refresh_from_db()
         self.assertEqual(node.position, 99)
-        self.assertEqual(RoadmapNode.objects.filter(roadmap=roadmap).count(), 216)
+        self.assertEqual(RoadmapNode.objects.filter(roadmap=roadmap).count(), load_curriculum_manifest()['summary']['nodes_count'])
 
     @override_settings(ROADMAP_CURRICULUM_SEED_ALLOWED=True)
     def test_draft_collision_fails_atomically(self):
@@ -645,7 +676,7 @@ class CurriculumConflictDetectionTests(TestCase):
             )
         node.refresh_from_db()
         self.assertEqual(node.status, Publication.DRAFT, "Draft status must not be auto-republished")
-        self.assertEqual(RoadmapNode.objects.filter(roadmap=roadmap).count(), 216)
+        self.assertEqual(RoadmapNode.objects.filter(roadmap=roadmap).count(), load_curriculum_manifest()['summary']['nodes_count'])
 
     @override_settings(ROADMAP_CURRICULUM_SEED_ALLOWED=True)
     def test_extra_unexpected_node_fails_atomically(self):
@@ -671,7 +702,7 @@ class CurriculumConflictDetectionTests(TestCase):
                 self.staff.username,
             )
         self.assertTrue(RoadmapNode.objects.filter(roadmap=roadmap, slug='custom-editorial-group').exists())
-        self.assertEqual(RoadmapNode.objects.filter(roadmap=roadmap).count(), 217)
+        self.assertEqual(RoadmapNode.objects.filter(roadmap=roadmap).count(), load_curriculum_manifest()['summary']['nodes_count'] + 1)
 
     @override_settings(ROADMAP_CURRICULUM_SEED_ALLOWED=True)
     def test_container_scope_mismatch_fails_atomically(self):

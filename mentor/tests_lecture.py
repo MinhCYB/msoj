@@ -67,8 +67,10 @@ class LectureTestBase(RoadmapFixture, TestCase):
 class TestLectureAccess(LectureTestBase):
     def test_anonymous_user_can_read_page_but_write_endpoints_denied(self):
         resp = self.client.get(self.lesson_page_url, HTTP_ACCEPT='text/html')
-        self.assertEqual(resp.status_code, 200)
-        self.assertIsNone(resp.context['lecture_state'])
+        self.assertEqual(resp.status_code, 302)
+        learn_url = reverse('roadmap_node_learn', args=[self.roadmap.slug, self.node_a.id])
+        page = self.client.get(learn_url, HTTP_ACCEPT='text/html')
+        self.assertIsNone(page.context['document_lessons'][0]['lecture_state'])
 
         # POST to state without auth
         post_state = self.client.post(
@@ -161,9 +163,9 @@ class TestLectureRevision(LectureTestBase):
         self.assertEqual(state.offset, 3500)
         self.assertEqual(state.content_revision, 1)
 
-        # Verified on lesson page
-        page_resp = self.client.get(self.lesson_page_url, HTTP_ACCEPT='text/html')
-        self.assertEqual(page_resp.context['lecture_state']['resume_offset'], 3500)
+        page_resp = self.client.get(reverse('roadmap_node_learn', args=[self.roadmap.slug, self.node_a.id]), HTTP_ACCEPT='text/html')
+        first_state = next(item['lecture_state'] for item in page_resp.context['document_lessons'] if item['id'] == self.lesson1.id)
+        self.assertEqual(first_state['resume_offset'], 3500)
 
         # 2. Modify lesson content -> increments revision to 2
         self.lesson1.summary = 'Updated summary.'
@@ -172,8 +174,9 @@ class TestLectureRevision(LectureTestBase):
         self.assertEqual(self.lesson1.content_revision, 2)
 
         # Page load for rev 2 falls back to stable 0 because stored state was for rev 1
-        page_resp2 = self.client.get(self.lesson_page_url, HTTP_ACCEPT='text/html')
-        self.assertEqual(page_resp2.context['lecture_state']['resume_offset'], 0)
+        page_resp2 = self.client.get(reverse('roadmap_node_learn', args=[self.roadmap.slug, self.node_a.id]), HTTP_ACCEPT='text/html')
+        first_state = next(item['lecture_state'] for item in page_resp2.context['document_lessons'] if item['id'] == self.lesson1.id)
+        self.assertEqual(first_state['resume_offset'], 0)
 
     def test_stale_content_revision_rejected_with_revision_changed(self):
         self.client.force_login(self.learner)
@@ -267,9 +270,9 @@ class TestLectureOrdering(LectureTestBase):
             content='Answer 2',
         )
 
-        resp = self.client.get(self.lesson_page_url, HTTP_ACCEPT='text/html')
+        resp = self.client.get(reverse('roadmap_node_learn', args=[self.roadmap.slug, self.node_a.id]), HTTP_ACCEPT='text/html')
         self.assertEqual(resp.status_code, 200)
-        messages = resp.context['lecture_state']['messages']
+        messages = next(item['lecture_state']['messages'] for item in resp.context['document_lessons'] if item['id'] == self.lesson1.id)
         self.assertEqual([m['content'] for m in messages], ['Question 1', 'Answer 1', 'Question 2', 'Answer 2'])
 
 
@@ -503,9 +506,9 @@ class TestLectureReviewedOutput(LectureTestBase):
             self.assertEqual(resp.status_code, 503)
             self.assertEqual(resp.json()['error'], 'not_configured')
 
-        # Native lesson page remains 200 OK
+        # Legacy HTML URLs redirect to the inline document page.
         lesson_page = self.client.get(self.lesson_page_url, HTTP_ACCEPT='text/html')
-        self.assertEqual(lesson_page.status_code, 200)
+        self.assertEqual(lesson_page.status_code, 302)
 
         # 2. Upstream unavailable
         with patch('mentor.lecture_services.ai_gateway.generate', side_effect=UpstreamError('Upstream down')):

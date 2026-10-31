@@ -218,6 +218,12 @@ class RoadmapAPITests(RoadmapFixture, TestCase):
         def get_item():
             resp = self.client.get(reverse('roadmap_detail', args=[self.roadmap.slug]))
             return next(it for it in resp.json()['items'] if it['id'] == node.id)
+        node.summary = 'Learner-safe node summary'
+        node.display_section = 'Section label'
+        node.save()
+        item = get_item()
+        self.assertEqual(item['summary'], 'Learner-safe node summary')
+        self.assertEqual(item['display_section'], 'Section label')
 
         # 1. Empty topic with no exercises -> UPCOMING, learn_url is None
         item = get_item()

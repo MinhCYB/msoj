@@ -8,7 +8,7 @@ from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 
-from .roadmap_models import Publication, Roadmap, RoadmapNode, Visibility, lock_roadmap_forest
+from .roadmap_models import Publication, Roadmap, RoadmapNode, RoadmapPrerequisite, Visibility, lock_roadmap_forest
 from .roadmap_services import save_content, save_node
 
 DEFAULT_MANIFEST_PATH = Path(__file__).resolve().parent / 'curriculum_v1.json'
@@ -49,8 +49,8 @@ class CurriculumPlan:
     nodes_matched: List[Dict[str, Any]] = field(default_factory=list)
     conflicts: List[CurriculumConflict] = field(default_factory=list)
     extra_nodes: List[str] = field(default_factory=list)
-    prerequisite_targets_count: int = 69
-    prerequisite_edges_count: int = 136
+    prerequisite_targets_count: int = 0
+    prerequisite_edges_count: int = 0
 
     @property
     def is_valid_for_apply(self) -> bool:
@@ -96,8 +96,8 @@ def validate_curriculum_manifest(manifest: Optional[Dict[str, Any]] = None) -> D
     nodes = manifest.get('nodes')
     if not isinstance(nodes, list):
         raise CurriculumValidationError("Manifest missing 'nodes' list")
-    if len(nodes) != 216:
-        raise CurriculumValidationError(f"Expected exactly 216 nodes, found {len(nodes)}")
+    if not nodes:
+        raise CurriculumValidationError("Manifest 'nodes' must not be empty")
 
     slugs: List[str] = []
     seen_slugs: Set[str] = set()
@@ -153,20 +153,20 @@ def validate_curriculum_manifest(manifest: Optional[Dict[str, Any]] = None) -> D
         parent_map[slug] = parent
         children_by_parent.setdefault(parent, []).append(node)
 
-    if len(groups) != 27:
-        raise CurriculumValidationError(f"Expected exactly 27 GROUP nodes, found {len(groups)}")
-    if len(topics) != 189:
-        raise CurriculumValidationError(f"Expected exactly 189 TOPIC nodes, found {len(topics)}")
-    if len(roots) != 13:
-        raise CurriculumValidationError(f"Expected exactly 13 root nodes, found {len(roots)}")
+    if len(groups) != manifest.get('summary', {}).get('groups_count', len(groups)):
+        raise CurriculumValidationError(f"GROUP count does not match summary: {len(groups)}")
+    if len(topics) != manifest.get('summary', {}).get('topics_count', len(topics)):
+        raise CurriculumValidationError(f"TOPIC count does not match summary: {len(topics)}")
+    if len(roots) != manifest.get('summary', {}).get('roots_count', len(roots)):
+        raise CurriculumValidationError(f"Root count does not match summary: {len(roots)}")
 
     for r in roots:
         if r.get('type') != 'GROUP':
             raise CurriculumValidationError(f"Root node '{r.get('slug')}' must have type GROUP")
 
     root_positions = [r.get('position') for r in roots]
-    if root_positions != list(range(13)):
-        raise CurriculumValidationError(f"Root positions must be 0..12 consecutive, got {root_positions}")
+    if root_positions != list(range(len(roots))):
+        raise CurriculumValidationError(f"Root positions must be consecutive from zero, got {root_positions}")
 
     if len(slugs) != len(set(slugs)):
         raise CurriculumValidationError("Manifest contains duplicate node slugs")
@@ -216,8 +216,8 @@ def validate_curriculum_manifest(manifest: Optional[Dict[str, Any]] = None) -> D
     if not isinstance(prereq_edges, list):
         raise CurriculumValidationError("Manifest 'prerequisites.edges' must be a list")
 
-    if len(prereq_edges) != 69:
-        raise CurriculumValidationError(f"Expected exactly 69 prerequisite targets, found {len(prereq_edges)}")
+    if not prereq_edges:
+        raise CurriculumValidationError("Manifest must contain prerequisite targets")
 
     seen_targets: Set[str] = set()
     distinct_edges: Set[Tuple[str, str]] = set()
@@ -263,10 +263,23 @@ def validate_curriculum_manifest(manifest: Optional[Dict[str, Any]] = None) -> D
             in_degree[target] = in_degree.get(target, 0) + 1
             prereq_nodes.add(prior)
 
-    if len(seen_targets) != 69:
-        raise CurriculumValidationError(f"Expected exactly 69 distinct prerequisite targets, found {len(seen_targets)}")
-    if len(distinct_edges) != 136:
-        raise CurriculumValidationError(f"Expected exactly 136 distinct prerequisite edges, found {len(distinct_edges)}")
+    if len(seen_targets) != len(prereq_edges):
+        raise CurriculumValidationError(f"Prerequisite target count mismatch: {len(seen_targets)}")
+    if len(distinct_edges) != sum(len(p.get('prerequisites', [])) for p in prereq_edges):
+        raise CurriculumValidationError(f"Prerequisite edge count mismatch: {len(distinct_edges)}")
+    summary = manifest.get('summary')
+    if not isinstance(summary, dict):
+        raise CurriculumValidationError("Manifest missing 'summary' object")
+    depths = {}
+    for node in nodes:
+        depths[node['slug']] = 1 if node['parent'] is None else depths[node['parent']] + 1
+    actual_summary = {
+        'nodes_count': len(nodes), 'groups_count': len(groups), 'topics_count': len(topics),
+        'roots_count': len(roots), 'max_depth': max(depths.values()),
+        'prerequisite_targets_count': len(prereq_edges), 'prerequisite_edges_count': len(distinct_edges),
+    }
+    if summary != actual_summary:
+        raise CurriculumValidationError(f"Manifest summary does not match catalog: expected {actual_summary}, got {summary}")
 
     # Check prerequisite acyclic DAG via Kahn's algorithm
     queue = [n for n in prereq_nodes if in_degree.get(n, 0) == 0]
@@ -398,7 +411,7 @@ def plan_curriculum_seed(
                 conflicts=conflicts,
                 extra_nodes=extra_nodes,
                 prerequisite_targets_count=len(manifest.get('prerequisites', {}).get('edges', [])),
-                prerequisite_edges_count=manifest.get('summary', {}).get('prerequisite_edges_count', 136),
+                prerequisite_edges_count=manifest.get('summary', {}).get('prerequisite_edges_count', 0),
             )
 
         roadmap_action = 'match'
@@ -538,7 +551,7 @@ def plan_curriculum_seed(
             conflicts=conflicts,
             extra_nodes=extra_nodes,
             prerequisite_targets_count=len(manifest.get('prerequisites', {}).get('edges', [])),
-            prerequisite_edges_count=manifest.get('summary', {}).get('prerequisite_edges_count', 136),
+            prerequisite_edges_count=manifest.get('summary', {}).get('prerequisite_edges_count', 0),
         )
 
 
@@ -558,9 +571,10 @@ def apply_curriculum_seed(
     - user is active staff with mentor.add_roadmap, mentor.add_roadmapnode, mentor.publish_roadmap
     - Zero structural, title, difficulty, publication, or extra node conflicts
 
-    Existing matching nodes are no-ops: attached LearningTopic, NodeProblem, prerequisites,
-    and admin content are strictly preserved with zero revision churn.
-    Prerequisites and source metadata remain manifest-only per policy.
+    Existing matching nodes are no-ops: attached LearningTopic, NodeProblem,
+    prerequisites, and admin content are strictly preserved with zero revision churn.
+    Fresh nodes receive their seed summary, display section, and prerequisite rows;
+    subsequent runs never overwrite database-edited metadata or edges.
     """
     if database != 'default':
         raise ValueError(
@@ -617,10 +631,10 @@ def apply_curriculum_seed(
         roadmap = Roadmap.objects.using(database).get(slug=roadmap_data['slug'])
 
     created_nodes_count = 0
+    nodes_by_slug: Dict[str, RoadmapNode] = {
+        n.slug: n for n in RoadmapNode.objects.using(database).filter(roadmap=roadmap)
+    }
     if plan.nodes_to_create:
-        nodes_by_slug: Dict[str, RoadmapNode] = {
-            n.slug: n for n in RoadmapNode.objects.using(database).filter(roadmap=roadmap)
-        }
 
         for node_data in plan.nodes_to_create:
             parent_node = None
@@ -636,12 +650,32 @@ def apply_curriculum_seed(
                 type=node_data['type'],
                 position=node_data['position'],
                 difficulty=node_data['difficulty'],
+                summary=node_data.get('introduction', '') or '',
+                display_section={
+                    'foundations-7': 'Nhập môn lập trình',
+                    'foundations-3': 'Kỹ năng giải bài nền tảng',
+                }.get(node_data.get('display_section', ''), ''),
                 status=Publication.PUBLISHED,
                 learning_topic=None,
             )
             save_node(user, node)
             nodes_by_slug[node.slug] = node
             created_nodes_count += 1
+
+    fresh_slugs = {item['slug'] for item in plan.nodes_to_create}
+    for edge in manifest.get('prerequisites', {}).get('edges', []):
+        target = nodes_by_slug.get(edge.get('target'))
+        if target is None or edge.get('target') not in fresh_slugs:
+            continue
+        for prerequisite_slug in edge.get('prerequisites', []):
+            prerequisite = nodes_by_slug.get(prerequisite_slug)
+            if prerequisite is None:
+                continue
+            RoadmapPrerequisite.objects.get_or_create(
+                node=target,
+                prerequisite=prerequisite,
+                defaults={'reason': edge.get('reason', '') or ''},
+            )
 
     return {
         'roadmap_slug': roadmap.slug,

@@ -95,7 +95,7 @@ def problems():
         'Thời gian O(|S|), bộ nhớ O(|S|) để lưu dòng.',
         _cpp('int main() {\n    string s;\n    getline(cin, s);\n    for (int i = static_cast<int>(s.size()) - 1; i >= 0; --i) cout << s[i];\n    cout << "\\n";\n}', ('string',)),
         [s + '\n' for s in strings], lambda t: t.removesuffix('\n')[::-1] + '\n',
-        ['arrays-and-strings', 'string-basics'], ['arrays-and-strings']))
+        ['string-basics'], ['string-basics']))
     result.append(_entry('msb_palinstr', 'Xâu đối xứng', 'strings',
         'Một xâu đối xứng đọc từ trái sang phải giống như từ phải sang trái. Hãy kiểm tra xâu ~S~ có đối xứng hay không.\n\n'
         '## Dữ liệu vào\nMột dòng chứa xâu ~S~ chỉ gồm chữ cái tiếng Anh in thường, ~1 \\le |S| \\le 10^5~.\n\n'
@@ -107,7 +107,7 @@ def problems():
         _cpp('int main() {\n    string s; cin >> s;\n    bool ok = true;\n    for (int i = 0; i < static_cast<int>(s.size()) / 2; ++i) {\n        if (s[i] != s[s.size() - 1 - i]) ok = false;\n    }\n    cout << (ok ? "YES" : "NO") << "\\n";\n}', ('string',)),
         [s + '\n' for s in ['a', 'aa', 'ab', 'aba', 'abba', 'abca', 'abcba', 'aab', 'baa', 'a' * 100000, 'a' * 99999 + 'b']],
         lambda t: ('YES' if t.strip() == t.strip()[::-1] else 'NO') + '\n',
-        ['arrays-and-strings', 'string-basics'], ['arrays-and-strings']))
+        ['string-basics'], ['string-basics']))
     lines = ['', ' ', 'a', ' a', 'a ', ' a ', 'a  b', '   a   b   c  ', 'hello world', 'one    two', 'x ' * 50000]
     result.append(_entry('msb_wordcount', 'Đếm từ trong dòng', 'strings',
         'Một từ là một nhóm chữ cái liên tiếp, được ngăn với từ khác bởi một hoặc nhiều dấu cách. Hãy đếm số từ trong một dòng.\n\n'
@@ -119,7 +119,7 @@ def problems():
         'Thời gian O(|S|), bộ nhớ O(|S|) để lưu dòng.',
         _cpp('int main() {\n    string s; getline(cin, s);\n    int count = 0;\n    for (int i = 0; i < static_cast<int>(s.size()); ++i) {\n        if (s[i] != \' \' && (i == 0 || s[i - 1] == \' \')) ++count;\n    }\n    cout << count << "\\n";\n}', ('string',)),
         [s + '\n' for s in lines], lambda t: str(len(t.split())) + '\n',
-        ['arrays-and-strings', 'string-basics'], ['arrays-and-strings']))
+        ['string-basics'], ['string-basics']))
 
     matrices = [[[0]], [[-7]], [[5, -2, 5]], [[1], [-2], [3]], [[1, 2], [3, 4]],
                 [[-1, -2], [-3, -4]], [[9, 9], [9, 9]], [[1, 2, 3], [4, 5, 6]],
@@ -128,7 +128,7 @@ def problems():
                  for n, m in [(2, 3), (3, 2), (5, 7), (7, 5)]]
     matrix_limits = ('## Dữ liệu vào\nDòng đầu chứa hai số nguyên ~n, m~ (~1 \\le n,m \\le 200~). '
                      'Tiếp theo là ~n~ dòng, mỗi dòng chứa ~m~ số nguyên ~a_{ij}~, ~|a_{ij}| \\le 10^9~.\n\n')
-    matrix_tags = ['arrays-and-strings', 'matrix-basics', 'numeric-safety']
+    matrix_tags = ['matrix-basics', 'numeric-safety']
     result.append(_entry('msb_rowscols', 'Tổng theo hàng và cột', 'matrices',
         'Cho bảng số có ~n~ hàng và ~m~ cột. Tính tổng các phần tử trên từng hàng và từng cột.\n\n' + matrix_limits +
         '## Dữ liệu ra\nDòng đầu in ~n~ tổng hàng theo thứ tự từ trên xuống. Dòng thứ hai in ~m~ tổng cột từ trái sang phải. Các số trên cùng dòng cách nhau bởi dấu cách.\n',
@@ -137,7 +137,7 @@ def problems():
         'Không cần lưu toàn bộ bảng. Dùng long long vì tổng một hàng có thể tới ~2 \\times 10^{11}~.',
         'Thời gian O(nm), bộ nhớ O(n+m).',
         _cpp('int main() {\n    int n, m; cin >> n >> m;\n    vector<long long> rows(n, 0), cols(m, 0);\n    for (int i = 0; i < n; ++i) for (int j = 0; j < m; ++j) {\n        long long x; cin >> x; rows[i] += x; cols[j] += x;\n    }\n    for (int i = 0; i < n; ++i) cout << (i ? " " : "") << rows[i];\n    cout << "\\n";\n    for (int j = 0; j < m; ++j) cout << (j ? " " : "") << cols[j];\n    cout << "\\n";\n}', ('vector',)),
-        [_matrix_input(a) for a in matrices], _rowscols, matrix_tags, ['arrays-and-strings']))
+        [_matrix_input(a) for a in matrices], _rowscols, matrix_tags, ['matrix-basics']))
     square_sizes = [1, 2, 3, 4, 5, 7, 9, 20, 50, 200]
     square_inputs = [str(n) + '\n' + '\n'.join(' '.join(str(rng.randint(-10**9, 10**9)) for _ in range(n)) for _ in range(n)) + '\n' for n in square_sizes]
     result.append(_entry('msb_diagonals', 'Hai đường chéo', 'matrices',
@@ -149,7 +149,7 @@ def problems():
         'Dùng hai câu if độc lập, không dùng else if: ô giữa của bảng kích thước lẻ thuộc cả hai đường chéo.',
         'Thời gian O(n²) để đọc bảng, bộ nhớ phụ O(1).',
         _cpp('int main() {\n    int n; cin >> n; long long mainSum = 0, otherSum = 0;\n    for (int i = 0; i < n; ++i) for (int j = 0; j < n; ++j) {\n        long long x; cin >> x;\n        if (i == j) mainSum += x;\n        if (i + j == n - 1) otherSum += x;\n    }\n    cout << mainSum << " " << otherSum << "\\n";\n}'),
-        square_inputs, _diagonals, matrix_tags, ['arrays-and-strings']))
+        square_inputs, _diagonals, matrix_tags, ['matrix-basics']))
     result.append(_entry('msb_border', 'Tổng các ô ở biên', 'matrices',
         'Cho bảng ~n~ hàng, ~m~ cột. Một ô ở biên nếu thuộc hàng đầu, hàng cuối, cột đầu hoặc cột cuối. Tính tổng các ô ở biên, mỗi ô chỉ tính một lần.\n\n' + matrix_limits +
         '## Dữ liệu ra\nMột số nguyên là tổng các ô ở biên.\n',
@@ -158,7 +158,7 @@ def problems():
         'Không cộng riêng từng cạnh vì sẽ đếm lặp góc và sai khi bảng chỉ có một hàng hoặc một cột.',
         'Thời gian O(nm), bộ nhớ phụ O(1).',
         _cpp('int main() {\n    int n, m; cin >> n >> m; long long sum = 0;\n    for (int i = 0; i < n; ++i) for (int j = 0; j < m; ++j) {\n        long long x; cin >> x;\n        if (i == 0 || i == n - 1 || j == 0 || j == m - 1) sum += x;\n    }\n    cout << sum << "\\n";\n}'),
-        [_matrix_input(a) for a in matrices], _border, matrix_tags, ['arrays-and-strings']))
+        [_matrix_input(a) for a in matrices], _border, matrix_tags, ['matrix-basics']))
     result.append(_entry('msb_matrixmax', 'Vị trí lớn nhất trong bảng', 'matrices',
         'Tìm giá trị lớn nhất trong bảng và vị trí đầu tiên đạt giá trị đó khi duyệt từ trên xuống, trong mỗi hàng từ trái sang phải. Hàng và cột được đánh số từ 1.\n\n' + matrix_limits +
         '## Dữ liệu ra\nIn ba số: giá trị lớn nhất, số hàng và số cột của vị trí được chọn.\n',
@@ -168,7 +168,7 @@ def problems():
         'Thời gian O(nm), bộ nhớ phụ O(1).',
         _cpp('int main() {\n    int n, m; cin >> n >> m;\n    long long best = 0; int row = 1, col = 1;\n    for (int i = 1; i <= n; ++i) for (int j = 1; j <= m; ++j) {\n        long long x; cin >> x;\n        if ((i == 1 && j == 1) || x > best) { best = x; row = i; col = j; }\n    }\n    cout << best << " " << row << " " << col << "\\n";\n}'),
         [_matrix_input(a) for a in matrices], _maxpos,
-        ['arrays-and-strings', 'matrix-basics'], ['arrays-and-strings']))
+        ['matrix-basics'], ['matrix-basics']))
 
     result.append(_entry('msb_divisors', 'Liệt kê các ước dương', 'numbers',
         'Cho số nguyên dương ~n~. Hãy đếm và liệt kê tất cả các ước dương của ~n~ theo thứ tự tăng dần.\n\n'
@@ -180,7 +180,7 @@ def problems():
         'Thời gian O(n), bộ nhớ phụ O(1).',
         _cpp('int main() {\n    int n; cin >> n; int count = 0;\n    for (int d = 1; d <= n; ++d) if (n % d == 0) ++count;\n    cout << count << "\\n";\n    bool first = true;\n    for (int d = 1; d <= n; ++d) if (n % d == 0) {\n        if (!first) cout << " ";\n        cout << d; first = false;\n    }\n    cout << "\\n";\n}'),
         [str(n) + '\n' for n in [1, 2, 3, 4, 6, 12, 16, 25, 36, 97, 99991, 100000]],
-        _divisors, ['programming-basics', 'number-theory', 'divisors'], ['programming-basics', 'implementation']))
+        _divisors, ['number-theory', 'divisors', 'loops'], ['arithmetic-functions', 'loops']))
     result.append(_entry('msb_prime', 'Kiểm tra một số nguyên tố', 'numbers',
         'Số nguyên tố là số nguyên lớn hơn 1 chỉ có hai ước dương là 1 và chính nó. Kiểm tra số ~n~ có phải số nguyên tố hay không.\n\n'
         '## Dữ liệu vào\nMột số nguyên ~n~, ~0 \\le n \\le 10^9~.\n\n'
@@ -192,7 +192,7 @@ def problems():
         'Thời gian O(√n), bộ nhớ phụ O(1).',
         _cpp('bool isPrime(int n) {\n    if (n < 2) return false;\n    for (int d = 2; 1LL * d * d <= n; ++d) if (n % d == 0) return false;\n    return true;\n}\nint main() {\n    int n; cin >> n;\n    cout << (isPrime(n) ? "YES" : "NO") << "\\n";\n}'),
         [str(n) + '\n' for n in [0, 1, 2, 3, 4, 9, 25, 49, 97, 99991, 999800009, 999999937, 1000000000]],
-        _prime, ['programming-basics', 'number-theory', 'primality', 'functions'], ['programming-basics', 'prime-sieve'], True))
+        _prime, ['number-theory', 'primality', 'functions', 'loops'], ['prime-sieve', 'functions'], True))
     gcd_cases = [(1, 1), (1, 10**9), (10**9, 1), (12, 18), (18, 12), (7, 13), (24, 24),
                  (10**9, 10**9), (999999937, 999999929), (1024, 64), (123456789, 987654321)]
     result.append(_entry('msb_gcdlcm', 'Ước chung lớn nhất và bội chung nhỏ nhất', 'numbers',
@@ -206,7 +206,7 @@ def problems():
         'Thời gian O(log(min(a,b))), bộ nhớ phụ O(1).',
         _cpp('long long gcd(long long a, long long b) {\n    while (b != 0) { long long r = a % b; a = b; b = r; }\n    return a;\n}\nint main() {\n    long long a, b; cin >> a >> b;\n    long long g = gcd(a, b);\n    cout << g << " " << a / g * b << "\\n";\n}'),
         [f'{a} {b}\n' for a, b in gcd_cases], _gcdlcm,
-        ['number-theory', 'gcd-euclid', 'functions', 'numeric-safety'], ['gcd-euclid', 'programming-basics'], True))
+        ['number-theory', 'gcd-euclid', 'functions', 'numeric-safety'], ['gcd-euclid', 'functions'], True))
     mod_cases = ['1 1\n0\n', '1 7\n7\n', '1 7\n6\n', '2 7\n6 1\n', '3 10\n0 0 0\n',
                  '3 10\n11 12 13\n', '2 1000000000\n1000000000 1000000000\n',
                  '4 2\n1 1 1 1\n', '5 3\n1 2 3 4 5\n',
@@ -221,5 +221,5 @@ def problems():
         'Dùng long long cho phép cộng và nhớ trường hợp m=1 cho kết quả 0. Không cần lưu mảng.',
         'Thời gian O(n), bộ nhớ phụ O(1).',
         _cpp('int main() {\n    int n; long long m; cin >> n >> m; long long remainder = 0;\n    for (int i = 0; i < n; ++i) { long long x; cin >> x; remainder = (remainder + x) % m; }\n    cout << remainder << "\\n";\n}'),
-        mod_cases, _modsum, ['number-theory', 'modulo', 'loops'], ['modulo']))
+        mod_cases, _modsum, ['number-theory', 'modulo', 'loops'], ['modulo', 'loops']))
     return result

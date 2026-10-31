@@ -1,76 +1,105 @@
 [
   {
-    "node_slug": "programming-basics",
-    "title": "Nền tảng lập trình: Kiểu dữ liệu, luồng điều khiển và hàm",
-    "summary": "Lập trình thi đấu đòi hỏi sự chính xác tuyệt đối trong việc định kiểu dữ liệu, cấu trúc rẽ nhánh, vòng lặp và tổ chức hàm. Việc hiểu rõ cơ chế truyền tham số và phạm vi biến giúp chương trình hoạt động đúng đắn mà không phát sinh hành vi không xác định. Nắm vững nền tảng này là tiền đề bắt buộc trước khi cài đặt các cấu trúc dữ liệu và giải thuật phức tạp.",
-    "body": "> Ghi chú nhập môn MSOJ: nội dung biên soạn độc lập, không phải bản sao hay bài giảng chính thức của VNOI.\n\n### Mô hình và bất biến\nChương trình máy tính xử lý luồng dữ liệu thông qua các lệnh tuần tự, rẽ nhánh (`if-else`, `switch`) và lặp (`for`, `while`). Bất biến cốt lõi là tính xác định của trạng thái: mọi biến phải được khởi tạo giá trị hợp lệ trước khi sử dụng, và kiểu dữ liệu phải đủ rộng để chứa miền giá trị mà bài toán yêu cầu.\n\n### Các bước thực hiện\n1. **Khai báo và khởi tạo**: Chọn kiểu số nguyên (`int`, `long long`), số thực (`double`), ký tự (`char`) phù hợp với ràng buộc đề bài; khởi tạo giá trị mặc định cho biến toàn cục hoặc cục bộ.\n2. **Kiểm soát luồng thực thi**: Sử dụng điều kiện kiểm tra biên chặt chẽ; đảm bảo vòng lặp luôn tiến về điều kiện dừng để tránh vòng lặp vô hạn.\n3. **Mô-đun hóa với hàm**: Tách các tác vụ lặp lại thành hàm riêng biệt; phân biệt rõ truyền giá trị (sao chép) và truyền tham chiếu (`&` trong C++) khi cần cập nhật trực tiếp biến ngoài phạm vi.\n\n### Ví dụ minh họa\nBài toán tính tổng các số chẵn trong đoạn $[1, n]$ với $n = 6$.\n- Khởi tạo: $S = 0$.\n- Vòng lặp $i$ chạy từ $1$ đến $6$:\n  - $i=1$: lẻ, bỏ qua.\n  - $i=2$: chẵn, $S = 0 + 2 = 2$.\n  - $i=3$: lẻ, bỏ qua.\n  - $i=4$: chẵn, $S = 2 + 4 = 6$.\n  - $i=5$: lẻ, bỏ qua.\n  - $i=6$: chẵn, $S = 6 + 6 = 12$.\n- Kết quả xuất ra: $S = 12$.\n\n### Độ phức tạp\n- **Thời gian**: Vòng lặp đơn $n$ bước tốn $O(n)$; hoặc tối ưu bằng công thức số học $O(1)$.\n- **Không gian**: $O(1)$ bộ nhớ phụ trợ khi chỉ dùng các biến đơn lẻ.\n\n### Cạm bẫy và lưu ý\n- Truy cập biến chưa khởi tạo (garbage value) trong hàm cục bộ dẫn đến kết quả sai ngẫu nhiên.\n- Vòng lặp `while` không cập nhật biến điều khiển gây tràn thời gian (TLE).\n- Lạm dụng đệ quy cho bài toán cơ bản có thể gây tràn ngăn xếp (Stack Overflow).\n\n### Câu hỏi tự kiểm tra\n1. Trong C++, điều gì xảy ra nếu bạn truyền một mảng lớn vào hàm theo kiểu giá trị thay vì con trỏ hoặc tham chiếu?\n2. Khi lặp qua các phần tử với chỉ số kiểu số nguyên có dấu, điều gì xảy ra nếu biến đếm vượt quá $2 \\times 10^9$?",
-    "introduction": "Ghi chú nhập môn do MSOJ biên soạn để thử nghiệm học trên hệ thống. Nắm biến, kiểu dữ liệu, điều kiện, vòng lặp và hàm trước khi học thuật toán.",
+    "node_slug": "io-basics",
+    "title": "Đọc dữ liệu và in kết quả",
+    "summary": "Dùng biến cùng cin và cout để nhận dữ liệu, tính một kết quả đơn giản rồi in ra.",
+    "body": "## Mục đích\nChương trình thường đọc dữ liệu, lưu vào biến, tính toán rồi in kết quả. `cin` đọc; `cout` in. Kiểu của biến quyết định loại giá trị được lưu.\n\n## Ví dụ: cộng hai số\nVí dụ dùng các số nhỏ. `int` lưu số nguyên. `>>` đưa dữ liệu vào biến; `<<` đưa dữ liệu ra. Nhập hai số nguyên, mỗi số cách nhau bởi khoảng trắng.\n\n```cpp\n#include <iostream>\nusing namespace std;\n\nint main() {\n    int a, b;\n    cin >> a >> b;\n    cout << a + b << \"\\n\";\n    return 0;\n}\n```\n\n**Input**\n```text\n3 5\n```\n**Output**\n```text\n8\n```\n`cin` gán 3 cho `a`, 5 cho `b`; `cout` in tổng.\n\n**Lỗi thường gặp:** dùng `<<` thay `>>` khi đọc; quên khai báo biến; in thêm lời nhắc khiến output không khớp định dạng yêu cầu.\n\n**Thử:** nhập hai số khác và dự đoán tổng.\n\nTham khảo: [W3Schools C++ User Input](https://www.w3schools.com/cpp/cpp_user_input.asp).",
+    "introduction": "Đọc hai số bằng cin, tính tổng và in kết quả bằng cout.",
     "provenance": {
-      "node_slug": "programming-basics",
-      "source_kind": "MSOJ supplementary topic",
-      "source_nodes": [],
-      "reading": []
+      "origin": "MSOJ",
+      "note": "Nội dung MSOJ biên soạn độc lập; W3Schools được liên kết làm tài liệu tham khảo."
     }
   },
   {
-    "node_slug": "io-and-numeric-safety",
-    "title": "Nhập xuất nhanh và an toàn số học",
-    "summary": "Tối ưu hóa thao tác nhập xuất giúp tránh lỗi tràn thời gian khi xử lý tập dữ liệu lớn lên tới hàng triệu dòng. Đồng thời, việc kiểm soát tràn số nguyên và sai số dấu phẩy động là yếu tố sống còn để đảm bảo tính đúng đắn của thuật toán. Nắm vững kỹ thuật này giúp tránh được các lỗi phán quyết khó phát hiện như TLE hoặc WA bí ẩn.",
-    "body": "> Ghi chú nhập môn MSOJ: nội dung biên soạn độc lập, không phải bản sao hay bài giảng chính thức của VNOI.\n\n### Mô hình và bất biến\nKhi dữ liệu vào/ra vượt quá $10^5$ phần tử, chi phí đồng bộ hóa I/O giữa C và C++ (`cin`/`cout` với `stdio`) và việc xả đệm liên tục (`std::endl`) trở thành điểm nghẽn nghiêm trọng. Về số học, các kiểu dữ liệu có giới hạn biểu diễn cố định: `int` 32-bit trong khoảng $[-2^{31}, 2^{31}-1]$ (xấp xỉ $\\pm 2 \\times 10^9$), `long long` 64-bit trong khoảng $[-2^{63}, 2^{63}-1]$ (xấp xỉ $\\pm 9 \\times 10^{18}$). Bất biến an toàn: trung gian của mọi phép nhân, tổng dồn không được vượt quá miền giá trị của kiểu lưu trữ.\n\n### Các bước thực hiện\n1. **Tắt đồng bộ hóa I/O**: Đặt `ios_base::sync_with_stdio(false); cin.tie(NULL);` ở đầu hàm `main`; dùng `'\\n'` thay cho `endl`.\n2. **Ép kiểu trước khi tính toán**: Khi nhân hai số `int` có thể vượt $2 \\times 10^9$, phải ép kiểu `1LL * a * b` trước khi thực hiện phép nhân.\n3. **Xử lý số thực**: Không dùng toán tử so sánh bằng `==` trực tiếp trên `double`; dùng sai số tuyệt đối/tương đối `fabs(a - b) < 1e-9`.\n\n### Ví dụ minh họa\nTính tích $a \\times b$ với $a = 10^6, b = 10^6$.\n- Nếu tính bằng kiểu `int` 32-bit: $10^{12} > 2^{31}-1$, xảy ra tràn số nguyên có dấu dẫn đến giá trị rác âm (ví dụ: $-727379968$).\n- Nếu ép kiểu sang `long long`: `1LL * a * b = 1000000000000LL`. Kết quả chính xác là $10^{12}$.\n\n### Độ phức tạp\n- **Thời gian**: Nhập xuất tối ưu giảm đáng kể thời gian đọc ghi khi dữ liệu lên tới $10^6$ số, hạn chế tắc nghẽn I/O trên hệ thống chấm.\n- **Không gian**: $O(1)$ bộ nhớ phụ trợ cho các thao tác I/O chuẩn.\n\n### Cạm bẫy và lưu ý\n- Trộn lẫn `cin`/`cout` với `scanf`/`printf` sau khi đã gọi `sync_with_stdio(false)` dẫn đến xáo trộn thứ tự đọc/ghi dữ liệu.\n- Phép chia số nguyên `a / b` làm tròn xuống về phía 0, gây sai lệch khi tính toán phân số nếu không ép kiểu thực hoặc dùng công thức nguyên trần `(a + b - 1) / b` (khi $a, b > 0$).\n\n### Câu hỏi tự kiểm tra\n1. Tại sao lệnh `std::endl` lại làm chậm chương trình hơn rất nhiều so với ký tự `'\\n'`?\n2. Khi nào phép cộng hai số nguyên dương `long long` có thể dẫn đến tràn số và cách kiểm tra trước khi cộng là gì?",
-    "introduction": "Ghi chú nhập môn do MSOJ biên soạn để thử nghiệm học trên hệ thống. Xử lý dữ liệu đầu vào, giới hạn kiểu số và sai số trong chương trình thi đấu.",
+    "node_slug": "conditions",
+    "title": "Chọn hành động bằng điều kiện",
+    "summary": "Dùng if và else để chương trình chọn một nhánh dựa trên giá trị.",
+    "body": "## Mục đích\nĐiều kiện cho chương trình chọn việc cần làm. `if` chạy một khối khi điều kiện đúng; `else` chạy khối còn lại. Dùng `==` để so sánh bằng, khác với `=` để gán giá trị.\n\n## Ví dụ: số dương hay không dương\nĐọc một số nguyên rồi chọn đúng một trong hai nhánh.\n\n```cpp\n#include <iostream>\nusing namespace std;\n\nint main() {\n    int number;\n    cin >> number;\n    if (number > 0) {\n        cout << \"positive\\n\";\n    } else {\n        cout << \"not positive\\n\";\n    }\n    return 0;\n}\n```\n\n**Input**\n```text\n0\n```\n**Output**\n```text\nnot positive\n```\n`number > 0` kiểm tra số có lớn hơn 0 không; 0 đi vào nhánh `else`.\n\n**Lỗi thường gặp:** viết `=` thay `==` khi so sánh; quên ngoặc nhọn; bỏ sót trường hợp 0 khi đặt điều kiện.\n\n**Thử:** nhập `7`, rồi nhập `-2`; dự đoán thông báo mỗi lần.\n\nTham khảo: [W3Schools C++ If ... Else](https://www.w3schools.com/cpp/cpp_conditions.asp).",
+    "introduction": "Dùng if/else để xử lý hai trường hợp và đọc kết quả của điều kiện.",
     "provenance": {
-      "node_slug": "io-and-numeric-safety",
-      "source_kind": "MSOJ supplementary topic",
-      "source_nodes": [],
-      "reading": []
+      "origin": "MSOJ",
+      "note": "Nội dung MSOJ biên soạn độc lập; W3Schools được liên kết làm tài liệu tham khảo."
     }
   },
   {
-    "node_slug": "arrays-and-strings",
-    "title": "Mảng và xâu ký tự: Quản lý bộ nhớ và thao tác chuỗi",
-    "summary": "Mảng và xâu ký tự là cấu trúc dữ liệu tuyến tính nền tảng nhất dùng để lưu trữ các tập hợp dữ liệu có thứ tự. Mảng cung cấp khả năng truy xuất ngẫu nhiên trong thời gian hằng số, trong khi xâu ký tự mở rộng thêm các thao tác ghép nối, cắt chuỗi và so khớp. Hiểu rõ cách thức phân bổ bộ nhớ liên tục giúp tận dụng tối đa bộ nhớ đệm (cache) của hệ thống.",
-    "body": "> Ghi chú nhập môn MSOJ: nội dung biên soạn độc lập, không phải bản sao hay bài giảng chính thức của VNOI.\n\n### Mô hình và bất biến\nMảng lưu trữ các phần tử cùng kiểu dữ liệu tại các ô nhớ vật lý liền kề. Bất biến cơ bản là chỉ số truy cập $i$ phải nằm trong phạm vi hợp lệ $[0, n-1]$ (với mảng 0-indexed) hoặc $[1, n]$ (với mảng 1-indexed). Xâu ký tự là mảng các ký tự, thường kết thúc bằng ký tự rỗng `'\\0'` trong C hoặc quản lý độ dài tự động trong `std::string`.\n\n### Các bước thực hiện\n1. **Cấp phát mảng**: Khai báo mảng tĩnh kích thước tối đa ngoài hàm `main` để tránh tràn stack, hoặc sử dụng mảng động `std::vector` khi kích thước thay đổi.\n2. **Duyệt và cập nhật**: Truy xuất phần tử qua toán tử `A[i]` trong $O(1)$; duyệt tuần tự từ trái sang phải hoặc từ phải sang trái.\n3. **Thao tác trên xâu**: Dùng các phương thức `length()`, `substr()`, hoặc nối xâu `+`. Tránh việc nối xâu liên tục trong vòng lặp bằng phép gán sao chép.\n\n### Ví dụ minh họa\nĐảo ngược xâu $S = \"msoj\"$:\n- Ban đầu: $S[0]='m', S[1]='s', S[2]='o', S[3]='j'$, độ dài $n = 4$.\n- Con trỏ $L = 0, R = 3$: hoán đổi $S[0]$ và $S[3] \\implies S = \"jsoe\"$.\n- Tăng $L=1$, giảm $R=2$: hoán đổi $S[1]$ và $S[2] \\implies S = \"josm\"$.\n- Khi $L \\ge R$, dừng thuật toán. Kết quả xâu sau đảo ngược: $\"josm\"$.\n\n### Độ phức tạp\n- **Thời gian**: Truy cập phần tử bất kỳ tốn $O(1)$. Duyệt mảng hoặc nối xâu độ dài $n$ tốn $O(n)$.\n- **Không gian**: $O(n)$ bộ nhớ tuyến tính liên tục.\n\n### Cạm bẫy và lưu ý\n- Truy cập ngoài chỉ số biên (Out of bounds) gây lỗi bộ nhớ nghiêm trọng (Segmentation Fault) hoặc ghi đè dữ liệu biến khác.\n- Phép gán xâu hoặc truyền `std::string` theo giá trị vào hàm tạo bản sao tốn thời gian $O(n)$; luôn dùng `const string&` khi chỉ đọc.\n\n### Câu hỏi tự kiểm tra\n1. Tại sao khai báo mảng tĩnh kích thước $10^7$ phần tử `int` trong hàm `main` lại gây lỗi Runtime Error, trong khi đặt ở ngoài toàn cục lại chạy bình thường?\n2. Sự khác biệt về chi phí thời gian giữa việc dùng `s += c` và `s = s + c` trong vòng lặp $n$ lần là gì?",
-    "introduction": "Ghi chú nhập môn do MSOJ biên soạn để thử nghiệm học trên hệ thống. Biểu diễn và duyệt dãy dữ liệu bằng mảng và xâu.",
+    "node_slug": "loops",
+    "title": "Lặp lại thao tác với for",
+    "summary": "Dùng vòng lặp for để thực hiện một việc nhiều lần và theo dõi tổng đang thay đổi.",
+    "body": "## Mục đích\nVòng lặp chạy lại một khối lệnh. `for (khởi_tạo; điều_kiện; cập_nhật)` khởi tạo biến một lần, kiểm tra điều kiện trước mỗi lượt, rồi cập nhật sau thân vòng lặp.\n\n## Ví dụ: cộng các số từ 1 đến 4\n`sum` giữ tổng đang tính. Mỗi lượt cộng giá trị hiện tại của `i`.\n\n```cpp\n#include <iostream>\nusing namespace std;\n\nint main() {\n    const int start = 1;\n    const int end = 4;\n    const int step = 1;\n    int i;\n    long long sum = 0;\n    for (i = start; i <= end; i += step) {\n        sum += i;\n    }\n    cout << sum << \"\\n\";\n    return 0;\n}\n```\n\n**Output**\n```text\n10\n```\nCác giá trị `i` là 1, 2, 3, 4; `sum` lần lượt thành 1, 3, 6, 10.\n\n**Lỗi thường gặp:** dùng `< 4` nên bỏ qua số 4; quên cập nhật `i` nên vòng lặp không tiến; đặt `sum = i` thay vì cộng dồn `sum += i`.\n\n**Thử:** đổi `end` thành 3 và dự đoán tổng.\n\n## Quan sát tổng sau mỗi lượt\nMỗi lần bấm, xem một số được cộng vào tổng. Sau số 4, kiểm tra vì sao 5 không được cộng. Mở **Đối chiếu code C++ và bộ nhớ** nếu muốn chạy từng dòng.\n\nTham khảo: [W3Schools C++ For Loop](https://www.w3schools.com/cpp/cpp_for_loop.asp).\n\n```msoj-visual\n{\n  \"version\": 2,\n  \"id\": \"legacy-for-loop\",\n  \"title\": \"For Loop\",\n  \"summary\": \"Mô phỏng for-loop xác định; mã nguồn chỉ dùng để đọc.\",\n  \"data\": {\n    \"variables\": {\n      \"type\": \"variables\",\n      \"scopes\": [\n        {\n          \"id\": \"main-scope\",\n          \"name\": \"main\",\n          \"frames\": [\n            {\n              \"id\": \"main-frame\",\n              \"procedure\": \"main\",\n              \"parameters\": {},\n              \"locals\": {\n                \"start\": 1,\n                \"end\": 4,\n                \"step\": 1,\n                \"i\": null,\n                \"sum\": 0\n              }\n            }\n          ]\n        }\n      ]\n    },\n    \"iterations\": {\n      \"type\": \"sequence\",\n      \"values\": [],\n      \"itemIds\": []\n    }\n  },\n  \"modules\": [\n    {\n      \"id\": \"variables-view\",\n      \"type\": \"variables\",\n      \"source\": \"variables\"\n    },\n    {\n      \"id\": \"iterations-view\",\n      \"type\": \"vector\",\n      \"source\": \"iterations\"\n    },\n    {\n      \"id\": \"explanation\",\n      \"type\": \"explanation\",\n      \"content\": [\n        {\n          \"type\": \"text\",\n          \"value\": \"Mỗi lượt cộng i vào tổng khi i <= end.\"\n        }\n      ]\n    },\n    {\n      \"id\": \"output\",\n      \"type\": \"output\",\n      \"text\": \"\"\n    },\n    {\n      \"id\": \"source\",\n      \"type\": \"code\",\n      \"caption\": \"Mã nguồn chỉ để đọc\",\n      \"sources\": [\n        {\n          \"language\": \"cpp\",\n          \"sourceCode\": \"#include <iostream>\\nint main() {\\n    int start = 1, end = 4, step = 1;\\n    int sum = 0;\\n    for (int i = start; i <= end; i += step) {\\n        sum += i;\\n    }\\n    std::cout << sum << '\\\\n';\\n    return 0;\\n}\",\n          \"lineIds\": [\n            \"for-loop-init-1\",\n            \"for-loop-init-2\",\n            \"for-loop-init-3\",\n            \"for-loop-init-4\",\n            \"for-loop-loop-1\",\n            \"for-loop-add-1\",\n            \"for-loop-loop-end-1\",\n            \"for-loop-print-1\",\n            \"for-loop-return-1\",\n            \"for-loop-end-1\"\n          ]\n        },\n        {\n          \"language\": \"python\",\n          \"sourceCode\": \"start, end, step = 1, 4, 1\\ntotal = 0\\nfor i in range(start, end + 1, step):\\n    total += i\\nprint(total)\",\n          \"lineIds\": [\n            \"for-loop-init-1\",\n            \"for-loop-init-2\",\n            \"for-loop-loop-1\",\n            \"for-loop-add-1\",\n            \"for-loop-print-1\"\n          ]\n        }\n      ]\n    }\n  ],\n  \"layout\": {\n    \"areas\": [\n      [\n        \"variables-view\",\n        \"iterations-view\",\n        \"explanation\",\n        \"output\"\n      ],\n      [\n        \"source\",\n        \"_\",\n        \"_\",\n        \"_\"\n      ]\n    ],\n    \"readingOrder\": [\n      \"variables-view\",\n      \"iterations-view\",\n      \"explanation\",\n      \"output\",\n      \"source\"\n    ]\n  },\n  \"timeline\": {\n    \"generator\": \"for-loop\",\n    \"input\": {\n      \"start\": 1,\n      \"end\": 4,\n      \"step\": 1\n    }\n  }\n}\n```",
+    "introduction": "Dùng for để lặp qua các số và cộng dồn kết quả từng lượt.",
     "provenance": {
-      "node_slug": "arrays-and-strings",
-      "source_kind": "MSOJ supplementary topic",
-      "source_nodes": [],
-      "reading": []
+      "origin": "MSOJ",
+      "note": "Nội dung MSOJ biên soạn độc lập; W3Schools được liên kết làm tài liệu tham khảo."
+    }
+  },
+  {
+    "node_slug": "functions",
+    "title": "Tạo hàm nhận đầu vào và trả kết quả",
+    "summary": "Tách một phép tính thành hàm có tham số, biến cục bộ và giá trị trả về.",
+    "body": "## Mục đích\nHàm đặt tên cho một việc để có thể gọi lại. Tham số nhận dữ liệu đầu vào; `return` gửi kết quả về nơi gọi. Tham số kiểu số được truyền theo giá trị: thay đổi bản sao trong hàm không đổi biến của bên gọi. Biến khai báo trong hàm chỉ dùng ở hàm đó.\n\n## Ví dụ: tính gấp đôi\n`doubleValue` nhận một số nguyên và trả về số gấp đôi của nó.\n\n```cpp\n#include <iostream>\nusing namespace std;\n\nint doubleValue(int value) {\n    int result = value * 2;\n    return result;\n}\n\nint main() {\n    cout << doubleValue(4) << \"\\n\";\n    return 0;\n}\n```\n\n**Output**\n```text\n8\n```\n`4` được truyền vào tham số `value`; hàm tạo `result` cục bộ và trả `8` cho `cout`.\n\n**Lỗi thường gặp:** quên `return`; trả sai kiểu; cố dùng biến cục bộ ngoài hàm.\n\n**Thử:** gọi hàm với `-3` và dự đoán kết quả.\n\nTham khảo: [W3Schools C++ Functions](https://www.w3schools.com/cpp/cpp_functions.asp).",
+    "introduction": "Viết hàm có tham số, biến cục bộ và giá trị trả về.",
+    "provenance": {
+      "origin": "MSOJ",
+      "note": "Nội dung MSOJ biên soạn độc lập; W3Schools được liên kết làm tài liệu tham khảo."
+    }
+  },
+  {
+    "node_slug": "array-basics",
+    "title": "Lưu và duyệt một dãy số",
+    "summary": "Dùng mảng để giữ nhiều giá trị cùng kiểu, truy cập theo chỉ số bắt đầu từ 0 và tính tổng.",
+    "body": "## Mục đích\nMảng lưu nhiều giá trị cùng kiểu dưới một tên. Với mảng có `n` phần tử, chỉ số bắt đầu từ 0 và kết thúc ở `n - 1`.\n\n## Ví dụ: tính tổng ba phần tử\n`values[i]` lấy phần tử ở vị trí `i`; vòng lặp thăm lần lượt các chỉ số hợp lệ.\n\n```cpp\n#include <iostream>\nusing namespace std;\n\nint main() {\n    int values[3] = {2, 4, 6};\n    int sum = 0;\n    for (int i = 0; i < 3; ++i) {\n        sum += values[i];\n    }\n    cout << sum << \"\\n\";\n    return 0;\n}\n```\n\n**Output**\n```text\n12\n```\nLượt đầu đọc `values[0]` là 2, tiếp theo là 4 và 6; tổng cuối là 12.\n\n**Lỗi thường gặp:** bắt đầu ở chỉ số 1 khiến bỏ phần tử đầu; dùng `i <= 3` truy cập quá cuối mảng; quên khởi tạo `sum` bằng 0.\n\n**Thử:** đổi phần tử cuối thành 1 và dự đoán tổng.\n\nTham khảo: [W3Schools C++ Arrays](https://www.w3schools.com/cpp/cpp_arrays.asp).",
+    "introduction": "Lưu một dãy số trong mảng và duyệt các chỉ số từ 0 đến n - 1.",
+    "provenance": {
+      "origin": "MSOJ",
+      "note": "Nội dung MSOJ biên soạn độc lập; W3Schools được liên kết làm tài liệu tham khảo."
+    }
+  },
+  {
+    "node_slug": "string-basics",
+    "title": "Làm quen với xâu ký tự",
+    "summary": "Lưu văn bản trong string, đọc một từ và duyệt ký tự bằng chỉ số bắt đầu từ 0.",
+    "body": "## Mục đích\n`string` lưu văn bản. `cin >> word` đọc một từ đến khoảng trắng; `word.size()` cho biết độ dài và `word[i]` lấy ký tự tại chỉ số `i`. Chỉ số của xâu bắt đầu từ 0.\n\n## Ví dụ: đếm chữ a\nDuyệt mọi ký tự, tăng biến đếm mỗi khi gặp chữ `a`.\n\n```cpp\n#include <iostream>\n#include <string>\nusing namespace std;\n\nint main() {\n    string word;\n    cin >> word;\n    int count = 0;\n    for (int i = 0; i < static_cast<int>(word.size()); ++i) {\n        if (word[i] == 'a') {\n            ++count;\n        }\n    }\n    cout << count << \"\\n\";\n    return 0;\n}\n```\n\n**Input**\n```text\nbanana\n```\n**Output**\n```text\n3\n```\nChương trình kiểm tra lần lượt từng ký tự; trong `banana` có ba chữ `a`.\n\n**Lỗi thường gặp:** dùng dấu nháy kép cho một ký tự (`\"a\"`); duyệt đến `i <= word.size()`; nghĩ rằng `cin >> word` giữ lại khoảng trắng.\n\n**Thử:** nhập `apple` và dự đoán số chữ `a`.\n\nTham khảo: [W3Schools C++ Strings](https://www.w3schools.com/cpp/cpp_strings.asp).",
+    "introduction": "Đọc một từ, lấy độ dài và duyệt ký tự bằng chỉ số bắt đầu từ 0.",
+    "provenance": {
+      "origin": "MSOJ",
+      "note": "Nội dung MSOJ biên soạn độc lập; W3Schools được liên kết làm tài liệu tham khảo."
+    }
+  },
+  {
+    "node_slug": "matrix-basics",
+    "title": "Đọc bảng theo hàng và cột",
+    "summary": "Dùng mảng hai chiều để biểu diễn bảng và duyệt từng ô bằng chỉ số hàng, cột.",
+    "body": "## Mục đích\nMảng hai chiều biểu diễn dữ liệu dạng bảng. Ô `values[row][column]` được xác định bằng hàng trước, cột sau; cả hai chỉ số đều bắt đầu từ 0.\n\n## Ví dụ: cộng các ô của bảng 2 × 3\nVòng lặp ngoài chọn hàng; vòng lặp trong thăm từng cột của hàng đó.\n\n```cpp\n#include <iostream>\nusing namespace std;\n\nint main() {\n    int values[2][3] = {{1, 2, 3}, {4, 5, 6}};\n    int sum = 0;\n    for (int row = 0; row < 2; ++row) {\n        for (int column = 0; column < 3; ++column) {\n            sum += values[row][column];\n        }\n    }\n    cout << sum << \"\\n\";\n    return 0;\n}\n```\n\n**Output**\n```text\n21\n```\nChương trình đi qua 2 hàng, mỗi hàng có 3 cột, nên cộng đủ cả sáu ô.\n\n**Lỗi thường gặp:** đảo hàng và cột; dùng giới hạn 3 cho hàng dù chỉ có 2 hàng; dùng `<=` khiến chỉ số vượt biên.\n\n**Thử:** đổi ô `values[1][2]` từ 6 thành 0 và dự đoán tổng.\n\nTham khảo: [W3Schools C++ Multi-Dimensional Arrays](https://www.w3schools.com/cpp/cpp_arrays_multi.asp).",
+    "introduction": "Lưu bảng hai chiều và dùng chỉ số hàng, cột để duyệt từng ô.",
+    "provenance": {
+      "origin": "MSOJ",
+      "note": "Nội dung MSOJ biên soạn độc lập; W3Schools được liên kết làm tài liệu tham khảo."
     }
   },
   {
     "node_slug": "algorithmic-thinking",
-    "title": "Tư duy giải bài và phương pháp tiếp cận bài toán",
-    "summary": "Tư duy giải thuật là quá trình chuyển đổi một bài toán thực tế hoặc mô tả trừu tượng thành mô hình toán học và cấu trúc dữ liệu chuẩn. Kỹ năng cốt lõi nằm ở việc phân tích ràng buộc đầu vào để ước lượng độ phức tạp thời gian khả thi, từ đó định hướng giải pháp phù hợp. Tiếp cận bài toán một cách có hệ thống giúp tránh lãng phí thời gian cài đặt các hướng đi bế tắc.",
-    "body": "> Ghi chú nhập môn MSOJ: nội dung biên soạn độc lập, không phải bản sao hay bài giảng chính thức của VNOI.\n\n### Mô hình và bất biến\nMỗi bài toán lập trình thi đấu có ba thành phần: Không gian trạng thái, Điều kiện ràng buộc ($N, M, A_i$), và Hàm mục tiêu cần tối ưu hoặc kiểm tra. Bất biến tư duy: Giới hạn thời gian, bộ nhớ và chi phí từng bước quyết định tính khả thi; các mốc dưới đây chỉ gợi ý hướng tìm, không bảo đảm được chấp nhận:\n- $N \\le 20$: có thể xét O(2^N); 20! khoảng 2.43×10^18, không coi factorial khả thi chỉ vì N=20.\n- $N \\le 1000 \\implies O(N^2)$.\n- $N \\le 2 \\times 10^5 \\implies O(N \\log N)$ hoặc $O(N)$.\n- $N \\le 10^9 \\implies O(\\sqrt{N})$ hoặc $O(\\log N)$ hoặc $O(1)$.\n\n### Các bước thực hiện\n1. **Đọc kỹ đề và vẽ test**: Tự tính tay test ví dụ và thiết kế test biên nhỏ nhất ($N=1$, mảng toàn số âm, đồ thị không liên thông).\n2. **Đơn giản hóa mô hình**: Tìm kiếm các tính chất bất biến, tính đơn điệu, hoặc cấu trúc con tối ưu của bài toán.\n3. **Phát triển thuật toán từ cơ bản**: Bắt đầu từ ý tưởng vét cạn $O(N^2)$ hoặc $O(2^N)$, sau đó tìm cách loại bỏ tính toán thừa bằng bảng tiền xử lý, hai con trỏ hoặc cấu trúc dữ liệu.\n\n### Ví dụ minh họa\nBài toán: Cho mảng $A$ gồm 4 phần tử $[3, 1, 4, 2]$, tìm hai phần tử có tổng lớn nhất.\n- Tiếp cận ngây thơ: Thử mọi cặp $(i, j)$ với $i < j$, tốn $O(N^2)$ phép so sánh: các tổng là $3+1=4, 3+4=7, 3+2=5, 1+4=5, 1+2=3, 4+2=6$. Cặp lớn nhất là $(3, 4)$ có tổng $7$.\n- Tư duy tối ưu: Tổng hai số lớn nhất chính là tổng của phần tử lớn nhất và phần tử lớn thứ nhì. Chỉ cần duyệt mảng một lần tìm $max_1 = 4, max_2 = 3 \\implies$ tổng là $4+3=7$ trong $O(N)$ thời gian.\n\n### Độ phức tạp\n- Ví dụ trên giảm từ O(N²) xuống O(N), dùng O(1) bộ nhớ phụ khi N>=2. Không có bảo đảm mọi bài toán đều chuyển được hàm mũ sang đa thức.\n\n### Cạm bẫy và lưu ý\n- Bắt tay vào viết mã quá sớm khi chưa chứng minh được tính đúng đắn và tính khả thi về thời gian.\n- Bỏ qua các trường hợp đặc biệt tại biên như $N=0$, $N=1$, hay tất cả các phần tử bằng nhau.\n\n### Câu hỏi tự kiểm tra\n1. Nếu đề bài cho $N \\le 10^5$ và thời gian giới hạn tương ứng ngưỡng thông thường, bạn có thể sử dụng thuật toán quy hoạch động với bảng trạng thái $O(N^2)$ không? Vì sao?\n2. Khi một bài toán yêu cầu tìm giá trị lớn nhất thỏa mãn một điều kiện kiểm tra đơn điệu, bạn nên nghĩ đến kỹ thuật giải quyết nào đầu tiên?\n\n## Đọc thêm\n\n- [Tầm quan trọng của Thuật Toán](https://wiki.vnoi.info/vi/translate/topcoder/The-Importance-of-Algorithm)\n- [Tầm quan trọng của Thuật Toán](https://wiki.vnoi.info/translate/topcoder/The-Importance-of-Algorithm)\n- [Một số tài liệu hay về Thuật Toán](https://wiki.vnoi.info/algo/basic/Tai-Lieu-Thuat-Toan)",
-    "introduction": "Ghi chú nhập môn do MSOJ biên soạn để thử nghiệm học trên hệ thống. Phân tích yêu cầu, tìm hướng giải và chọn tài liệu phù hợp.",
+    "title": "Tư duy giải bài và lập luận đúng đắn",
+    "summary": "Phân tích đề bài, xây dựng lời giải và kiểm tra lập luận; tổng hợp nội dung tư duy giải bài cùng bài học về chứng minh tính đúng đắn.",
+    "body": "> Ghi chú nhập môn MSOJ: nội dung biên soạn độc lập, không phải bản sao hay bài giảng chính thức của VNOI.\n\n### Mô hình và bất biến\nMỗi bài toán lập trình thi đấu có ba thành phần: Không gian trạng thái, Điều kiện ràng buộc ($N, M, A_i$), và Hàm mục tiêu cần tối ưu hoặc kiểm tra. Bất biến tư duy: Giới hạn thời gian, bộ nhớ và chi phí từng bước quyết định tính khả thi; các mốc dưới đây chỉ gợi ý hướng tìm, không bảo đảm được chấp nhận:\n- $N \\le 20$: có thể xét O(2^N); 20! khoảng 2.43×10^18, không coi factorial khả thi chỉ vì N=20.\n- $N \\le 1000 \\implies O(N^2)$.\n- $N \\le 2 \\times 10^5 \\implies O(N \\log N)$ hoặc $O(N)$.\n- $N \\le 10^9 \\implies O(\\sqrt{N})$ hoặc $O(\\log N)$ hoặc $O(1)$.\n\n### Các bước thực hiện\n1. **Đọc kỹ đề và vẽ test**: Tự tính tay test ví dụ và thiết kế test biên nhỏ nhất ($N=1$, mảng toàn số âm, đồ thị không liên thông).\n2. **Đơn giản hóa mô hình**: Tìm kiếm các tính chất bất biến, tính đơn điệu, hoặc cấu trúc con tối ưu của bài toán.\n3. **Phát triển thuật toán từ cơ bản**: Bắt đầu từ ý tưởng vét cạn $O(N^2)$ hoặc $O(2^N)$, sau đó tìm cách loại bỏ tính toán thừa bằng bảng tiền xử lý, hai con trỏ hoặc cấu trúc dữ liệu.\n\n### Ví dụ minh họa\nBài toán: Cho mảng $A$ gồm 4 phần tử $[3, 1, 4, 2]$, tìm hai phần tử có tổng lớn nhất.\n- Tiếp cận ngây thơ: Thử mọi cặp $(i, j)$ với $i < j$, tốn $O(N^2)$ phép so sánh: các tổng là $3+1=4, 3+4=7, 3+2=5, 1+4=5, 1+2=3, 4+2=6$. Cặp lớn nhất là $(3, 4)$ có tổng $7$.\n- Tư duy tối ưu: Tổng hai số lớn nhất chính là tổng của phần tử lớn nhất và phần tử lớn thứ nhì. Chỉ cần duyệt mảng một lần tìm $max_1 = 4, max_2 = 3 \\implies$ tổng là $4+3=7$ trong $O(N)$ thời gian.\n\n### Độ phức tạp\n- Ví dụ trên giảm từ O(N²) xuống O(N), dùng O(1) bộ nhớ phụ khi N>=2. Không có bảo đảm mọi bài toán đều chuyển được hàm mũ sang đa thức.\n\n### Cạm bẫy và lưu ý\n- Bắt tay vào viết mã quá sớm khi chưa chứng minh được tính đúng đắn và tính khả thi về thời gian.\n- Bỏ qua các trường hợp đặc biệt tại biên như $N=0$, $N=1$, hay tất cả các phần tử bằng nhau.\n\n### Câu hỏi tự kiểm tra\n1. Nếu đề bài cho $N \\le 10^5$ và thời gian giới hạn tương ứng ngưỡng thông thường, bạn có thể sử dụng thuật toán quy hoạch động với bảng trạng thái $O(N^2)$ không? Vì sao?\n2. Khi một bài toán yêu cầu tìm giá trị lớn nhất thỏa mãn một điều kiện kiểm tra đơn điệu, bạn nên nghĩ đến kỹ thuật giải quyết nào đầu tiên?\n\n## Đọc thêm\n\n- [Tầm quan trọng của Thuật Toán](https://wiki.vnoi.info/vi/translate/topcoder/The-Importance-of-Algorithm)\n- [Tầm quan trọng của Thuật Toán](https://wiki.vnoi.info/translate/topcoder/The-Importance-of-Algorithm)\n- [Một số tài liệu hay về Thuật Toán](https://wiki.vnoi.info/algo/basic/Tai-Lieu-Thuat-Toan)\n\n## Lập luận tính đúng đắn\nMột lời giải cần lý do để tin rằng nó luôn trả lời đúng, không chỉ vượt qua vài bộ kiểm thử. Nêu rõ điều kiện đầu vào và kết quả mong muốn; xác định bất biến hoặc mệnh đề toán học gắn với trạng thái thuật toán.\n\n### Chứng minh theo cấu trúc thuật toán\nVới vòng lặp, chỉ ra bất biến đúng trước lần lặp đầu, được bảo toàn sau mỗi bước, và khi kết thúc kéo theo đáp án. Với quy nạp, chứng minh trường hợp cơ sở và bước chuyển. Với chia trường hợp, các trường hợp phải bao phủ mọi khả năng và không gây mâu thuẫn.\n\nVí dụ: khi duyệt mảng để tìm giá trị lớn nhất, sau khi xử lý i phần tử, biến best là giá trị lớn nhất trong i phần tử đầu. Bước đầu lấy phần tử đầu tiên; mỗi bước so sánh và cập nhật; sau phần tử cuối, best là cực đại toàn mảng. Lập luận này giả định mảng không rỗng—nếu đề cho phép mảng rỗng, phải định nghĩa cách xử lý riêng.\n\n**Tự kiểm tra:** Hãy phát biểu bất biến cho phép đếm số phần tử dương. Trường hợp cơ sở là gì? Vì sao chỉ thử nhiều ví dụ không thay cho chứng minh?",
+    "introduction": "Hiểu đề, mô hình hóa, tìm hướng giải và lập luận đúng đắn; dùng bất biến, chia trường hợp và phản ví dụ.",
     "provenance": {
-      "node_slug": "algorithmic-thinking",
-      "source_kind": "VNOI Wiki supplementary topic",
-      "source_nodes": [],
-      "reading": [
-        {
-          "title": "Tầm quan trọng của Thuật Toán",
-          "url": "https://wiki.vnoi.info/vi/translate/topcoder/The-Importance-of-Algorithm"
-        },
-        {
-          "title": "Tầm quan trọng của Thuật Toán",
-          "url": "https://wiki.vnoi.info/translate/topcoder/The-Importance-of-Algorithm"
-        },
-        {
-          "title": "Một số tài liệu hay về Thuật Toán",
-          "url": "https://wiki.vnoi.info/algo/basic/Tai-Lieu-Thuat-Toan"
-        },
-        {
-          "title": "Nghệ thuật giải bài",
-          "url": "https://wiki.vnoi.info/translate/topcoder/How-to-Find-a-Solution"
-        },
-        {
-          "title": "Những cách tiếp cận bài toán",
-          "url": "https://wiki.vnoi.info/translate/topcoder/Planning-an-Approach-to-a-Topcoder-Problem-Part-1"
+      "origin": "MSOJ + VNOI/Roadmap",
+      "note": "Phần nội dung MSOJ biên soạn độc lập; dữ liệu provenance nguồn gốc chi tiết nằm trong curriculum manifest."
+    },
+    "lessons": [
+      {
+        "slug": "correctness",
+        "title": "Chứng minh tính đúng đắn của thuật toán",
+        "summary": "Một thuật toán chỉ có giá trị khi nó đảm bảo trả về kết quả chính xác cho mọi dữ liệu đầu vào thỏa mãn tiền điều kiện. Phương pháp quy nạp toán học, bất biến vòng lặp và phản chứng là ba công cụ căn bản nhất để thiết lập tính đúng đắn. Việc rèn luyện thói quen kiểm chứng logic giúp giảm thiểu việc đoán mò và sửa lỗi vu vơ trong quá trình thi đấu.",
+        "body": "> Ghi chú nhập môn MSOJ: nội dung biên soạn độc lập, không phải bản sao hay bài giảng chính thức của VNOI.\n\n### Mô hình và bất biến\nĐể chứng minh tính đúng đắn của một cấu trúc lặp hoặc đệ quy, ta sử dụng **Bất biến vòng lặp** (Loop Invariant). Một bất biến $P$ phải thỏa mãn ba tính chất:\n1. **Khởi tạo (Initialization)**: $P$ đúng trước khi vòng lặp bắt đầu.\n2. **Duy trì (Maintenance)**: Nếu $P$ đúng trước một bước lặp, nó tiếp tục đúng sau khi kết thúc bước lặp đó.\n3. **Kết thúc (Termination)**: Khi vòng lặp dừng lại, bất biến $P$ cùng với điều kiện dừng đảm bảo suy ra tính đúng đắn của kết quả bài toán.\n\n### Các bước thực hiện\n1. **Phát biểu chính xác bất biến**: Mô tả mối quan hệ giữa trạng thái biến và kết quả của bài toán con đã giải quyết.\n2. **Kiểm tra bước cơ sở**: Đảm bảo điều kiện khởi tạo khớp với trạng thái ban đầu của dữ liệu.\n3. **Chứng minh bước quy nạp**: Giả sử bất biến đúng tới bước $k$, chứng minh thao tác ở bước $k+1$ bảo toàn tính chất.\n4. **Kiểm tra điều kiện dừng**: Chứng minh thuật toán luôn kết thúc sau một số hữu hạn bước và cho ra nghiệm toàn cục.\n\n### Ví dụ minh họa\nThuật toán tìm phần tử nhỏ nhất trong mảng $A[0 \\dots n-1]$:\n```cpp\nint min_val = A[0];\nfor (int i = 1; i < n; i++) {\n    if (A[i] < min_val) min_val = A[i];\n}\n```\n- **Bất biến**: Tại đầu mỗi bước lặp $i$, `min_val` luôn bằng $\\min(A[0], \\dots, A[i-1])$.\n- **Khởi tạo**: Trước vòng lặp ($i=1$), `min_val` $= A[0]$, đúng với đoạn con 1 phần tử.\n- **Duy trì**: Tại bước $i$, nếu $A[i] < min_val$, cập nhật `min_val` $= A[i]$; ngược lại giữ nguyên. Khi đó `min_val` trở thành $\\min(A[0], \\dots, A[i])$. Tăng $i$, bất biến tiếp tục đúng cho bước sau.\n- **Kết thúc**: Vòng lặp dừng khi $i = n$. Bất biến khẳng định `min_val` $= \\min(A[0], \\dots, A[n-1])$, đây chính là giá trị nhỏ nhất của toàn bộ mảng.\n\n### Độ phức tạp\n- Việc phân tích tính đúng đắn không tiêu tốn tài nguyên runtime của máy tính nhưng tiết kiệm thời gian gỡ lỗi và ngăn ngừa gửi bài sai (WA).\n\n### Cạm bẫy và lưu ý\n- Nhầm lẫn giữa việc thuật toán chạy đúng trên test ví dụ và tính đúng đắn tổng quát trên toàn bộ không gian dữ liệu.\n- Trong thuật toán tham lam, trực giác thường đánh lừa; bắt buộc phải chứng minh tính chất lựa chọn tham lam (Greedy Choice Property) bằng phản chứng trước khi cài đặt.\n\n### Câu hỏi tự kiểm tra\n1. Hãy phát biểu bất biến vòng lặp cho thuật toán tìm kiếm nhị phân trên đoạn $[L, R]$?\n2. Tại sao phương pháp phản chứng (chỉ ra phản ví dụ) là cách nhanh nhất để bác bỏ một chiến lược tham lam sai?",
+        "provenance": {
+          "node_slug": "correctness",
+          "source_kind": "MSOJ supplementary topic",
+          "source_nodes": [],
+          "reading": []
         }
-      ]
-    }
+      }
+    ]
   },
   {
     "node_slug": "complexity",
@@ -95,89 +124,29 @@
     }
   },
   {
-    "node_slug": "correctness",
-    "title": "Chứng minh tính đúng đắn của thuật toán",
-    "summary": "Một thuật toán chỉ có giá trị khi nó đảm bảo trả về kết quả chính xác cho mọi dữ liệu đầu vào thỏa mãn tiền điều kiện. Phương pháp quy nạp toán học, bất biến vòng lặp và phản chứng là ba công cụ căn bản nhất để thiết lập tính đúng đắn. Việc rèn luyện thói quen kiểm chứng logic giúp giảm thiểu việc đoán mò và sửa lỗi vu vơ trong quá trình thi đấu.",
-    "body": "> Ghi chú nhập môn MSOJ: nội dung biên soạn độc lập, không phải bản sao hay bài giảng chính thức của VNOI.\n\n### Mô hình và bất biến\nĐể chứng minh tính đúng đắn của một cấu trúc lặp hoặc đệ quy, ta sử dụng **Bất biến vòng lặp** (Loop Invariant). Một bất biến $P$ phải thỏa mãn ba tính chất:\n1. **Khởi tạo (Initialization)**: $P$ đúng trước khi vòng lặp bắt đầu.\n2. **Duy trì (Maintenance)**: Nếu $P$ đúng trước một bước lặp, nó tiếp tục đúng sau khi kết thúc bước lặp đó.\n3. **Kết thúc (Termination)**: Khi vòng lặp dừng lại, bất biến $P$ cùng với điều kiện dừng đảm bảo suy ra tính đúng đắn của kết quả bài toán.\n\n### Các bước thực hiện\n1. **Phát biểu chính xác bất biến**: Mô tả mối quan hệ giữa trạng thái biến và kết quả của bài toán con đã giải quyết.\n2. **Kiểm tra bước cơ sở**: Đảm bảo điều kiện khởi tạo khớp với trạng thái ban đầu của dữ liệu.\n3. **Chứng minh bước quy nạp**: Giả sử bất biến đúng tới bước $k$, chứng minh thao tác ở bước $k+1$ bảo toàn tính chất.\n4. **Kiểm tra điều kiện dừng**: Chứng minh thuật toán luôn kết thúc sau một số hữu hạn bước và cho ra nghiệm toàn cục.\n\n### Ví dụ minh họa\nThuật toán tìm phần tử nhỏ nhất trong mảng $A[0 \\dots n-1]$:\n```cpp\nint min_val = A[0];\nfor (int i = 1; i < n; i++) {\n    if (A[i] < min_val) min_val = A[i];\n}\n```\n- **Bất biến**: Tại đầu mỗi bước lặp $i$, `min_val` luôn bằng $\\min(A[0], \\dots, A[i-1])$.\n- **Khởi tạo**: Trước vòng lặp ($i=1$), `min_val` $= A[0]$, đúng với đoạn con 1 phần tử.\n- **Duy trì**: Tại bước $i$, nếu $A[i] < min_val$, cập nhật `min_val` $= A[i]$; ngược lại giữ nguyên. Khi đó `min_val` trở thành $\\min(A[0], \\dots, A[i])$. Tăng $i$, bất biến tiếp tục đúng cho bước sau.\n- **Kết thúc**: Vòng lặp dừng khi $i = n$. Bất biến khẳng định `min_val` $= \\min(A[0], \\dots, A[n-1])$, đây chính là giá trị nhỏ nhất của toàn bộ mảng.\n\n### Độ phức tạp\n- Việc phân tích tính đúng đắn không tiêu tốn tài nguyên runtime của máy tính nhưng tiết kiệm thời gian gỡ lỗi và ngăn ngừa gửi bài sai (WA).\n\n### Cạm bẫy và lưu ý\n- Nhầm lẫn giữa việc thuật toán chạy đúng trên test ví dụ và tính đúng đắn tổng quát trên toàn bộ không gian dữ liệu.\n- Trong thuật toán tham lam, trực giác thường đánh lừa; bắt buộc phải chứng minh tính chất lựa chọn tham lam (Greedy Choice Property) bằng phản chứng trước khi cài đặt.\n\n### Câu hỏi tự kiểm tra\n1. Hãy phát biểu bất biến vòng lặp cho thuật toán tìm kiếm nhị phân trên đoạn $[L, R]$?\n2. Tại sao phương pháp phản chứng (chỉ ra phản ví dụ) là cách nhanh nhất để bác bỏ một chiến lược tham lam sai?",
-    "introduction": "Ghi chú nhập môn do MSOJ biên soạn để thử nghiệm học trên hệ thống. Dùng bất biến, quy nạp và phản ví dụ để kiểm chứng thuật toán.",
-    "provenance": {
-      "node_slug": "correctness",
-      "source_kind": "MSOJ supplementary topic",
-      "source_nodes": [],
-      "reading": []
-    }
-  },
-  {
-    "node_slug": "casework",
-    "title": "Kỹ thuật phân chia trường hợp trong giải thuật",
-    "summary": "Phân chia trường hợp là phương pháp chia một bài toán phức tạp thành các bài toán con riêng biệt, rời nhau và vét hết toàn bộ không gian trạng thái. Kỹ năng này đòi hỏi sự cẩn trọng cao độ để không bỏ sót trường hợp biên và không tạo ra các nhánh mâu thuẫn lẫn nhau. Cài đặt các phân nhánh mạch lạc giúp mã nguồn dễ hiểu, dễ gỡ lỗi và ít phát sinh lỗi ngớ ngẩn.",
-    "body": "> Ghi chú nhập môn MSOJ: nội dung biên soạn độc lập, không phải bản sao hay bài giảng chính thức của VNOI.\n\n### Mô hình và bất biến\nKhông gian nghiệm hoặc dữ liệu đầu vào $\\Omega$ được phân hoạch thành các tập con rời nhau $\\Omega = C_1 \\cup C_2 \\cup \\dots \\cup C_k$ sao cho $C_i \\cap C_j = \\emptyset$ với mọi $i \\ne j$. Bất biến bắt buộc: Mọi đầu vào hợp lệ phải thuộc về chính xác một trường hợp $C_i$, và giải pháp cho từng trường hợp $C_i$ phải được tối ưu độc lập mà không ảnh hưởng tới các trường hợp khác.\n\n### Các bước thực hiện\n1. **Liệt kê các chiều biến thiên**: Xác định các yếu tố quyết định cấu trúc nghiệm (dấu của số nguyên, tính chẵn lẻ, vị trí tương đối giữa hai đoạn thẳng).\n2. **Kiểm tra tính vét cạn (Exhaustiveness)**: Đảm bảo không có kẽ hở giữa các trường hợp (ví dụ: số dương, số âm, và số 0).\n3. **Cài đặt độc lập từng nhánh**: Dùng khối `if-else` có điều kiện loại trừ rõ ràng; hạn chế lồng ghép quá nhiều tầng `if` phức tạp.\n\n### Ví dụ minh họa\nBài toán: Tìm số giao điểm của hai đoạn thẳng trên trục số $[a, b]$ và $[c, d]$ (với $a \\le b$ và $c \\le d$).\n- Trường hợp 1 (Rời nhau hoàn toàn): $b < c$ hoặc $d < a \\implies$ 0 giao điểm.\n- Trường hợp 2 (Tiếp xúc tại một điểm): $b = c$ hoặc $d = a \\implies$ đúng 1 giao điểm.\n- Trường hợp 3 (Giao nhau một đoạn): Phần giao là đoạn $[\\max(a, c), \\min(b, d)]$. Đoạn này có độ dài dương $\\implies$ vô số điểm giao nhau.\n- Ví dụ số: $[1, 4]$ và $[3, 6]$. Kiểm tra: $\\max(1, 3) = 3 \\le \\min(4, 6) = 4$. Đoạn giao là $[3, 4]$, thuộc trường hợp giao nhau một đoạn.\n\n### Độ phức tạp\n- **Thời gian**: Thường tốn $O(1)$ cho việc kiểm tra điều kiện và thực hiện tính toán nhánh tương ứng.\n- **Không gian**: $O(1)$ biến trạng thái phụ trợ.\n\n### Cạm bẫy và lưu ý\n- Bỏ sót trường hợp suy biến (Degenerate cases): đoạn thẳng có độ dài bằng 0 ($a = b$), tam giác có diện tích bằng 0 (3 điểm thẳng hàng).\n- Trùng lặp điều kiện xử lý dẫn đến cập nhật đúp kết quả hoặc logic khó kiểm soát.\n\n### Câu hỏi tự kiểm tra\n1. Khi giải phương trình bậc nhất $ax + b = 0$, có bao nhiêu trường hợp cần phân biệt để đảm bảo đầy đủ nghiệm?\n2. Làm thế nào để kiểm tra tính vét cạn của một cấu trúc nhiều nhánh `if-else` mà không bỏ sót giá trị?",
-    "introduction": "Ghi chú nhập môn do MSOJ biên soạn để thử nghiệm học trên hệ thống. Chia yêu cầu thành các trường hợp đầy đủ và không chồng lấn.",
-    "provenance": {
-      "node_slug": "casework",
-      "source_kind": "VNOI roadmap topic mapping",
-      "source_nodes": [
-        {
-          "id": "enKcoppmK9jEB-DNxjfil",
-          "label": "Casework"
-        }
-      ],
-      "reading": []
-    }
-  },
-  {
     "node_slug": "implementation",
-    "title": "Kỹ năng cài đặt và gỡ lỗi trong lập trình thi đấu",
-    "summary": "Khả năng chuyển đổi ý tưởng giải thuật thành mã nguồn sạch, chính xác và không có lỗi tiềm ẩn là kỹ năng phân loại trực tiếp thí sinh. Việc viết mã có cấu trúc, đặt tên biến tường minh và làm chủ các kỹ thuật gỡ lỗi cục bộ giúp tiết kiệm tối đa thời gian. Một thói quen lập trình kỷ luật giúp phát hiện sai sót ngay từ khâu viết code thay vì phải mò mẫm sau khi nộp bài.",
-    "body": "> Ghi chú nhập môn MSOJ: nội dung biên soạn độc lập, không phải bản sao hay bài giảng chính thức của VNOI.\n\n### Mô hình và bất biến\nCài đặt hiệu quả đòi hỏi sự cân bằng giữa tính súc tích và tính dễ bảo trì. Bất biến mã nguồn: Mỗi biến số chỉ mang một ý nghĩa duy nhất; các hàm con thực hiện một nhiệm vụ độc lập; và luồng điều khiển tuân thủ nghiêm ngặt các quy ước biên đã thỏa thuận (ví dụ: mảng luôn dùng 0-indexed hoặc 1-indexed thống nhất).\n\n### Các bước thực hiện\n1. **Thiết kế trước khi gõ**: Viết cấu trúc dữ liệu chính và sơ lược các hàm trên giấy hoặc chú thích đầu file.\n2. **Viết mã theo từng phần và kiểm thử đơn vị**: Viết xong cấu trúc dữ liệu hoặc hàm quan trọng nào, kiểm tra ngay tính đúng đắn của hàm đó với test nhỏ trước khi viết phần tiếp theo.\n3. **Sử dụng Assert và Stress Test**: Đặt `assert(điều_kiện)` để bắt các giá trị bất thường tại runtime; viết bộ sinh test ngẫu nhiên đối chiếu kết quả với lời giải vét cạn.\n\n### Ví dụ minh họa\nKỹ thuật gỡ lỗi bằng `assert` trong mảng 1-indexed kích thước $N$:\n```cpp\nvoid update(int pos, int val) {\n    assert(pos >= 1 && pos <= N); // Đảm bảo không truy cập ngoài biên\n    tree[pos] += val;\n}\n```\nKhi chạy kiểm thử với `pos = 0`, chương trình lập tức dừng lại và báo vị trí dòng lỗi chính xác, giúp phát hiện ngay sai lệch chỉ số biên trước khi nộp lên hệ thống chấm.\n\n### Độ phức tạp\n- Việc viết mã chuẩn và đặt `assert` không làm tăng độ phức tạp lý thuyết của thuật toán; các lệnh `assert` có thể tắt khi nộp bài bằng cờ `-DNDEBUG` nếu cần tối ưu tốc độ tối đa.\n\n### Cạm bẫy và lưu ý\n- Lạm dụng việc copy-paste mã nguồn dẫn đến lỗi sai tên biến cục bộ (ví dụ: copy vòng lặp $i$ sang vòng lặp $j$ nhưng quên sửa $i$ thành $j$).\n- Quên xóa các câu lệnh in gỡ lỗi (`cout << debug`) trước khi nộp bài dẫn đến lỗi Output Limit Exceeded (OLE) hoặc TLE.\n\n### Câu hỏi tự kiểm tra\n1. Kỹ thuật Stress Testing hoạt động như thế nào để tìm ra test nhỏ nhất khiến bài giải bị Wrong Answer?\n2. Tại sao việc thống nhất sử dụng một quy ước đánh chỉ số mảng (hoàn toàn 0-based hoặc hoàn toàn 1-based) lại giảm thiểu đáng kể số lượng bug?",
-    "introduction": "Ghi chú nhập môn do MSOJ biên soạn để thử nghiệm học trên hệ thống. Chuyển mô hình lời giải thành chương trình đúng theo đặc tả.",
+    "title": "Cài đặt, kiểm thử và gỡ lỗi",
+    "summary": "Chuyển thuật toán thành mã rõ ràng, dùng kiểm thử có chủ đích và công cụ gỡ lỗi để tìm nguyên nhân lỗi.",
+    "body": "> Ghi chú MSOJ: chủ đề kỹ năng cài đặt kế thừa nhãn Implementation từ nguồn VNOI/Roadmap; phần hướng dẫn được biên soạn độc lập.\n\n## Từ thuật toán sang mã\nTrước khi gõ, xác định kiểu dữ liệu, trạng thái, điều kiện biên và cách đọc/ghi. Viết theo từng bước; đặt tên biến thể hiện ý nghĩa. Tránh sửa cả thuật toán và nhiều phần mã cùng lúc vì khó xác định nguyên nhân sai.\n\n## Kiểm thử có chủ đích\nThử mẫu, trường hợp nhỏ nhất, biên, giá trị lặp, dữ liệu đã tăng/giảm và trường hợp đặc biệt theo đề. Kiểm tra kết quả bằng tính tay hoặc một lời giải đơn giản trên đầu vào nhỏ. Kiểm thử tìm được phản ví dụ, nhưng không chứng minh chương trình đúng với mọi dữ liệu. Lập luận về thuật toán và bất biến vẫn cần thiết.\n\n## Gỡ lỗi\nKhi sai, thu nhỏ đầu vào để tái hiện lỗi; kiểm tra biến trung gian và các điều kiện vòng lặp. Có thể dùng `assert` để xác nhận giả định trong bản chạy thử; loại bỏ hoặc tắt các kiểm tra tốn kém khi nộp nếu cần. Kiểm tra chỉ số trước khi truy cập, và dùng sanitizer/debugger cục bộ khi môi trường hỗ trợ.\n\n**Tự kiểm tra:** Với hàm tìm max, hãy tạo một test có một phần tử và một test toàn số âm. Vì sao vượt qua 100 test vẫn không phải chứng minh tính đúng đắn?",
+    "introduction": "Chuyển mô hình lời giải thành chương trình đúng theo đặc tả.",
     "provenance": {
-      "node_slug": "implementation",
-      "source_kind": "VNOI roadmap topic mapping",
-      "source_nodes": [
-        {
-          "id": "7wRSOXfBo6fbfJBC8N3OY",
-          "label": "Implementation"
+      "origin": "MSOJ",
+      "note": "Nội dung nhập môn biên soạn độc lập."
+    },
+    "lessons": [
+      {
+        "slug": "numeric-safety",
+        "title": "Nhập xuất nhanh và an toàn số học",
+        "summary": "Tối ưu hóa thao tác nhập xuất giúp tránh lỗi tràn thời gian khi xử lý tập dữ liệu lớn lên tới hàng triệu dòng. Đồng thời, việc kiểm soát tràn số nguyên và sai số dấu phẩy động là yếu tố sống còn để đảm bảo tính đúng đắn của thuật toán. Nắm vững kỹ thuật này giúp tránh được các lỗi phán quyết khó phát hiện như TLE hoặc WA bí ẩn.",
+        "body": "> Ghi chú nhập môn MSOJ: nội dung biên soạn độc lập, không phải bản sao hay bài giảng chính thức của VNOI.\n\n### Mô hình và bất biến\nKhi dữ liệu vào/ra vượt quá $10^5$ phần tử, chi phí đồng bộ hóa I/O giữa C và C++ (`cin`/`cout` với `stdio`) và việc xả đệm liên tục (`std::endl`) trở thành điểm nghẽn nghiêm trọng. Về số học, các kiểu dữ liệu có giới hạn biểu diễn cố định: `int` 32-bit trong khoảng $[-2^{31}, 2^{31}-1]$ (xấp xỉ $\\pm 2 \\times 10^9$), `long long` 64-bit trong khoảng $[-2^{63}, 2^{63}-1]$ (xấp xỉ $\\pm 9 \\times 10^{18}$). Bất biến an toàn: trung gian của mọi phép nhân, tổng dồn không được vượt quá miền giá trị của kiểu lưu trữ.\n\n### Các bước thực hiện\n1. **Tắt đồng bộ hóa I/O**: Đặt `ios_base::sync_with_stdio(false); cin.tie(NULL);` ở đầu hàm `main`; dùng `'\\n'` thay cho `endl`.\n2. **Ép kiểu trước khi tính toán**: Khi nhân hai số `int` có thể vượt $2 \\times 10^9$, phải ép kiểu `1LL * a * b` trước khi thực hiện phép nhân.\n3. **Xử lý số thực**: Không dùng toán tử so sánh bằng `==` trực tiếp trên `double`; dùng sai số tuyệt đối/tương đối `fabs(a - b) < 1e-9`.\n\n### Ví dụ minh họa\nTính tích $a \\times b$ với $a = 10^6, b = 10^6$.\n- Nếu tính bằng kiểu `int` 32-bit: $10^{12} > 2^{31}-1$, xảy ra tràn số nguyên có dấu dẫn đến giá trị rác âm (ví dụ: $-727379968$).\n- Nếu ép kiểu sang `long long`: `1LL * a * b = 1000000000000LL`. Kết quả chính xác là $10^{12}$.\n\n### Độ phức tạp\n- **Thời gian**: Nhập xuất tối ưu giảm đáng kể thời gian đọc ghi khi dữ liệu lên tới $10^6$ số, hạn chế tắc nghẽn I/O trên hệ thống chấm.\n- **Không gian**: $O(1)$ bộ nhớ phụ trợ cho các thao tác I/O chuẩn.\n\n### Cạm bẫy và lưu ý\n- Trộn lẫn `cin`/`cout` với `scanf`/`printf` sau khi đã gọi `sync_with_stdio(false)` dẫn đến xáo trộn thứ tự đọc/ghi dữ liệu.\n- Phép chia số nguyên `a / b` làm tròn xuống về phía 0, gây sai lệch khi tính toán phân số nếu không ép kiểu thực hoặc dùng công thức nguyên trần `(a + b - 1) / b` (khi $a, b > 0$).\n\n### Câu hỏi tự kiểm tra\n1. Tại sao lệnh `std::endl` lại làm chậm chương trình hơn rất nhiều so với ký tự `'\\n'`?\n2. Khi nào phép cộng hai số nguyên dương `long long` có thể dẫn đến tràn số và cách kiểm tra trước khi cộng là gì?",
+        "provenance": {
+          "node_slug": "io-and-numeric-safety",
+          "source_kind": "MSOJ supplementary topic",
+          "source_nodes": [],
+          "reading": []
         }
-      ],
-      "reading": []
-    }
-  },
-  {
-    "node_slug": "hardcode",
-    "title": "Xử lý tập trường hợp cố định và tính toán trước",
-    "summary": "Hardcode và tiền tính toán tĩnh là kỹ thuật lưu sẵn các giá trị hoặc bảng kết quả đã tính trước vào mã nguồn để trả lời truy vấn trong thời gian tức thì. Phương pháp này đặc biệt hữu ích khi không gian đầu vào nhỏ, khi giải thuật sinh kết quả quá chậm để chạy trong thời gian thi đấu, hoặc để xử lý các test đặc biệt. Sử dụng khéo léo kỹ thuật này biến một bài toán khó thành việc tra cứu bảng đơn giản.",
-    "body": "> Ghi chú nhập môn MSOJ: nội dung biên soạn độc lập, không phải bản sao hay bài giảng chính thức của VNOI.\n\n### Mô hình và bất biến\nNếu một bài toán có không gian đầu vào khả dĩ hữu hạn và nhỏ (ví dụ: $N \\le 15$, số cấu hình xúc xắc, danh sách số nguyên tố nhỏ), ta có thể chạy một chương trình ngoại tuyến (offline generator) trên máy cá nhân để tính trước toàn bộ đáp án, sau đó nhúng trực tiếp dữ liệu đó vào mảng hằng số trong mã nguồn nộp bài. Bất biến: Bảng tra cứu luôn trả về kết quả chính xác trong $O(1)$ mà không thực hiện lại tính toán lặp.\n\n### Các bước thực hiện\n1. **Đánh giá tính khả thi**: Kiểm tra xem số lượng kết quả cần lưu có vừa vặn với giới hạn kích thước mã nguồn (thường từ 50KB đến 256KB) hay không.\n2. **Viết mã sinh dữ liệu ngoại tuyến**: Chạy thuật toán vét cạn hoặc tìm kiếm sâu trên máy cá nhân để in ra mảng kết quả dưới dạng mã nguồn C++ (ví dụ: `const int ans[] = {...};`).\n3. **Nhúng vào mã nộp bài**: Đưa mảng hằng số vào chương trình chính và trả về kết quả bằng thao tác tra cứu chỉ số đơn giản.\n\n### Ví dụ minh họa\nBài toán: Cho $N \\le 8$, tìm số cách xếp $N$ quân hậu không ăn nhau trên bàn cờ $N \\times N$.\n- Thay vì chạy quay lui $O(N!)$ trong thời gian thi:\n- Chạy ngoại tuyến tìm số nghiệm cho $N = 1 \\dots 8$:\n  - $N=1: 1$\n  - $N=2: 0$\n  - $N=3: 0$\n  - $N=4: 2$\n  - $N=5: 10$\n  - $N=6: 4$\n  - $N=7: 40$\n  - $N=8: 92$\n- Khai báo hằng số trong code nộp: `const int ans[] = {0, 1, 0, 0, 2, 10, 4, 40, 92};`.\n- Với truy vấn $N = 8$, chỉ cần in ra `ans[8] = 92` ngay lập tức.\n\n### Độ phức tạp\n- **Thời gian**: Trực tiếp trả lời truy vấn trong $O(1)$.\n- **Không gian**: $O(K)$ bộ nhớ tĩnh tương ứng với số phần tử lưu trong bảng.\n\n### Cạm bẫy và lưu ý\n- Dung lượng file mã nguồn vượt quá giới hạn cho phép của trình chấm nếu mảng hằng số quá lớn.\n- Dữ liệu tính trước bị sai sót do chương trình sinh ngoại tuyến có bug mà không được kiểm tra lại bằng test độc lập.\n\n### Câu hỏi tự kiểm tra\n1. Khi nào thì việc tiền tính toán và lưu mảng kết quả vào mã nguồn là giải pháp tối ưu hơn so với việc tính toán động khi chương trình chạy?\n2. Giới hạn kích thước file mã nguồn thông thường trên các hệ thống chấm trực tuyến là khoảng bao nhiêu?",
-    "introduction": "Ghi chú nhập môn do MSOJ biên soạn để thử nghiệm học trên hệ thống. Nhận biết khi nào có thể liệt kê một tập hữu hạn đã được chứng minh đầy đủ.",
-    "provenance": {
-      "node_slug": "hardcode",
-      "source_kind": "VNOI roadmap topic mapping",
-      "source_nodes": [
-        {
-          "id": "l5jlC3rovasZ7z2Pcz5Kk",
-          "label": "Hardcode"
-        }
-      ],
-      "reading": []
-    }
-  },
-  {
-    "node_slug": "queries",
-    "title": "Mô hình bài toán truy vấn: Trực tuyến và ngoại tuyến",
-    "summary": "Mô hình truy vấn yêu cầu chương trình trả lời liên tục $Q$ câu hỏi trên một cấu trúc dữ liệu hoặc dãy số, có thể xen kẽ các thao tác cập nhật. Việc phân loại bài toán là trực tuyến (online) hay ngoại tuyến (offline) có ý nghĩa quyết định trong việc lựa chọn giải thuật phù hợp. Xử lý ngoại tuyến mở ra cơ hội sắp xếp lại thứ tự truy vấn để tối ưu hóa thời gian thực thi toàn cục.",
-    "body": "> Ghi chú nhập môn MSOJ: nội dung biên soạn độc lập, không phải bản sao hay bài giảng chính thức của VNOI.\n\n### Mô hình và bất biến\nMột bài toán truy vấn nhận vào tập $Q$ thao tác. Có hai mô hình chính:\n- **Ngoại tuyến (Offline)**: Toàn bộ $Q$ truy vấn được biết trước ngay từ đầu. Thuật toán có quyền thay đổi thứ tự xử lý các truy vấn (ví dụ: sắp xếp theo thời điểm, theo tọa độ, hoặc theo khối như thuật toán Mo) miễn là kết quả cuối cùng được xuất ra theo đúng thứ tự yêu cầu ban đầu.\n- **Trực tuyến (Online)**: Dữ liệu của truy vấn thứ $i$ chỉ được tiết lộ sau khi chương trình đã trả lời xong truy vấn $i-1$ (thường bị mã hóa bằng kết quả trước đó qua phép XOR). Bắt buộc phải duy trì trạng thái cấu trúc dữ liệu tiến trình theo thời gian.\n\n### Các bước thực hiện\n1. **Nhận diện mô hình**: Kiểm tra đề bài có bắt buộc xử lý trực tuyến hay không (có cơ chế mã hóa truy vấn như `l = (l_raw ^ last_ans) % n` hay không).\n2. **Nếu ngoại tuyến**: Lưu toàn bộ truy vấn vào danh sách kèm theo chỉ số gốc; sắp xếp các truy vấn theo tiêu chí tối ưu hóa việc cập nhật dữ liệu.\n3. **Duy trì cấu trúc dữ liệu**: Sử dụng con trỏ quét hoặc cấu trúc dữ liệu động để trả lời lần lượt từng truy vấn đã sắp xếp, lưu kết quả vào mảng `ans[]` và in ra theo chỉ số gốc.\n\n### Ví dụ minh họa\nBài toán: Cho mảng $A$ và $Q$ truy vấn kiểm tra xem đoạn $[L, R]$ có chứa số dương hay không.\n- Nếu không có cập nhật và mảng tĩnh: Ta tiền xử lý mảng cộng dồn số lượng số dương trong $O(N)$.\n- Khi đó, dù xử lý trực tuyến hay ngoại tuyến, mỗi truy vấn $[L, R]$ đều được trả lời trong $O(1)$ bằng hiệu hai giá trị cộng dồn: $P[R] - P[L-1] > 0$.\n- Với $Q = 10^5$ và $N = 10^5$, tổng thời gian là $O(N + Q)$, hoàn toàn đáp ứng ngưỡng thời gian cho phép.\n\n### Độ phức tạp\n- **Thời gian**: Mục tiêu chuyển đổi chi phí ngây thơ $O(Q \\times N)$ xuống $O((N + Q) \\log N)$ hoặc $O(N \\sqrt{Q})$ cho toàn bộ $Q$ thao tác.\n- **Không gian**: $O(N + Q)$ để lưu trữ dữ liệu và danh sách truy vấn cùng mảng đáp án.\n\n### Cạm bẫy và lưu ý\n- Nhầm lẫn bài toán trực tuyến thành ngoại tuyến khi đề bài có điều kiện phụ thuộc vào kết quả truy vấn trước.\n- Khi sắp xếp truy vấn ngoại tuyến, quên lưu lại chỉ số ban đầu (`id`) dẫn đến việc in kết quả ra sai thứ tự đề bài yêu cầu.\n\n### Câu hỏi tự kiểm tra\n1. Tại sao phép mã hóa truy vấn bằng `ans_truoc` lại vô hiệu hóa hoàn toàn khả năng sử dụng các thuật toán như Thuật toán Mo?\n2. Khi nào một bài toán có cập nhật điểm và truy vấn đoạn có thể chuyển đổi thành bài toán quét tĩnh ngoại tuyến?",
-    "introduction": "Ghi chú nhập môn do MSOJ biên soạn để thử nghiệm học trên hệ thống. Phân biệt truy vấn và cập nhật cùng yêu cầu online hoặc offline.",
-    "provenance": {
-      "node_slug": "queries",
-      "source_kind": "VNOI roadmap topic mapping",
-      "source_nodes": [
-        {
-          "id": "MYMDHkFsK5Q5crb6tpiRH",
-          "label": "Queries"
-        }
-      ],
-      "reading": []
-    }
+      }
+    ]
   },
   {
     "node_slug": "brute-force",
@@ -186,21 +155,28 @@
     "body": "> Ghi chú nhập môn MSOJ: nội dung biên soạn độc lập, không phải bản sao hay bài giảng chính thức của VNOI.\n\n### Mô hình và bất biến\nKhông gian trạng thái nghiệm hữu hạn $S$ chứa mọi ứng viên nghiệm của bài toán. Thuật toán duyệt qua từng cấu hình $s \\in S$, kiểm tra tính hợp lệ và đánh giá hàm mục tiêu $f(s)$. Bất biến: Không có trạng thái nào trong $S$ bị bỏ sót; nghiệm tối ưu toàn cục được cập nhật liên tục qua $opt = \\min_{s \\in S} f(s)$ (hoặc $\\max$).\n\n### Các bước thực hiện\n1. **Xác định không gian cấu hình**: Định nghĩa rõ ràng dạng nghiệm (hoán vị, tổ hợp, tập con nhị phân) và kích thước $|S|$.\n2. **Duyệt tuần tự**: Sử dụng các vòng lặp lồng nhau hoặc hàm sinh cấu hình kế tiếp (`std::next_permutation`) để duyệt toàn bộ $S$.\n3. **Đánh giá và cập nhật**: Với mỗi cấu hình, kiểm tra điều kiện đề bài trong thời gian $O(1)$ hoặc $O(N)$ và cập nhật kết quả tốt nhất.\n\n### Ví dụ minh họa\nBài toán: Cho mảng $A = [2, 5, 8, 11]$. Tìm cặp $(A[i], A[j])$ với $i < j$ có tổng bằng $13$.\n- Không gian nghiệm: $\\binom{4}{2} = 6$ cặp chỉ số:\n  - $(0, 1): 2 + 5 = 7 \\ne 13$\n  - $(0, 2): 2 + 8 = 10 \\ne 13$\n  - $(0, 3): 2 + 11 = 13$ (thỏa mãn!)\n  - $(1, 2): 5 + 8 = 13$ (thỏa mãn!)\n  - $(1, 3): 5 + 11 = 16 \\ne 13$\n  - $(2, 3): 8 + 11 = 19 \\ne 13$\n- Kết quả: Có 2 cặp thỏa mãn là $(2, 11)$ và $(5, 8)$.\n\n### Độ phức tạp\n- **Thời gian**: Phụ thuộc vào kích thước không gian nghiệm, thường là $O(2^N)$ cho tập con, $O(N!)$ cho hoán vị, hoặc $O(N^k)$ cho tổ hợp bậc $k$.\n- **Không gian**: $O(1)$ hoặc $O(N)$ để lưu trữ cấu hình hiện tại.\n\n### Cạm bẫy và lưu ý\n- Áp dụng vét cạn khi kích thước $N$ vượt quá giới hạn an toàn (ví dụ: $N > 25$ với tập con hoặc $N > 11$ với hoán vị) dẫn đến quá thời gian (TLE).\n- Trùng lặp cấu hình do không thiết lập quy tắc thứ tự khi duyệt (duyệt cả $(i, j)$ và $(j, i)$ khi thứ tự không quan trọng).\n\n### Câu hỏi tự kiểm tra\n1. Khi nào một thuật toán vét cạn $O(2^N)$ có thể chạy kịp trong ngưỡng thời gian cho phép (thường $\\sim 10^8$ thao tác)?\n2. Tại sao ta nên luôn viết mã vét cạn trước khi cài đặt thuật toán tối ưu phức tạp trong quá trình luyện tập?\n\n## Đọc thêm\n\n- [Brute Force (Trâu bò)](https://wiki.vnoi.info/vi/translate/topcoder/Planning-an-Approach-to-a-Topcoder-Problem-Part-1)",
     "introduction": "Ghi chú nhập môn do MSOJ biên soạn để thử nghiệm học trên hệ thống. Duyệt toàn bộ không gian lời giải trong giới hạn cho phép.",
     "provenance": {
-      "node_slug": "brute-force",
-      "source_kind": "VNOI roadmap topic mapping",
-      "source_nodes": [
-        {
-          "id": "wZPdgspxW3F4Ihdbvr78t",
-          "label": "Brute Force"
+      "origin": "MSOJ + VNOI/Roadmap",
+      "note": "Phần nội dung MSOJ biên soạn độc lập; dữ liệu provenance nguồn gốc chi tiết nằm trong curriculum manifest."
+    },
+    "lessons": [
+      {
+        "slug": "finite-domains",
+        "title": "Xử lý tập trường hợp cố định và tính toán trước",
+        "summary": "Hardcode và tiền tính toán tĩnh là kỹ thuật lưu sẵn các giá trị hoặc bảng kết quả đã tính trước vào mã nguồn để trả lời truy vấn trong thời gian tức thì. Phương pháp này đặc biệt hữu ích khi không gian đầu vào nhỏ, khi giải thuật sinh kết quả quá chậm để chạy trong thời gian thi đấu, hoặc để xử lý các test đặc biệt. Sử dụng khéo léo kỹ thuật này biến một bài toán khó thành việc tra cứu bảng đơn giản.",
+        "body": "> Ghi chú nhập môn MSOJ: nội dung biên soạn độc lập, không phải bản sao hay bài giảng chính thức của VNOI.\n\n### Mô hình và bất biến\nNếu một bài toán có không gian đầu vào khả dĩ hữu hạn và nhỏ (ví dụ: $N \\le 15$, số cấu hình xúc xắc, danh sách số nguyên tố nhỏ), ta có thể chạy một chương trình ngoại tuyến (offline generator) trên máy cá nhân để tính trước toàn bộ đáp án, sau đó nhúng trực tiếp dữ liệu đó vào mảng hằng số trong mã nguồn nộp bài. Bất biến: Bảng tra cứu luôn trả về kết quả chính xác trong $O(1)$ mà không thực hiện lại tính toán lặp.\n\n### Các bước thực hiện\n1. **Đánh giá tính khả thi**: Kiểm tra xem số lượng kết quả cần lưu có vừa vặn với giới hạn kích thước mã nguồn (thường từ 50KB đến 256KB) hay không.\n2. **Viết mã sinh dữ liệu ngoại tuyến**: Chạy thuật toán vét cạn hoặc tìm kiếm sâu trên máy cá nhân để in ra mảng kết quả dưới dạng mã nguồn C++ (ví dụ: `const int ans[] = {...};`).\n3. **Nhúng vào mã nộp bài**: Đưa mảng hằng số vào chương trình chính và trả về kết quả bằng thao tác tra cứu chỉ số đơn giản.\n\n### Ví dụ minh họa\nBài toán: Cho $N \\le 8$, tìm số cách xếp $N$ quân hậu không ăn nhau trên bàn cờ $N \\times N$.\n- Thay vì chạy quay lui $O(N!)$ trong thời gian thi:\n- Chạy ngoại tuyến tìm số nghiệm cho $N = 1 \\dots 8$:\n  - $N=1: 1$\n  - $N=2: 0$\n  - $N=3: 0$\n  - $N=4: 2$\n  - $N=5: 10$\n  - $N=6: 4$\n  - $N=7: 40$\n  - $N=8: 92$\n- Khai báo hằng số trong code nộp: `const int ans[] = {0, 1, 0, 0, 2, 10, 4, 40, 92};`.\n- Với truy vấn $N = 8$, chỉ cần in ra `ans[8] = 92` ngay lập tức.\n\n### Độ phức tạp\n- **Thời gian**: Trực tiếp trả lời truy vấn trong $O(1)$.\n- **Không gian**: $O(K)$ bộ nhớ tĩnh tương ứng với số phần tử lưu trong bảng.\n\n### Cạm bẫy và lưu ý\n- Dung lượng file mã nguồn vượt quá giới hạn cho phép của trình chấm nếu mảng hằng số quá lớn.\n- Dữ liệu tính trước bị sai sót do chương trình sinh ngoại tuyến có bug mà không được kiểm tra lại bằng test độc lập.\n\n### Câu hỏi tự kiểm tra\n1. Khi nào thì việc tiền tính toán và lưu mảng kết quả vào mã nguồn là giải pháp tối ưu hơn so với việc tính toán động khi chương trình chạy?\n2. Giới hạn kích thước file mã nguồn thông thường trên các hệ thống chấm trực tuyến là khoảng bao nhiêu?",
+        "provenance": {
+          "node_slug": "hardcode",
+          "source_kind": "VNOI roadmap topic mapping",
+          "source_nodes": [
+            {
+              "id": "l5jlC3rovasZ7z2Pcz5Kk",
+              "label": "Hardcode"
+            }
+          ],
+          "reading": []
         }
-      ],
-      "reading": [
-        {
-          "title": "Brute Force (Trâu bò)",
-          "url": "https://wiki.vnoi.info/vi/translate/topcoder/Planning-an-Approach-to-a-Topcoder-Problem-Part-1"
-        }
-      ]
-    }
+      }
+    ]
   },
   {
     "node_slug": "recursion",
@@ -878,6 +854,24 @@
         {
           "id": "SpG1mMrwosE6Fh5wlzPhb",
           "label": "Bitset"
+        }
+      ],
+      "reading": []
+    }
+  },
+  {
+    "node_slug": "queries",
+    "title": "Mô hình bài toán truy vấn: Trực tuyến và ngoại tuyến",
+    "summary": "Mô hình truy vấn yêu cầu chương trình trả lời liên tục $Q$ câu hỏi trên một cấu trúc dữ liệu hoặc dãy số, có thể xen kẽ các thao tác cập nhật. Việc phân loại bài toán là trực tuyến (online) hay ngoại tuyến (offline) có ý nghĩa quyết định trong việc lựa chọn giải thuật phù hợp. Xử lý ngoại tuyến mở ra cơ hội sắp xếp lại thứ tự truy vấn để tối ưu hóa thời gian thực thi toàn cục.",
+    "body": "> Ghi chú nhập môn MSOJ: nội dung biên soạn độc lập, không phải bản sao hay bài giảng chính thức của VNOI.\n\n### Mô hình và bất biến\nMột bài toán truy vấn nhận vào tập $Q$ thao tác. Có hai mô hình chính:\n- **Ngoại tuyến (Offline)**: Toàn bộ $Q$ truy vấn được biết trước ngay từ đầu. Thuật toán có quyền thay đổi thứ tự xử lý các truy vấn (ví dụ: sắp xếp theo thời điểm, theo tọa độ, hoặc theo khối như thuật toán Mo) miễn là kết quả cuối cùng được xuất ra theo đúng thứ tự yêu cầu ban đầu.\n- **Trực tuyến (Online)**: Dữ liệu của truy vấn thứ $i$ chỉ được tiết lộ sau khi chương trình đã trả lời xong truy vấn $i-1$ (thường bị mã hóa bằng kết quả trước đó qua phép XOR). Bắt buộc phải duy trì trạng thái cấu trúc dữ liệu tiến trình theo thời gian.\n\n### Các bước thực hiện\n1. **Nhận diện mô hình**: Kiểm tra đề bài có bắt buộc xử lý trực tuyến hay không (có cơ chế mã hóa truy vấn như `l = (l_raw ^ last_ans) % n` hay không).\n2. **Nếu ngoại tuyến**: Lưu toàn bộ truy vấn vào danh sách kèm theo chỉ số gốc; sắp xếp các truy vấn theo tiêu chí tối ưu hóa việc cập nhật dữ liệu.\n3. **Duy trì cấu trúc dữ liệu**: Sử dụng con trỏ quét hoặc cấu trúc dữ liệu động để trả lời lần lượt từng truy vấn đã sắp xếp, lưu kết quả vào mảng `ans[]` và in ra theo chỉ số gốc.\n\n### Ví dụ minh họa\nBài toán: Cho mảng $A$ và $Q$ truy vấn kiểm tra xem đoạn $[L, R]$ có chứa số dương hay không.\n- Nếu không có cập nhật và mảng tĩnh: Ta tiền xử lý mảng cộng dồn số lượng số dương trong $O(N)$.\n- Khi đó, dù xử lý trực tuyến hay ngoại tuyến, mỗi truy vấn $[L, R]$ đều được trả lời trong $O(1)$ bằng hiệu hai giá trị cộng dồn: $P[R] - P[L-1] > 0$.\n- Với $Q = 10^5$ và $N = 10^5$, tổng thời gian là $O(N + Q)$, hoàn toàn đáp ứng ngưỡng thời gian cho phép.\n\n### Độ phức tạp\n- **Thời gian**: Mục tiêu chuyển đổi chi phí ngây thơ $O(Q \\times N)$ xuống $O((N + Q) \\log N)$ hoặc $O(N \\sqrt{Q})$ cho toàn bộ $Q$ thao tác.\n- **Không gian**: $O(N + Q)$ để lưu trữ dữ liệu và danh sách truy vấn cùng mảng đáp án.\n\n### Cạm bẫy và lưu ý\n- Nhầm lẫn bài toán trực tuyến thành ngoại tuyến khi đề bài có điều kiện phụ thuộc vào kết quả truy vấn trước.\n- Khi sắp xếp truy vấn ngoại tuyến, quên lưu lại chỉ số ban đầu (`id`) dẫn đến việc in kết quả ra sai thứ tự đề bài yêu cầu.\n\n### Câu hỏi tự kiểm tra\n1. Tại sao phép mã hóa truy vấn bằng `ans_truoc` lại vô hiệu hóa hoàn toàn khả năng sử dụng các thuật toán như Thuật toán Mo?\n2. Khi nào một bài toán có cập nhật điểm và truy vấn đoạn có thể chuyển đổi thành bài toán quét tĩnh ngoại tuyến?",
+    "introduction": "Ghi chú nhập môn do MSOJ biên soạn để thử nghiệm học trên hệ thống. Phân biệt truy vấn và cập nhật cùng yêu cầu online hoặc offline.",
+    "provenance": {
+      "node_slug": "queries",
+      "source_kind": "VNOI roadmap topic mapping",
+      "source_nodes": [
+        {
+          "id": "MYMDHkFsK5Q5crb6tpiRH",
+          "label": "Queries"
         }
       ],
       "reading": []

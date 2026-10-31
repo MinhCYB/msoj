@@ -47,6 +47,16 @@ class Command(BaseCommand):
                     raise CommandError(f'Missing {key} for {note["node_slug"]}.')
             if len(note['title']) > 200 or len('cp-' + note['node_slug']) > 100:
                 raise CommandError(f'Invalid title or slug length for {note["node_slug"]}.')
+            extras = note.get('lessons', [])
+            if not isinstance(extras, list):
+                raise CommandError(f'Invalid supplementary lessons for {note["node_slug"]}.')
+            extra_slugs = [lesson.get('slug') for lesson in extras if isinstance(lesson, dict)]
+            if len(extra_slugs) != len(extras) or len(set(extra_slugs)) != len(extras) or 'overview' in extra_slugs:
+                raise CommandError(f'Invalid supplementary lesson slugs for {note["node_slug"]}.')
+            for lesson in extras:
+                if any(not isinstance(lesson.get(key), str) or not lesson[key].strip()
+                       for key in ('slug', 'title', 'summary', 'body')):
+                    raise CommandError(f'Incomplete supplementary lesson for {note["node_slug"]}.')
 
         user = None
         if options['apply']:
@@ -89,15 +99,17 @@ class Command(BaseCommand):
                 if node.learning_topic_id is not None:
                     if topic is None or node.learning_topic_id != topic.pk:
                         raise CommandError(f'{node.slug} already has other authored content; refusing overwrite.')
-                    lesson = topic.lessons.filter(slug='overview').first()
-                    actual = (topic.name, topic.introduction, topic.status, topic.visibility,
-                              topic.organization_id, topic.roadmap_nodes.count(), topic.lessons.count())
-                    wanted = (node.title.split(' (')[0], note['introduction'], Publication.PUBLISHED,
-                              Visibility.PUBLIC, None, 1, 1)
-                    if actual != wanted or lesson is None or (
-                            lesson.title, lesson.summary, lesson.body, lesson.position, lesson.status) != (
-                            note['title'], note['summary'], note['body'], 0, Publication.PUBLISHED):
+                    expected_lessons = [dict(note, slug='overview')] + note.get('lessons', [])
+                    if (topic.name, topic.introduction, topic.status, topic.visibility,
+                        topic.organization_id, topic.roadmap_nodes.count()) != (
+                            node.title.split(' (')[0], note['introduction'], Publication.PUBLISHED,
+                            Visibility.PUBLIC, None, 1):
                         raise CommandError(f'{node.slug} contains edits or shared content; keep them, no writes performed.')
+                    for position, payload in enumerate(expected_lessons):
+                        lesson = topic.lessons.filter(slug=payload['slug']).first()
+                        if lesson is None or (lesson.title, lesson.summary, lesson.body, lesson.status) != (
+                                payload['title'], payload['summary'], payload['body'], Publication.PUBLISHED):
+                            raise CommandError(f'{node.slug} contains edits or shared content; keep them, no writes performed.')
                     matched += 1
                 elif topic is not None:
                     raise CommandError(f'Topic slug {topic_slug} exists without expected placement; refusing reuse.')
@@ -112,10 +124,11 @@ class Command(BaseCommand):
                     name=node.title.split(' (')[0], slug=topic_slug, introduction=note['introduction'],
                     status=Publication.PUBLISHED, visibility=Visibility.PUBLIC,
                 ))
-                save_content(user, TopicLesson(
-                    topic=topic, title=note['title'], slug='overview', summary=note['summary'],
-                    body=note['body'], position=0, status=Publication.PUBLISHED,
-                ))
+                for position, payload in enumerate([dict(note, slug='overview')] + note.get('lessons', [])):
+                    save_content(user, TopicLesson(
+                        topic=topic, title=payload['title'], slug=payload['slug'], summary=payload['summary'],
+                        body=payload['body'], position=position, status=Publication.PUBLISHED,
+                    ))
                 node.learning_topic = topic
                 save_node(user, node)
             self.stdout.write(self.style.SUCCESS(f'Applied {len(creations)} topic/lesson placements. No problems or prerequisite edges added.'))

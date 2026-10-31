@@ -1,17 +1,11 @@
 """Learner roadmap staged cross-topic path and contextual node selection explorer."""
-from functools import lru_cache
 from typing import Any, Dict, List, Optional, Set, Tuple
 
 from django.db.models import Exists, OuterRef
 from django.http import Http404, HttpResponseBadRequest
 from django.urls import reverse
 
-from .roadmap_curriculum import (
-    DEFAULT_MANIFEST_PATH,
-    ROADMAP_SLUG,
-    CurriculumValidationError,
-    load_curriculum_manifest,
-)
+from .roadmap_curriculum import ROADMAP_SLUG
 from .roadmap_models import Publication, RoadmapNode, RoadmapPrerequisite, Visibility
 from .roadmap_selectors import (
     TreeRevisionStale,
@@ -20,124 +14,52 @@ from .roadmap_selectors import (
     serialize_node_list,
 )
 
-
-@lru_cache(maxsize=1)
-def get_cached_manifest() -> Optional[Dict[str, Any]]:
-    """Cached loader for curriculum manifest JSON. Fails closed on manifest errors."""
-    return load_curriculum_manifest(DEFAULT_MANIFEST_PATH)
-
-
-@lru_cache(maxsize=1)
-def get_manifest_node_introductions() -> Dict[str, str]:
-    """Learner-safe node introductions from approved manifest only."""
-    manifest = get_cached_manifest()
-    if not manifest or 'nodes' not in manifest:
-        return {}
-    intro_map: Dict[str, str] = {}
-    for node in manifest['nodes']:
-        slug = node.get('slug')
-        intro = node.get('introduction', '')
-        if slug and intro and intro.strip():
-            intro_map[slug] = intro.strip()
-    return intro_map
-
-
-@lru_cache(maxsize=1)
-def get_manifest_prerequisite_edges() -> List[Dict[str, Any]]:
-    """Prerequisite edges with learner-safe reasons from approved manifest only."""
-    manifest = get_cached_manifest()
-    if not manifest or 'prerequisites' not in manifest:
-        return []
-    return manifest.get('prerequisites', {}).get('edges', [])
-
-
 def get_serialized_published_nodes(roadmap, user) -> List[Dict[str, Any]]:
-    """
-    Fetch all effective-published nodes for the roadmap and serialize the entire list once.
-    Excludes drafts and any descendants of drafts.
-    """
+    """Fetch and serialize all effective-published nodes for a roadmap."""
     effective_filter = get_effective_published_nodes_filter(roadmap)
     published_nodes = list(
         RoadmapNode.objects.filter(roadmap=roadmap)
         .filter(effective_filter)
-        .annotate(
-            has_children=Exists(
-                RoadmapNode.objects.filter(parent=OuterRef('pk'), status=Publication.PUBLISHED)
-            )
-        )
+        .annotate(has_children=Exists(
+            RoadmapNode.objects.filter(parent=OuterRef('pk'), status=Publication.PUBLISHED)
+        ))
         .select_related('learning_topic')
         .order_by('tree_id', 'lft')
     )
-    if not published_nodes:
-        return []
-
     return serialize_node_list(roadmap, published_nodes, user)
 
 
-def build_prerequisite_graphs(
-    roadmap, serialized_nodes: List[Dict[str, Any]]
-) -> Tuple[
+def build_prerequisite_graphs(roadmap, serialized_nodes: List[Dict[str, Any]]) -> Tuple[
     Dict[int, List[Tuple[int, str]]],
     Dict[int, List[Tuple[int, str]]],
     Dict[int, List[Dict[str, Any]]],
     bool,
 ]:
-    """
-    Build in-memory prerequisite and successor DAGs filtering both endpoints.
-    Returns (prereq_graph, successor_graph, missing_prereqs, is_canonical).
-    Only trusts manifest when slug matches ROADMAP_SLUG and roadmap is PUBLIC.
-    """
+    """Build prerequisite and successor graphs from persisted roadmap edges."""
     id_map = {node['id']: node for node in serialized_nodes}
-    slug_map = {node['slug']: node for node in serialized_nodes}
-    published_ids = set(id_map.keys())
-
+    published_ids = set(id_map)
     prereq_graph: Dict[int, List[Tuple[int, str]]] = {}
     successor_graph: Dict[int, List[Tuple[int, str]]] = {}
     missing_prereqs: Dict[int, List[Dict[str, Any]]] = {}
-
     is_canonical = (
         roadmap.slug == ROADMAP_SLUG
         and getattr(roadmap, 'visibility', None) == Visibility.PUBLIC
     )
-
-    if is_canonical:
-        edges = get_manifest_prerequisite_edges()
-        for edge in edges:
-            target_slug = edge.get('target')
-            prereq_slugs = edge.get('prerequisites', [])
-            reason = edge.get('reason', '') or ''
-            if target_slug not in slug_map:
-                continue
-            target_id = slug_map[target_slug]['id']
-            for p_slug in prereq_slugs:
-                if p_slug in slug_map:
-                    p_id = slug_map[p_slug]['id']
-                    prereq_graph.setdefault(target_id, []).append((p_id, reason))
-                    successor_graph.setdefault(p_id, []).append((target_id, reason))
-                else:
-                    missing_prereqs.setdefault(target_id, []).append({
-                        'slug': p_slug,
-                        'reason': reason,
-                    })
-    else:
-        db_links = list(
-            RoadmapPrerequisite.objects.filter(
-                node__roadmap=roadmap,
-                prerequisite__roadmap=roadmap,
-            ).values_list('node_id', 'prerequisite_id')
-        )
-        for target_id, p_id in db_links:
-            if target_id not in published_ids:
-                continue
-            if p_id in published_ids:
-                prereq_graph.setdefault(target_id, []).append((p_id, ''))
-                successor_graph.setdefault(p_id, []).append((target_id, ''))
-            else:
-                missing_prereqs.setdefault(target_id, []).append({
-                    'id': p_id,
-                    'reason': '',
-                })
-
+    db_links = RoadmapPrerequisite.objects.filter(
+        node__roadmap=roadmap,
+        prerequisite__roadmap=roadmap,
+    ).values_list('node_id', 'prerequisite_id', 'reason')
+    for target_id, prerequisite_id, reason in db_links:
+        if target_id not in published_ids:
+            continue
+        if prerequisite_id in published_ids:
+            prereq_graph.setdefault(target_id, []).append((prerequisite_id, reason or ''))
+            successor_graph.setdefault(prerequisite_id, []).append((target_id, reason or ''))
+        else:
+            missing_prereqs.setdefault(target_id, []).append({
+                'id': prerequisite_id,
+                'reason': reason or '',
+            })
     return prereq_graph, successor_graph, missing_prereqs, is_canonical
 
 
@@ -524,11 +446,8 @@ def build_roadmap_explorer(request, roadmap) -> Dict[str, Any]:
             prerequisites.append({'node': id_map[pid], 'reason': safe_reason})
         for sid, reason in successor_graph.get(sel_id, []):
             has_missing_for_successor = bool(missing_prereqs.get(sid))
-            safe_reason = "" if has_missing_for_successor else reason
-            successors.append({'node': id_map[sid], 'reason': safe_reason})
-        if is_canonical:
-            manifest_intros = get_manifest_node_introductions()
-            summary = manifest_intros.get(selected_node['slug'], '')
+            successors.append({'node': id_map[sid], 'reason': '' if has_missing_for_successor else reason})
+        summary = selected_node.get('summary', '') or ''
 
     map_url = reverse('roadmap_detail', args=[roadmap.slug])
 
@@ -568,13 +487,26 @@ def build_roadmap_explorer(request, roadmap) -> Dict[str, Any]:
 
         if ntype == 'GROUP' or has_ch:
             node['catalog_url'] = f"{map_url}?view=catalog&group={nid}"
-        else:
-            node['catalog_url'] = f"{map_url}?view=catalog"
+    catalog_sections = []
+    if mode == 'catalog' and group_node:
+        section_groups = {}
+        unassigned = []
+        for node in visible_nodes:
+            section = (node.get('display_section') or '').strip()
+            if section:
+                section_groups.setdefault(section, []).append(node)
+            else:
+                unassigned.append(node)
+        catalog_sections.extend(
+            {'title': section, 'nodes': section_nodes}
+            for section, section_nodes in section_groups.items()
+        )
+        if unassigned:
+            catalog_sections.append({'title': 'Chuyên đề khác', 'nodes': unassigned})
 
-    journey, parallel_groups, current_milestone = _build_group_journey(
-        serialized_nodes, group_node, is_canonical
-    )
     _prepare_topic_finder(serialized_nodes, is_canonical)
+    journey, parallel_groups, current_milestone = _build_group_journey(
+        serialized_nodes, group_node, is_canonical)
 
     explorer = {
         'mode': mode,
@@ -583,6 +515,7 @@ def build_roadmap_explorer(request, roadmap) -> Dict[str, Any]:
         'stages': stages,
         'stage_index': stage_index,
         'visible_nodes': visible_nodes,
+        'catalog_sections': catalog_sections,
         'groups': groups,
         'group': group_node,
         'selected': selected_node,

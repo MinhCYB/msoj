@@ -143,11 +143,22 @@
             </section>
             {% endif %}
             {% else %}
+            {% if exp.catalog_sections %}
+                {% for section in exp.catalog_sections %}
+                <section class="rm-foundation-section" aria-labelledby="rm-foundations-section-{{ loop.index }}">
+                    <h2 id="rm-foundations-section-{{ loop.index }}" class="rm-list-heading">{{ section.title }}</h2>
+                    <ul class="rm-node-grid rm-catalog-grid">
+                        {% for item in section.nodes %}{{ node_card(item, true) }}{% endfor %}
+                    </ul>
+                </section>
+                {% endfor %}
+            {% else %}
             <h2 class="rm-list-heading">{{ 'Chuyên đề trong nhóm' if current_group else 'Các nhóm kiến thức' }}</h2>
             <ul class="rm-node-grid rm-catalog-grid">
                 {% for item in exp.visible_nodes %}{{ node_card(item, true) }}
                 {% else %}<li class="rm-empty">Nhóm này chưa có chuyên đề được công bố. <a href="{{ map_url }}?view=catalog">Quay lại danh mục</a>.</li>{% endfor %}
             </ul>
+            {% endif %}
             {% endif %}
         </section>
         {% if selected_node %}

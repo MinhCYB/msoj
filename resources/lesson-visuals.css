@@ -1,0 +1,76 @@
+/* Declarative visual document runtime */
+.msoj-visual { --mv-border: var(--ms-border, #c8ced8); --mv-text: var(--ms-text, #202630); --mv-muted: var(--ms-muted, #596575); --mv-bg: var(--ms-surface, #fff); --mv-subtle: var(--ms-surface-subtle, #f3f5f8); --mv-accent: var(--ms-accent, #245cad); color: var(--mv-text); min-width: 0; }
+.msoj-visual *, .msoj-visual *::before, .msoj-visual *::after { box-sizing: border-box; }
+.msoj-visual [hidden] { display: none !important; }
+.msoj-visual .mv-document-title { margin: 0 0 8px; font-size: 1.25rem; }
+.msoj-visual .mv-document-summary, .msoj-visual .mv-help { color: var(--mv-muted); }
+.msoj-visual .mv-module-grid { display: grid; gap: 12px; align-items: stretch; min-width: 0; }
+.msoj-visual .mv-grid-slot { min-width: 0; display: flex; flex-direction: column; }
+.msoj-visual .mv-panel { min-width: 0; height: 100%; border: 1px solid var(--mv-border); border-radius: 8px; background: var(--mv-bg); overflow: hidden; }
+.msoj-visual .mv-panel-header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--mv-border); background: var(--mv-subtle); }
+.msoj-visual .mv-panel-header h3 { flex: 1 1 auto; margin: 0; font-size: .95rem; }
+.msoj-visual .mv-module { min-width: 0; padding: 12px; }
+.msoj-visual .mv-module h3 { margin: 0 0 10px; font-size: 1rem; }
+.msoj-visual .mv-workspace-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 16px 0 8px; }
+.msoj-visual .mv-workspace-bar strong { flex: 1 1 180px; }
+.msoj-visual .mv-workspace-bar button { font-size: .85rem; }
+.msoj-visual .mv-layout-status:empty { display: none; }
+.msoj-visual .mv-layout-status { margin: 8px 0; color: var(--mv-muted); }
+.msoj-visual .mv-drag-handle, .msoj-visual .mv-move-select, .msoj-visual .mv-slot-label { display: none; }
+.msoj-visual .mv-arranging .mv-drag-handle, .msoj-visual .mv-arranging .mv-move-select { display: block; }
+.msoj-visual .mv-arranging .mv-drag-handle { cursor: grab; }
+.msoj-visual .mv-arranging .mv-move-select { flex: 1 1 160px; min-width: 0; width: 160px; }
+.msoj-visual .mv-arranging .mv-grid-slot { padding: 6px; border: 1px dashed var(--mv-border); border-radius: 8px; min-height: 100px; }
+.msoj-visual .mv-arranging .mv-slot-label { display: block; margin-bottom: 6px; font-size: .85rem; color: var(--mv-muted); }
+.msoj-visual .mv-arranging .mv-drop-target { outline: 3px solid var(--mv-accent); background: var(--mv-subtle); }
+.msoj-visual .mv-playback { margin: 12px 0; padding: 12px; border: 1px solid var(--mv-border); border-radius: 8px; background: var(--mv-subtle); }
+.msoj-visual .mv-input-details { margin: 8px 0; }
+.msoj-visual .mv-input-details summary { padding: 10px 0; cursor: pointer; font-weight: 600; }
+.msoj-visual .mv-data-list { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 8px 0 0; padding-left: 20px; font-size: .85rem; }
+.msoj-visual .mv-type-code pre { max-height: 400px; white-space: pre; overflow-wrap: normal; margin-bottom: 0; }
+.msoj-visual .mv-type-code { padding-top: 8px; }
+.msoj-visual .mv-type-graph .mv-graph-canvas, .msoj-visual .mv-type-tree .mv-graph-canvas { height: 360px; }
+.msoj-visual .mv-controls { display: flex; flex-wrap: wrap; gap: 12px; margin: 12px 0; padding: 10px; border: 1px solid var(--mv-border); border-radius: 8px; }
+.msoj-visual .mv-control-label { display: grid; gap: 4px; }
+.msoj-visual input, .msoj-visual select, .msoj-visual button { max-width: 100%; min-height: 40px; padding: 8px 10px; color: var(--mv-text); background: var(--mv-bg); border: 1px solid var(--mv-border); border-radius: 5px; font: inherit; }
+.msoj-visual button { cursor: pointer; }
+.msoj-visual button:hover:not(:disabled) { border-color: var(--mv-accent); background: var(--mv-subtle); }
+.msoj-visual button:disabled { opacity: .55; cursor: default; }
+.msoj-visual :focus-visible { outline: 3px solid var(--mv-accent); outline-offset: 2px; }
+.msoj-visual .mv-items { display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; overflow-x: auto; padding: 4px; }
+.msoj-visual .mv-item { overflow-wrap: anywhere; }
+.msoj-visual .mv-selected, .msoj-visual tr[aria-selected='true'] { border: 2px solid var(--mv-accent); background: var(--mv-subtle); }
+.msoj-visual .mv-empty, .msoj-visual .mv-frame-info { color: var(--mv-muted); }
+.msoj-visual .mv-scroll { max-width: 100%; overflow: auto; }
+.msoj-visual table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.msoj-visual caption { text-align: left; font-weight: 600; margin-bottom: 8px; }
+.msoj-visual .mv-module svg { display: block; width: 100%; max-height: 420px; border: 1px solid var(--mv-border); background: var(--mv-bg); }
+.msoj-visual .mv-module svg circle, .msoj-visual .mv-module svg rect { fill: var(--mv-subtle); stroke: var(--mv-accent); stroke-width: 2; }
+.msoj-visual .mv-module svg line { stroke: var(--mv-accent); stroke-width: 2; }
+.msoj-visual .mv-module svg text { fill: var(--mv-text); }
+ .msoj-visual .mv-number-line { position: relative; min-height: 52px; display: block; overflow: visible; margin: 16px 8px; border-bottom: 2px solid var(--mv-accent); }
+ .msoj-visual .mv-number-point { position: absolute; bottom: -12px; transform: translateX(-50%); padding: 4px; border: 2px solid var(--mv-accent); border-radius: 50%; background: var(--mv-bg); }
+.msoj-visual .mv-code-highlight { display: inline-block; width: 100%; background: #ffef9f; color: #161616; outline: 2px solid #9c7710; }
+.msoj-visual .mv-variable-list { display: grid; grid-template-columns: minmax(5rem,1fr) minmax(4rem,1fr); gap: 4px 12px; }
+.msoj-visual .mv-variable-list dt { font-weight: 600; }
+.msoj-visual .mv-variable-list dd { margin: 0; overflow-wrap: anywhere; }
+.msoj-visual .mv-frame-info { min-height: 1.5em; }
+@media (prefers-color-scheme: dark) { .msoj-visual .mv-code-highlight { background: #544300; color: #fff; outline-color: #e6c64a; } }
+.msoj-visual th, .msoj-visual td { padding: 7px 9px; border: 1px solid var(--mv-border); text-align: left; }
+.msoj-visual th { background: var(--mv-subtle); }
+.msoj-visual tbody tr[role='button'] { cursor: pointer; }
+.msoj-visual .mv-entry { display: flex; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--mv-border); }
+.msoj-visual pre { overflow: auto; max-width: 100%; white-space: pre-wrap; overflow-wrap: anywhere; font: 0.9rem/1.5 ui-monospace, monospace; }
+.msoj-visual .mv-timeline { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.msoj-visual .mv-timeline input[type='range'] { flex: 1 1 160px; }
+.msoj-visual .mv-chart-fallback, .msoj-visual .mv-graph-canvas { min-height: 180px; width: 100%; }
+.msoj-visual .mv-error { padding: 10px; border-left: 3px solid #a74334; overflow-wrap: anywhere; }
+@media (max-width: 760px) { .msoj-visual .mv-module-grid { grid-template-columns: minmax(0, 1fr) !important; } .msoj-visual .mv-grid-slot { grid-column: auto !important; grid-row: auto !important; } .msoj-visual .mv-grid-slot:not(:has(.mv-panel)) { display: none; } .msoj-visual .mv-arranging .mv-grid-slot { display: flex; } .msoj-visual .mv-type-graph .mv-graph-canvas, .msoj-visual .mv-type-tree .mv-graph-canvas { height: 280px; } }
+@media (prefers-reduced-motion: reduce) { .msoj-visual *, .msoj-visual *::before, .msoj-visual *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+.msoj-visual .mv-code-tabs { display: flex; gap: 8px; margin-bottom: 8px; }
+.msoj-visual .mv-code-tabs button[aria-pressed='true'] { border-color: var(--mv-accent); box-shadow: inset 0 -3px var(--mv-accent); }
+.msoj-visual .mv-scene-point, .msoj-visual .mv-scene-circle { cursor: grab; touch-action: none; }
+.msoj-visual .mv-derived-result { padding: 8px; border-left: 3px solid var(--mv-accent); background: var(--mv-subtle); }
+.msoj-visual .mv-input-editor { width: 100%; max-width: 100%; min-width: 0; padding: 10px; color: var(--mv-text); background: var(--mv-bg); border: 1px solid var(--mv-border); font: .9rem/1.5 ui-monospace, monospace; }
+.msoj-visual .mv-controls input { min-width: 0; }
+.msoj-visual .mv-controls label { align-self: center; }

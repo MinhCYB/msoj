@@ -1,0 +1,35 @@
+{% extends "admin/base_site.html" %}
+{% block extrahead %}{{ block.super }}{% include 'admin/mentor/roadmap/visual_assets.html' %}{% endblock %}
+{% block extrastyle %}
+{{ block.super }}
+<style>
+.roadmap-preview{max-width:1100px;margin:0 auto}.roadmap-preview__banner{padding:1rem;border-left:4px solid #dba617;background:var(--darkened-bg,#fff8dc);margin:1rem 0}.roadmap-preview__layout{display:grid;grid-template-columns:minmax(12rem,1fr) minmax(0,3fr);gap:1.5rem}.roadmap-preview__tree,.roadmap-preview__content{min-width:0}.roadmap-preview__tree ol{padding-left:1.25rem}.roadmap-preview__tree li{margin:.35rem 0}.roadmap-preview__status{font-size:.85em;color:var(--body-quiet-color,#666)}.roadmap-preview__prose{line-height:1.65;overflow-wrap:anywhere}.roadmap-preview__lessons{padding-left:1.25rem}.roadmap-preview__actions{display:flex;gap:.75rem;flex-wrap:wrap;margin:1rem 0}.roadmap-preview__muted{color:var(--body-quiet-color,#666)}
+@media(max-width:700px){.roadmap-preview__layout{grid-template-columns:1fr}.roadmap-preview__tree ol{padding-left:1rem}}
+</style>
+{% endblock %}
+{% block content %}
+<div class="roadmap-preview">
+  <div class="roadmap-preview__actions">
+    <a class="button" href="{{ workspace_url }}">Quay lại không gian quản trị lộ trình</a>
+    {% if node_workspace_url %}<a class="button" href="{{ node_workspace_url }}">Chỉnh sửa chủ đề</a>{% endif %}
+  </div>
+  {% if is_draft_preview %}<div class="roadmap-preview__banner" role="status"><strong>Xem trước bản nháp</strong> — nội dung này chưa được xuất bản. Việc xem trước không xuất bản nội dung và không ghi nhận tiến độ đọc.</div>{% endif %}
+  <p><strong>Đối tượng:</strong> {{ audience_label }}{% if roadmap.visibility == 'ORGANIZATION' and roadmap.organization %} · {{ roadmap.organization }}{% endif %}</p>
+  {% if not visibility_report.visible %}<section class="roadmap-preview__banner" aria-labelledby="visibility-heading"><h2 id="visibility-heading">Tình trạng xuất bản</h2><p>Nội dung này hiện chưa khả dụng với người học vì:</p><ul>{% for reason in visibility_report.reasons %}<li>{{ reason }}</li>{% endfor %}</ul></section>{% endif %}
+  <div class="roadmap-preview__layout">
+    <nav class="roadmap-preview__tree" aria-label="Các chủ đề trong lộ trình"><h2>Lộ trình</h2>
+      {% if nodes %}<ol>{% for item in nodes %}<li style="margin-left:{{ item.level }}rem"><a href="?node={{ item.pk }}">{{ item.title }}</a> <span class="roadmap-preview__status">{% if item.status == 'DRAFT' %}Bản nháp{% else %}Đã xuất bản{% endif %} · {% if item.type == 'GROUP' %}Nhóm{% else %}Chủ đề{% endif %}</span></li>{% endfor %}</ol>{% else %}<p class="roadmap-preview__muted">Lộ trình chưa có chủ đề.</p>{% endif %}
+    </nav>
+    <main class="roadmap-preview__content">
+      {% if node %}
+        <h2>{{ node.title }}</h2><p class="roadmap-preview__status">{% if node.status == 'DRAFT' %}Bản nháp{% else %}Đã xuất bản{% endif %} · {% if node.type == 'GROUP' %}Nhóm{% else %}Chủ đề{% endif %}</p>
+        {% if topic %}<section><h3>{{ topic.name }}</h3><p class="roadmap-preview__status">Chuyên đề học tập · {% if topic.status == 'DRAFT' %}Bản nháp{% else %}Đã xuất bản{% endif %} · {% if topic.visibility == 'PUBLIC' %}Công khai{% else %}Trong tổ chức{% endif %}</p>{% if topic.introduction %}<div class="roadmap-preview__prose">{{ topic_intro_html|safe }}</div>{% endif %}
+          <h3>Bài giảng</h3>{% if lessons %}<ol class="roadmap-preview__lessons">{% for item in lessons %}<li><a href="?node={{ node.pk }}&amp;lesson={{ item.pk }}">{{ item.title }}</a> <span class="roadmap-preview__status">{% if item.status == 'DRAFT' %}Bản nháp{% else %}Đã xuất bản{% endif %}</span></li>{% endfor %}</ol>{% else %}<p class="roadmap-preview__muted">Chuyên đề chưa có bài giảng.</p>{% endif %}
+        </section>{% elif node.type != 'GROUP' %}<p class="roadmap-preview__muted">Chủ đề chưa liên kết với chuyên đề học tập.</p>{% endif %}
+        {% if lesson %}<article><h2>{{ lesson.title }}</h2>{% if lesson.summary %}<section><h3>Tóm tắt</h3><div class="roadmap-preview__prose">{{ rendered_lesson.summary_html|safe }}</div></section>{% endif %}<section><h3>Nội dung bài giảng</h3><div class="roadmap-preview__prose">{{ rendered_lesson.body_html|safe }}</div></section></article>{% endif %}
+        {% if node.type == 'TOPIC' %}<section><h3>Bài tập</h3>{% if problem_rows %}<ul>{% for problem in problem_rows %}<li><a href="{{ problem.url }}">{{ problem.name }}</a></li>{% endfor %}</ul>{% else %}<p class="roadmap-preview__muted">Không có bài tập liên kết nào mà tài khoản của bạn được phép xem.</p>{% endif %}{% if hidden_problem_count %}<p class="roadmap-preview__muted">{{ hidden_problem_count }} bài tập liên kết không thể truy cập bằng tài khoản của bạn.</p>{% endif %}</section>{% endif %}
+      {% else %}<h2>{{ roadmap.title }}</h2>{% if roadmap.introduction %}<div class="roadmap-preview__prose">{{ roadmap_intro_html|safe }}</div>{% endif %}<p>Chọn một chủ đề trong cây lộ trình để xem trước nội dung dành cho người học.</p>{% endif %}
+    </main>
+  </div>
+</div>
+{% endblock %}

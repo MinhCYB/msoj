@@ -1,6 +1,7 @@
 """URL routing for Mentor Roadmap v2 Phase 1 read APIs."""
 from django.urls import path
 
+from .visual_views import compile_visual_view
 from .roadmap_pages import roadmap_markdown_preview
 from .roadmap_views import (
     roadmap_detail_view,
@@ -14,6 +15,7 @@ from .roadmap_views import (
 )
 
 urlpatterns = [
+    path('roadmap/visual-compile/', compile_visual_view, name='roadmap_visual_compile'),
     path('roadmap/markdown-preview/', roadmap_markdown_preview, name='roadmap_markdown_preview'),
     path('roadmaps/', roadmap_list_view, name='roadmap_list'),
     path('roadmap/<slug:slug>/', roadmap_detail_view, name='roadmap_detail'),
